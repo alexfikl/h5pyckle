@@ -1,0 +1,16 @@
+# directories
+__pycache__
+.pytest_cache
+.mypy_cache
+docs/_build
+*.egg-info
+build
+_build
+dist
+
+# generated files
+MANIFEST
+
+# temporaries
+*~
+*.swp
