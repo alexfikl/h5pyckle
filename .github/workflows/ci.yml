@@ -73,6 +73,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Main Script
       run: |
+        sudo apt-get update
+        sudo apt-get -o dir::cache::archives="$APT_DIR" install \
+          -y --no-install-recommends \
+          ocl-icd-opencl-dev libpocl-dev python3-pyopencl
         python -m pip install --upgrade pip
         python -m pip install -e .[dev]
         python -m pip install -r requirements-meshmode.txt
