@@ -194,7 +194,7 @@ def _(obj: Discretization, h5: H5Group, *, name: str):
 
     dump(type(obj), h5grp)
     dump(obj.mesh, h5grp, name="mesh")
-    dump(obj.dtype, h5grp, name="real_dtype")
+    dump(obj.real_dtype, h5grp, name="real_dtype")
 
     h5grp = h5grp.create_group("groups")
     for i, grp in enumerate(obj.groups):
@@ -225,7 +225,8 @@ def _(obj: InterpolationBatch, h5: H5Group, *, name: str):
     grp = h5.create_group(name)
     dump(type(obj), grp)
     grp.attrs["from_group_index"] = obj.from_group_index
-    grp.attrs["to_element_face"] = obj.to_element_face
+    if obj.to_element_face is not None:
+        grp.attrs["to_element_face"] = obj.to_element_face
 
     grp.create_dataset("from_element_indices",
             data=actx.to_numpy(obj.from_element_indices))
@@ -238,7 +239,7 @@ def _(obj: InterpolationBatch, h5: H5Group, *, name: str):
 def _(h5: H5Group) -> InterpolationBatch:
     actx = h5.pickler.actx
     from_group_index = h5.attrs["from_group_index"]
-    to_element_face = h5.attrs["to_element_face"]
+    to_element_face = h5.attrs.get("to_element_face", None)
 
     from_element_indices = h5["from_element_indices"][:]
     to_element_indices = h5["from_element_indices"][:]
@@ -270,10 +271,11 @@ def _(h5: H5Group) -> DiscretizationConnectionElementGroup:
 @dump.register(DirectDiscretizationConnection)
 def _(obj: DirectDiscretizationConnection, h5: H5Group, *, name: str):
     h5grp = h5.create_group(name)
-    h5grp.attrs["is_surjective"] = obj.is_surjective
-
+    dump(type(obj), h5grp)
     dump(obj.from_discr, h5grp, name="from_discr")
     dump(obj.to_discr, h5grp, name="to_discr")
+
+    h5grp.attrs["is_surjective"] = obj.is_surjective
 
     h5grp = h5grp.create_group("groups")
     for i, grp in enumerate(obj.groups):

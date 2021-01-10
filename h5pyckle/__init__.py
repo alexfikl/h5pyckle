@@ -24,8 +24,17 @@ class H5Group(h5py.Group):
     # pylint: disable=arguments-differ
     def create_dataset(self, name, *, shape=None, dtype=None, data=None):
         return super().create_dataset(name,
-                shape=shape, dtype=dtype, name=data,
+                shape=shape, dtype=dtype, data=data,
                 **self.pickler.h5_dset_options)
+
+    def __getitem__(self, name):
+        grp = super().__getitem__(name)
+
+        if isinstance(grp, h5py.Group):
+            return H5Group(self.pickler, grp.id)
+
+        # it's probably a dataset
+        return grp
 
 
 class Pickler(AbstractContextManager):
@@ -34,6 +43,12 @@ class Pickler(AbstractContextManager):
             mode: str = "w",
             h5_file_options: Optional[dict] = None,
             h5_dset_options: Optional[dict] = None):
+        if h5_file_options is None:
+            h5_file_options = {}
+
+        if h5_dset_options is None:
+            h5_dset_options = {}
+
         self.filename = filename
         self.mode = mode
 
@@ -71,7 +86,7 @@ def loader(h5: H5Group) -> Any:
     raise NotImplementedError
 
 
-def load(h5: h5py.File, *, pattern: Optional[str] = None):
+def load(h5: H5Group, *, pattern: Optional[str] = None):
     """
     :param h5: an open :class:`h5py.File`.
     :param pattern: if *None*, all the data from *h5* is loaded. Otherwise,
@@ -159,7 +174,7 @@ def _(h5: H5Group) -> type:
     return pickle.loads(h5.attrs["type"])
 
 
-@dump.register(Dict[str, Any])
+@dump.register(dict)
 def _(obj: Dict[str, Any], h5: H5Group, *, name: Optional[str] = None):
     for key, value in obj.items():
         try:
