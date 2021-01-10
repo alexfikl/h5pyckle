@@ -2,8 +2,8 @@ import os
 import pickle
 
 from functools import singledispatch
-from contextlib import AbstractContextManager, contextmanager
-from typing import Any, Optional, Union
+from contextlib import AbstractContextManager
+from typing import Any, Dict, Optional
 
 import h5py
 import numpy as np
@@ -16,10 +16,12 @@ class H5Group(h5py.Group):
         super().__init__(gid)
         self.pickler = pickler
 
+    # pylint: disable=arguments-differ
     def create_group(self, name, *, track_order=None):
         grp = super().create_group(name, track_order=track_order)
         return H5Group(self.pickler, grp.id)
 
+    # pylint: disable=arguments-differ
     def create_dataset(self, name, *, shape=None, dtype=None, data=None):
         return super().create_dataset(name,
                 shape=shape, dtype=dtype, name=data,
@@ -43,17 +45,15 @@ class Pickler(AbstractContextManager):
         if self.h5 is not None:
             raise RuntimeError("cannot nest pickling contexts")
 
-        self.h5 = h5py.File(filename, mode=mode, **self.h5_file_options)
+        self.h5 = h5py.File(self.filename,
+                mode=self.mode,
+                **self.h5_file_options)
+
         return H5Group(self, self.h5["/"].id)
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.h5.close()
         self.h5 = None
-
-    def create_group(self):
-        pass
-
-    def create_dataset(self)
 
 # }}}
 
@@ -112,9 +112,13 @@ def load_from_pattern(h5: H5Group, pattern: str):
         if pattern in name:
             return name
 
+        found = None
         for key in obj.attrs:
             if pattern in key:
-                return name
+                found = name
+                break
+
+        return found
 
     name = h5.visititems(callback)
     if name is None:
@@ -122,14 +126,21 @@ def load_from_pattern(h5: H5Group, pattern: str):
 
     h5grp = h5[name]
     if pattern in name:
-        if "type" in h5grp.attrs:
-            return load_from_type(h5grp)
-        else:
-            raise NotImplementedError
-    else:
-        for key, value in h5grp.attrs.items():
-            if pattern in key:
-                return value
+        if "type" not in h5grp.attrs:
+            raise RuntimeError(f"could not load '{name}' due to missing 'type'")
+
+        return load_from_type(h5grp)
+
+    found = None
+    for key, value in h5grp.attrs.items():
+        if pattern in key:
+            found = value
+            break
+
+    if found is None:
+        raise RuntimeError(f"attribute matching '{pattern}' not found in '{name}'")
+
+    return found
 
 # }}}
 
@@ -137,7 +148,7 @@ def load_from_pattern(h5: H5Group, pattern: str):
 # {{{ python types
 
 @dump.register(type)
-def _(obj: type, h5: H5Group, *. name: Optional[str] = None):
+def _(obj: type, h5: H5Group, *, name: Optional[str] = None):
     if name is None:
         name = "type"
     h5.attrs[name] = np.array(pickle.dumps(obj))
@@ -148,12 +159,12 @@ def _(h5: H5Group) -> type:
     return pickle.loads(h5.attrs["type"])
 
 
-@dump.register(Dict)
-def _(obj: Dict, h5: H5Group, *, name: Optional[str] = None):
+@dump.register(Dict[str, Any])
+def _(obj: Dict[str, Any], h5: H5Group, *, name: Optional[str] = None):
     for key, value in obj.items():
         try:
             dump(value, h5, name=key)
-        except:
+        except pickle.PicklingError:
             h5.attrs[key] = np.array(pickle.dumps(value))
 
 # }}}

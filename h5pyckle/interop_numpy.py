@@ -1,22 +1,24 @@
+from typing import Optional
+
 import numpy as np
 
-from h5pyckle import H5FileLike, dump, loader, pickle_type, load_from_type
+from h5pyckle import H5Group, dump, loader, load_from_type
 
 
 # {{{ dtype
 
 @dump.register(np.dtype)
-def _(obj: np.dtype, h5: H5FileLike, *, name: Optional[str] = None):
+def _(obj: np.dtype, h5: H5Group, *, name: Optional[str] = None):
     if name is None:
         h5.attrs["dtype"] = np.array(obj.str.encode())
     else:
         grp = h5.create_group(name)
-        grp.attrs["type"] = pickle_type(obj)
+        dump(type(obj), grp)
         grp.attrs["dtype"] = np.array(obj.str.encode())
 
 
 @loader.register(np.dtype)
-def _(h5: H5FileLike) -> np.dtype:
+def _(h5: H5Group) -> np.dtype:
     return np.dtype(h5.attrs["dtype"])
 
 # }}}
@@ -25,9 +27,7 @@ def _(h5: H5FileLike) -> np.dtype:
 # {{{ ndarray
 
 @dump.register(np.ndarray)
-def _(obj: np.ndarray, h5: H5FileLike, *, name: str):
-    from h5pyckle import pickle_type
-
+def _(obj: np.ndarray, h5: H5Group, *, name: str):
     grp = h5.create_group(name)
     dump(type(obj), grp)
     dump(obj.dtype, grp)
@@ -40,7 +40,7 @@ def _(obj: np.ndarray, h5: H5FileLike, *, name: str):
 
 
 @loader.register(np.ndarray)
-def _(h5: H5FileLike) -> np.ndarray:
+def _(h5: H5Group) -> np.ndarray:
     dtype = loader.dispatch(np.dtype)(h5)
 
     if dtype.char == "O":
@@ -48,7 +48,7 @@ def _(h5: H5FileLike) -> np.ndarray:
         return make_obj_array([
             load_from_type(h5[name]) for name in h5
             ])
-    else:
-        return h5[:]
+
+    return h5[:]
 
 # }}}
