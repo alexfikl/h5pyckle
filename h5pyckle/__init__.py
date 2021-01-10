@@ -101,7 +101,16 @@ def load(h5: H5Group, *, pattern: Optional[str] = None):
                 groups[name] = load_from_type(h5[name])
 
         for name, value in h5.attrs.items():
-            groups[name] = value
+            # NOTE: mostly here so it can be used with the dict loader
+            if name == "type":
+                continue
+
+            try:
+                real_value = pickle.loads(value)
+            except pickle.PicklingError:
+                real_value = value
+
+            groups[name] = real_value
     else:
         groups = load_from_pattern(h5, pattern)
 
@@ -176,10 +185,19 @@ def _(h5: H5Group) -> type:
 
 @dump.register(dict)
 def _(obj: Dict[str, Any], h5: H5Group, *, name: Optional[str] = None):
+    if name is not None:
+        h5 = h5.create_group(name)
+        dump(type(obj), h5)
+
     for key, value in obj.items():
         try:
             dump(value, h5, name=key)
         except pickle.PicklingError:
             h5.attrs[key] = np.array(pickle.dumps(value))
+
+
+@loader.register(dict)
+def _(h5: H5Group) -> Dict[str, Any]:
+    return load(h5)
 
 # }}}

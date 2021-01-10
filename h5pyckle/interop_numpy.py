@@ -45,9 +45,9 @@ def _(obj: np.ndarray, h5: H5Group, *, name: str):
 
     if obj.dtype.char == "O":
         for i, ary in enumerate(obj):
-            dump(ary, grp, name=f"{name}_{i:05d}")
+            dump(ary, grp, name=f"data_{i:05d}")
     else:
-        h5.create_dataset(name, data=obj)
+        grp.create_dataset("data", data=obj)
 
 
 @loader.register(np.ndarray)
@@ -59,6 +59,6 @@ def _(h5: H5Group) -> np.ndarray:
             load_from_type(h5[name]) for name in h5
             ])
 
-    return h5[:]
+    return h5["data"][:]
 
 # }}}
