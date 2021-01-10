@@ -75,8 +75,9 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends \
-          ocl-icd-opencl-dev libpocl-dev
+          ocl-icd-opencl-dev libpocl-dev python3-pyopencl
         python -m pip install --upgrade pip wheel
+        python -m pip install -I pyopencl
         python -m pip install -e .[dev]
         python -m pip install -r requirements-meshmode.txt
         python -m pytest tests/test_meshmode.py
