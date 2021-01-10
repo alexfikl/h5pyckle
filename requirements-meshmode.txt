@@ -8,3 +8,4 @@ git+https://github.com/inducer/genpy.git#egg=genpy
 git+https://github.com/inducer/pymbolic.git#egg=pymbolic
 git+https://github.com/inducer/modepy.git#egg=modepy
 git+https://github.com/inducer/loopy.git#egg=loopy
+git+https://github.com/inducer/meshmode.git#egg=meshmode
