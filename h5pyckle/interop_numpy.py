@@ -5,6 +5,17 @@ import numpy as np
 from h5pyckle import H5Group, dump, loader, load_from_type
 
 
+def make_obj_array(arrays):
+    result = np.empty((len(arrays),), dtype=object)
+
+    # 'result[:] = res_list' may look tempting, however:
+    # https://github.com/numpy/numpy/issues/16564
+    for idx in range(len(arrays)):
+        result[idx] = arrays[idx]
+
+    return result
+
+
 # {{{ dtype
 
 @dump.register(np.dtype)
@@ -44,7 +55,6 @@ def _(h5: H5Group) -> np.ndarray:
     dtype = loader.dispatch(np.dtype)(h5)
 
     if dtype.char == "O":
-        from pystopt.obj_array import make_obj_array
         return make_obj_array([
             load_from_type(h5[name]) for name in h5
             ])
