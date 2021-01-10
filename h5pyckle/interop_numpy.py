@@ -10,8 +10,8 @@ def make_obj_array(arrays):
 
     # 'result[:] = res_list' may look tempting, however:
     # https://github.com/numpy/numpy/issues/16564
-    for idx in range(len(arrays)):
-        result[idx] = arrays[idx]
+    for i, ary in enumerate(arrays):
+        result[i] = ary
 
     return result
 

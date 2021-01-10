@@ -68,6 +68,8 @@ def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
 
     # }}}
 
+    # {{{ pickle
+
     from meshmode.dof_array import thaw
     nodes = thaw(actx, discr.nodes())
 
@@ -85,6 +87,10 @@ def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
         mesh_new = data["Mesh"]
         discr_new = data["Discretization"]
         conn_new = data["Connection"]
+
+    # }}}
+
+    # {{{ check
 
     # check stored field is the same
     error = rnorm(actx, x_new, nodes[0])
@@ -112,6 +118,8 @@ def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
     error = rnorm(actx, nodes_new, nodes)
     print("error[conns]:  %.5e" % error)
     assert error < 1.0e-15
+
+    # }}}
 
 # }}}
 
