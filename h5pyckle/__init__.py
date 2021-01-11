@@ -6,5 +6,6 @@ import h5pyckle.interop_numpy           # noqa: F401
 
 
 __all__ = [
-    "dump", "load", "Pickler",
+    "dump", "load", "dump_to_file", "load_from_file",
+    "Pickler",
 ]
