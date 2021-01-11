@@ -79,7 +79,7 @@ jobs:
         python -m pip install --upgrade pip wheel
         python -m pip install -I pyopencl
         python -m pip install -e .[dev]
-        python -m pip install -r requirements-meshmode.txt
+        python -m pip install -r .ci/requirements-meshmode.txt
         python -m pytest tests/test_meshmode.py
 
 # vim: set ts=2 sw=2 et:
