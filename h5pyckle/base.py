@@ -6,6 +6,7 @@ from contextlib import AbstractContextManager
 from typing import Any, List, Optional
 
 import h5py
+import numpy as np
 
 # https://docs.h5py.org/en/stable/high/attr.html#attributes
 _MAX_ATTRIBUTE_SIZE = 2**13
@@ -125,6 +126,9 @@ def load(h5: H5Group, *,
             if any(ex in name for ex in exclude):
                 continue
 
+            if isinstance(value, np.void):
+                value = value.tobytes()
+
             if isinstance(value, bytes):
                 try:
                     real_value = pickle.loads(value)
@@ -138,6 +142,16 @@ def load(h5: H5Group, *,
         groups = load_from_pattern(h5, pattern)
 
     return groups
+
+
+def dump_to_file(obj, filename: os.PathLike, *, name: Optional[str] = None):
+    with Pickler(filename, mode="w") as root:
+        dump(obj, root, name=name)
+
+
+def load_from_file(filename: os.PathLike):
+    with Pickler(filename, mode="r") as root:
+        return load(root)
 
 # }}}
 
