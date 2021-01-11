@@ -2,7 +2,8 @@ from typing import Optional
 
 import numpy as np
 
-from h5pyckle import H5Group, dump, loader, load_from_type
+from h5pyckle.base import H5Group
+from h5pyckle.base import dump, loader, load_from_type, create_type
 
 
 def make_obj_array(arrays):
@@ -23,8 +24,7 @@ def _(obj: np.dtype, h5: H5Group, *, name: Optional[str] = None):
     if name is None:
         h5.attrs["dtype"] = np.array(obj.str.encode())
     else:
-        grp = h5.create_group(name)
-        dump(type(obj), grp)
+        grp = create_type(obj, h5, name=name)
         grp.attrs["dtype"] = np.array(obj.str.encode())
 
 
@@ -38,27 +38,26 @@ def _(h5: H5Group) -> np.dtype:
 # {{{ ndarray
 
 @dump.register(np.ndarray)
-def _(obj: np.ndarray, h5: H5Group, *, name: str):
-    grp = h5.create_group(name)
-    dump(type(obj), grp)
+def _(obj: np.ndarray, h5: H5Group, *, name: Optional[str] = None):
+    grp = create_type(obj, h5, name=name)
     dump(obj.dtype, grp)
 
     if obj.dtype.char == "O":
         for i, ary in enumerate(obj):
-            dump(ary, grp, name=f"data_{i:05d}")
+            dump(ary, grp, name=f"entry_{i}")
     else:
-        grp.create_dataset("data", data=obj)
+        grp.create_dataset("entry", data=obj)
 
 
 @loader.register(np.ndarray)
 def _(h5: H5Group) -> np.ndarray:
-    dtype = loader.dispatch(np.dtype)(h5)
+    dtype = load_from_type(h5, obj_type=np.dtype)
 
     if dtype.char == "O":
         return make_obj_array([
-            load_from_type(h5[name]) for name in h5
+            load_from_type(h5[name]) for name in sorted(h5)
             ])
 
-    return h5["data"][:]
+    return h5["entry"][:]
 
 # }}}
