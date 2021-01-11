@@ -61,7 +61,7 @@ jobs:
   pytest-meshmode:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: pytest-meshmode-${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.6, 3.9]
