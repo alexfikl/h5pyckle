@@ -1,3 +1,4 @@
+import os
 from functools import partial
 
 import pytest
@@ -8,8 +9,7 @@ from pyopencl.tools import (  # noqa: F401
         pytest_generate_tests_for_pyopencl
         as pytest_generate_tests)
 
-from h5pyckle import dump, load
-from h5pyckle.interop_meshmode import ArrayContextPickler
+from h5pyckle.interop_meshmode import dump_to_file, load_from_file
 
 
 def norm(actx, x):
@@ -73,20 +73,21 @@ def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
     from meshmode.dof_array import thaw
     nodes = thaw(actx, discr.nodes())
 
-    with ArrayContextPickler(actx, "meshmode.h5", mode="w") as h5:
-        dump(nodes[0], h5, name="Field")
-        dump(nodes, h5, name="Nodes")
-        dump(mesh, h5, name="Mesh")
-        dump(discr, h5, name="Discretization")
-        dump(conn, h5, name="Connection")
+    filename = os.path.join(os.path.dirname(__file__), "pickle_meshmode.h5")
+    dump_to_file(actx, {
+        "Field": nodes[0],
+        "Nodes": nodes,
+        "Mesh": mesh,
+        "Discretization": discr,
+        "Connection": conn,
+        }, filename)
 
-    with ArrayContextPickler(actx, "meshmode.h5", mode="r") as h5:
-        data = load(h5)
-        x_new = data["Field"]
-        nodes_new = data["Nodes"]
-        mesh_new = data["Mesh"]
-        discr_new = data["Discretization"]
-        conn_new = data["Connection"]
+    data = load_from_file(actx, filename)
+    x_new = data["Field"]
+    nodes_new = data["Nodes"]
+    mesh_new = data["Mesh"]
+    discr_new = data["Discretization"]
+    conn_new = data["Connection"]
 
     # }}}
 

@@ -144,7 +144,7 @@ def load(h5: H5Group, *,
     return groups
 
 
-def dump_to_file(obj, filename: os.PathLike, *, name: Optional[str] = None):
+def dump_to_file(obj: Any, filename: os.PathLike, *, name: Optional[str] = None):
     with Pickler(filename, mode="w") as root:
         dump(obj, root, name=name)
 

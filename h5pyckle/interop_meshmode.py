@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -33,6 +33,20 @@ class ArrayContextPickler(Pickler):
                 h5_dset_options=h5_dset_options)
 
         self.actx = actx
+
+
+def dump_to_file(actx,
+        obj: Any,
+        filename: os.PathLike, *,
+        name: Optional[str] = None):
+    with ArrayContextPickler(actx, filename, mode="w") as root:
+        dump(obj, root, name=name)
+
+
+def load_from_file(actx, filename: os.PathLike):
+    from h5pyckle.base import load
+    with ArrayContextPickler(actx, filename, mode="r") as root:
+        return load(root)
 
 # }}}
 
