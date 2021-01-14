@@ -6,11 +6,23 @@
 Welcome to h5pyckle's documentation!
 ====================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+Example
+-------
 
+Reference
+---------
 
+.. automodule:: h5pyckle.base
+
+Numpy
+^^^^^
+
+.. .. automodule:: h5pyckle.interop_numpy
+
+Meshmode
+^^^^^^^^
+
+.. .. automodule:: h5pyckle.interop_meshmode
 
 Indices and tables
 ==================

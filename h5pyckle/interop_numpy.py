@@ -2,8 +2,8 @@ from typing import Optional
 
 import numpy as np
 
-from h5pyckle.base import H5Group
-from h5pyckle.base import dump, loader, load_from_type, create_type
+from h5pyckle.base import dumper, loader
+from h5pyckle.base import PickleGroup, load_from_type, create_type
 
 
 def make_obj_array(arrays):
@@ -19,45 +19,45 @@ def make_obj_array(arrays):
 
 # {{{ dtype
 
-@dump.register(np.dtype)
-def _(obj: np.dtype, h5: H5Group, *, name: Optional[str] = None):
+@dumper.register(np.dtype)
+def _(obj: np.dtype, pkl: PickleGroup, *, name: Optional[str] = None):
     if name is None:
-        h5.attrs["dtype"] = np.array(obj.str.encode())
+        pkl.attrs["dtype"] = np.array(obj.str.encode())
     else:
-        grp = create_type(obj, h5, name=name)
+        grp = create_type(obj, pkl, name=name)
         grp.attrs["dtype"] = np.array(obj.str.encode())
 
 
 @loader.register(np.dtype)
-def _(h5: H5Group) -> np.dtype:
-    return np.dtype(h5.attrs["dtype"])
+def _(pkl: PickleGroup) -> np.dtype:
+    return np.dtype(pkl.attrs["dtype"])
 
 # }}}
 
 
 # {{{ ndarray
 
-@dump.register(np.ndarray)
-def _(obj: np.ndarray, h5: H5Group, *, name: Optional[str] = None):
-    grp = create_type(obj, h5, name=name)
-    dump(obj.dtype, grp)
+@dumper.register(np.ndarray)
+def _(obj: np.ndarray, pkl: PickleGroup, *, name: Optional[str] = None):
+    grp = create_type(obj, pkl, name=name)
+    dumper(obj.dtype, grp)
 
     if obj.dtype.char == "O":
         for i, ary in enumerate(obj):
-            dump(ary, grp, name=f"entry_{i}")
+            dumper(ary, grp, name=f"entry_{i}")
     else:
         grp.create_dataset("entry", data=obj)
 
 
 @loader.register(np.ndarray)
-def _(h5: H5Group) -> np.ndarray:
-    dtype = load_from_type(h5, obj_type=np.dtype)
+def _(pkl: PickleGroup) -> np.ndarray:
+    dtype = load_from_type(pkl, obj_type=np.dtype)
 
     if dtype.char == "O":
         return make_obj_array([
-            load_from_type(h5[name]) for name in sorted(h5)
+            load_from_type(pkl[name]) for name in sorted(pkl)
             ])
 
-    return h5["entry"][:]
+    return pkl["entry"][:]
 
 # }}}

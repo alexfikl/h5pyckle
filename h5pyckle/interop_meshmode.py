@@ -12,17 +12,17 @@ from meshmode.discretization.connection import \
         DiscretizationConnectionElementGroup, \
         DirectDiscretizationConnection
 
-from h5pyckle.base import H5Group, Pickler
-from h5pyckle.base import dump, loader, load_from_type, create_type
+from h5pyckle.base import dumper, loader
+from h5pyckle.base import PickleFile, PickleGroup, load_from_type, create_type
 import h5pyckle.interop_numpy       # noqa: F401
 
 
-__all__ = ["ArrayContextPickler"]
+__all__ = ["ArrayContextPickleFile"]
 
 
 # {{{ context manager
 
-class ArrayContextPickler(Pickler):
+class ArrayContextPickleFile(PickleFile):
     def __init__(self, actx,
             filename: os.PathLike, *,
             mode: str = "w",
@@ -35,27 +35,28 @@ class ArrayContextPickler(Pickler):
         self.actx = actx
 
 
-def dump_to_file(actx,
+def dump(actx,
         obj: Any,
         filename: os.PathLike, *,
         name: Optional[str] = None):
-    with ArrayContextPickler(actx, filename, mode="w") as root:
-        dump(obj, root, name=name)
+    from h5pyckle.base import dump_to_group
+    with ArrayContextPickleFile(actx, filename, mode="w") as root:
+        dump_to_group(obj, root, name=name)
 
 
-def load_from_file(actx, filename: os.PathLike):
-    from h5pyckle.base import load
-    with ArrayContextPickler(actx, filename, mode="r") as root:
-        return load(root)
+def load(actx, filename: os.PathLike):
+    from h5pyckle.base import load_from_group
+    with ArrayContextPickleFile(actx, filename, mode="r") as root:
+        return load_from_group(root)
 
 # }}}
 
 
 # {{{ dof arrays
 
-@dump.register(DOFArray)
-def _(obj: DOFArray, h5: H5Group, *, name: Optional[str] = None):
-    actx = h5.pickler.actx
+@dumper.register(DOFArray)
+def _(obj: DOFArray, pkl: PickleGroup, *, name: Optional[str] = None):
+    actx = pkl.context.actx
 
     from meshmode.dof_array import thaw, freeze
     if obj.array_context is None:
@@ -64,17 +65,17 @@ def _(obj: DOFArray, h5: H5Group, *, name: Optional[str] = None):
         obj = thaw(actx, freeze(obj))
 
     # TODO: handle complex dtypes
-    subgrp = create_type(obj, h5, name=name)
+    subgrp = create_type(obj, pkl, name=name)
     for i, ary in enumerate(obj):
         subgrp.create_dataset(f"entry_{i}", data=actx.to_numpy(ary))
 
 
 @loader.register(DOFArray)
-def _(h5: H5Group) -> DOFArray:
-    actx = h5.pickler.actx
+def _(pkl: PickleGroup) -> DOFArray:
+    actx = pkl.context.actx
 
     return DOFArray(actx, tuple([
-        actx.from_numpy(h5[name][:]) for name in h5
+        actx.from_numpy(pkl[name][:]) for name in pkl
         ]))
 
 # }}}
@@ -82,9 +83,9 @@ def _(h5: H5Group) -> DOFArray:
 
 # {{{ mesh
 
-@dump.register(MeshElementGroup)
-def _(obj: MeshElementGroup, h5: H5Group, *, name: Optional[str] = None):
-    subgrp = create_type(obj, h5, name=name)
+@dumper.register(MeshElementGroup)
+def _(obj: MeshElementGroup, pkl: PickleGroup, *, name: Optional[str] = None):
+    subgrp = create_type(obj, pkl, name=name)
 
     subgrp.attrs["order"] = obj.order
     subgrp.attrs["dim"] = obj.dim
@@ -95,36 +96,36 @@ def _(obj: MeshElementGroup, h5: H5Group, *, name: Optional[str] = None):
 
 
 @loader.register(MeshElementGroup)
-def _(h5: H5Group) -> MeshElementGroup:
+def _(pkl: PickleGroup) -> MeshElementGroup:
     # NOTE: h5py extracts these as np.intp
-    order = int(h5.attrs["order"])
-    dim = int(h5.attrs["dim"])
+    order = int(pkl.attrs["order"])
+    dim = int(pkl.attrs["dim"])
 
-    vertex_indices = h5["vertex_indices"][:]
-    nodes = h5["nodes"][:]
-    unit_nodes = h5["unit_nodes"][:]
+    vertex_indices = pkl["vertex_indices"][:]
+    nodes = pkl["nodes"][:]
+    unit_nodes = pkl["unit_nodes"][:]
 
-    cls = load_from_type(h5, obj_type=type)
+    cls = load_from_type(pkl, obj_type=type)
     return cls(order, vertex_indices, nodes,
             unit_nodes=unit_nodes,
             dim=dim)
 
 
-@dump.register(Mesh)
-def _(obj: Mesh, h5: H5Group, *, name: str):
-    h5 = h5.create_group(name)
-    dump(type(obj), h5)
+@dumper.register(Mesh)
+def _(obj: Mesh, pkl: PickleGroup, *, name: str):
+    pkl = pkl.create_group(name)
+    dumper(type(obj), pkl)
 
-    dump(obj.vertex_id_dtype, h5, name="vertex_id_dtype")
-    dump(obj.element_id_dtype, h5, name="element_id_dtype")
+    dumper(obj.vertex_id_dtype, pkl, name="vertex_id_dtype")
+    dumper(obj.element_id_dtype, pkl, name="element_id_dtype")
 
-    h5.attrs["is_conforming"] = obj.is_conforming
-    h5.attrs["boundary_tags"] = np.void(pickle.dumps(obj.boundary_tags))
-    h5.create_dataset("vertices", data=obj.vertices)
+    pkl.attrs["is_conforming"] = obj.is_conforming
+    pkl.attrs["boundary_tags"] = np.void(pickle.dumps(obj.boundary_tags))
+    pkl.create_dataset("vertices", data=obj.vertices)
 
-    subgrp = h5.create_group("groups")
+    subgrp = pkl.create_group("groups")
     for i, grp in enumerate(obj.groups):
-        dump(grp, subgrp, name=f"group_{i:05d}")
+        dumper(grp, subgrp, name=f"group_{i:05d}")
 
     # TODO
     # FacialAdjacencyGroup
@@ -132,14 +133,14 @@ def _(obj: Mesh, h5: H5Group, *, name: str):
 
 
 @loader.register(Mesh)
-def _(h5: H5Group) -> Mesh:
-    vertex_id_dtype = load_from_type(h5["vertex_id_dtype"])
-    element_id_dtype = load_from_type(h5["element_id_dtype"])
+def _(pkl: PickleGroup) -> Mesh:
+    vertex_id_dtype = load_from_type(pkl["vertex_id_dtype"])
+    element_id_dtype = load_from_type(pkl["element_id_dtype"])
 
-    is_conforming = h5.attrs["is_conforming"]
-    boundary_tags = pickle.loads(h5.attrs["boundary_tags"].tobytes())
-    vertices = h5["vertices"][:]
-    groups = [load_from_type(h5["groups"][name]) for name in h5["groups"]]
+    is_conforming = pkl.attrs["is_conforming"]
+    boundary_tags = pickle.loads(pkl.attrs["boundary_tags"].tobytes())
+    vertices = pkl["vertices"][:]
+    groups = [load_from_type(pkl["groups"][name]) for name in pkl["groups"]]
 
     # TODO
     # FacialAdjacencyGroup
@@ -186,37 +187,37 @@ class _SameElementGroupFactory:
         return type(grp)(mesh_el_group, grp.order, index)
 
 
-@dump.register(ElementGroupBase)
-def _(obj: ElementGroupBase, h5: H5Group, *, name: Optional[str] = None):
-    subgrp = create_type(obj, h5, name=name)
+@dumper.register(ElementGroupBase)
+def _(obj: ElementGroupBase, pkl: PickleGroup, *, name: Optional[str] = None):
+    subgrp = create_type(obj, pkl, name=name)
     subgrp.attrs["order"] = obj.order
 
 
 @loader.register(ElementGroupBase)
-def _(h5: H5Group) -> ElementGroupBase:
+def _(pkl: PickleGroup) -> ElementGroupBase:
     # NOTE: the mesh_el_group and index are set by the group factory
-    cls = load_from_type(h5, obj_type=type)
-    return cls(None, int(h5.attrs["order"]), -1)
+    cls = load_from_type(pkl, obj_type=type)
+    return cls(None, int(pkl.attrs["order"]), -1)
 
 
-@dump.register(Discretization)
-def _(obj: Discretization, h5: H5Group, *, name: Optional[str] = None):
-    subgrp = create_type(obj, h5, name=name)
-    dump(obj.mesh, subgrp, name="mesh")
-    dump(obj.real_dtype, subgrp, name="real_dtype")
+@dumper.register(Discretization)
+def _(obj: Discretization, pkl: PickleGroup, *, name: Optional[str] = None):
+    subgrp = create_type(obj, pkl, name=name)
+    dumper(obj.mesh, subgrp, name="mesh")
+    dumper(obj.real_dtype, subgrp, name="real_dtype")
 
     subgrp = subgrp.create_group("groups")
     for i, grp in enumerate(obj.groups):
-        dump(grp, subgrp, name=f"group_{i}")
+        dumper(grp, subgrp, name=f"group_{i}")
 
 
 @loader.register(Discretization)
-def _(h5: H5Group) -> Discretization:
-    actx = h5.pickler.actx
+def _(pkl: PickleGroup) -> Discretization:
+    actx = pkl.context.actx
 
-    mesh = load_from_type(h5["mesh"])
-    real_dtype = load_from_type(h5["real_dtype"])
-    groups = [load_from_type(h5["groups"][name]) for name in h5["groups"]]
+    mesh = load_from_type(pkl["mesh"])
+    real_dtype = load_from_type(pkl["real_dtype"])
+    groups = [load_from_type(pkl["groups"][name]) for name in pkl["groups"]]
 
     return Discretization(actx, mesh,
             group_factory=_SameElementGroupFactory(groups),
@@ -227,10 +228,10 @@ def _(h5: H5Group) -> Discretization:
 
 # {{{ direct connection
 
-@dump.register(InterpolationBatch)
-def _(obj: InterpolationBatch, h5: H5Group, *, name: Optional[str] = None):
-    actx = h5.pickler.actx
-    grp = create_type(obj, h5, name=name)
+@dumper.register(InterpolationBatch)
+def _(obj: InterpolationBatch, pkl: PickleGroup, *, name: Optional[str] = None):
+    actx = pkl.context.actx
+    grp = create_type(obj, pkl, name=name)
 
     grp.attrs["from_group_index"] = obj.from_group_index
     if obj.to_element_face is not None:
@@ -244,15 +245,15 @@ def _(obj: InterpolationBatch, h5: H5Group, *, name: Optional[str] = None):
 
 
 @loader.register(InterpolationBatch)
-def _(h5: H5Group) -> InterpolationBatch:
-    actx = h5.pickler.actx
+def _(pkl: PickleGroup) -> InterpolationBatch:
+    actx = pkl.context.actx
 
-    from_group_index = h5.attrs["from_group_index"]
-    to_element_face = h5.attrs.get("to_element_face", None)
+    from_group_index = pkl.attrs["from_group_index"]
+    to_element_face = pkl.attrs.get("to_element_face", None)
 
-    from_element_indices = h5["from_element_indices"][:]
-    to_element_indices = h5["from_element_indices"][:]
-    result_unit_nodes = h5["result_unit_nodes"][:]
+    from_element_indices = pkl["from_element_indices"][:]
+    to_element_indices = pkl["from_element_indices"][:]
+    result_unit_nodes = pkl["result_unit_nodes"][:]
 
     return InterpolationBatch(from_group_index,
             from_element_indices=actx.freeze(actx.from_numpy(from_element_indices)),
@@ -262,44 +263,44 @@ def _(h5: H5Group) -> InterpolationBatch:
             )
 
 
-@dump.register(DiscretizationConnectionElementGroup)
+@dumper.register(DiscretizationConnectionElementGroup)
 def _(obj: DiscretizationConnectionElementGroup,
-        h5: H5Group, *,
+        pkl: PickleGroup, *,
         name: Optional[str] = None):
-    grp = create_type(obj, h5, name=name)
+    grp = create_type(obj, pkl, name=name)
     for i, batch in enumerate(obj.batches):
-        dump(batch, grp, name=f"batch_{i}")
+        dumper(batch, grp, name=f"batch_{i}")
 
 
 @loader.register(DiscretizationConnectionElementGroup)
-def _(h5: H5Group) -> DiscretizationConnectionElementGroup:
-    batches = [load_from_type(h5[name]) for name in h5]
+def _(pkl: PickleGroup) -> DiscretizationConnectionElementGroup:
+    batches = [load_from_type(pkl[name]) for name in pkl]
     return DiscretizationConnectionElementGroup(batches)
 
 
-@dump.register(DirectDiscretizationConnection)
+@dumper.register(DirectDiscretizationConnection)
 def _(obj: DirectDiscretizationConnection,
-        h5: H5Group, *,
+        pkl: PickleGroup, *,
         name: Optional[str] = None):
-    h5grp = create_type(obj, h5, name=name)
+    h5grp = create_type(obj, pkl, name=name)
 
-    dump(obj.from_discr, h5grp, name="from_discr")
-    dump(obj.to_discr, h5grp, name="to_discr")
+    dumper(obj.from_discr, h5grp, name="from_discr")
+    dumper(obj.to_discr, h5grp, name="to_discr")
     h5grp.attrs["is_surjective"] = obj.is_surjective
 
     h5grp = h5grp.create_group("groups")
     for i, grp in enumerate(obj.groups):
-        dump(grp, h5grp, name=f"group_{i}")
+        dumper(grp, h5grp, name=f"group_{i}")
 
 
 @loader.register(DirectDiscretizationConnection)
-def _(h5: H5Group) -> DirectDiscretizationConnection:
-    is_surjective = h5.attrs["is_surjective"]
+def _(pkl: PickleGroup) -> DirectDiscretizationConnection:
+    is_surjective = pkl.attrs["is_surjective"]
 
-    from_discr = load_from_type(h5["from_discr"])
-    to_discr = load_from_type(h5["to_discr"])
+    from_discr = load_from_type(pkl["from_discr"])
+    to_discr = load_from_type(pkl["to_discr"])
 
-    groups = [load_from_type(h5["groups"][name]) for name in h5["groups"]]
+    groups = [load_from_type(pkl["groups"][name]) for name in pkl["groups"]]
 
     return DirectDiscretizationConnection(from_discr, to_discr, groups,
             is_surjective=is_surjective)

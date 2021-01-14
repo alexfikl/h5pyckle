@@ -87,6 +87,7 @@ intersphinx_mapping = {
     "https://docs.python.org/3": None,
     "https://numpy.org/doc/stable": None,
     "https://docs.h5py.org/en/stable/": None,
+    "https://api.h5py.org/": None,
 }
 
 # }}}
