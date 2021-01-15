@@ -79,6 +79,8 @@ nitpick_ignore = [
     ("py:class", "..")
 ]
 
+autodoc_mock_imports = ["h5py"]
+
 # }}}
 
 # {{{ links
