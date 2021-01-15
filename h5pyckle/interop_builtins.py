@@ -2,11 +2,12 @@ try:
     import dill as pickle
 except ImportError:
     import pickle
-from pickle import PicklingError, UnpicklingError
+from pickle import UnpicklingError
 
 from numbers import Number
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
+import h5py
 import numpy as np
 
 from h5pyckle.base import dumper, loader
@@ -57,6 +58,12 @@ def _(parent: PickleGroup) -> object:
 def _(obj: Number, parent: PickleGroup, *, name: Optional[str] = None):
     parent.attrs[name] = obj
 
+
+@dumper.register(str)
+@dumper.register(bytes)
+def _(obj: Union[str, bytes], parent: PickleGroup, *, name: Optional[str] = None):
+    parent.attrs[name] = obj
+
 # }}}
 
 
@@ -105,7 +112,9 @@ def _(parent: PickleGroup) -> List:
         assert isinstance(parent["entry"], h5py.Dataset)
         return list(parent["entry"][:])
 
-    return list(load_from_group(parent).values())
+    entries = load_from_group(parent)
+    keys = sorted(entries, key=lambda el: int(el[6:]))
+    return [entries[k] for k in keys]
 
 
 @loader.register(tuple)

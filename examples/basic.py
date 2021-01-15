@@ -1,5 +1,4 @@
 import os
-import pickle
 from dataclasses import dataclass
 
 import h5py
@@ -8,7 +7,7 @@ import numpy as np
 from h5pyckle import PickleGroup, dumper, loader
 
 
-# {{{ nested dictionary
+# # {{{ nested dictionary
 
 from h5pyckle import dump, load
 
@@ -22,17 +21,14 @@ arg_in = {
 
 dump(arg_in, "pickled_nested.h5")
 arg_out = load("pickled_nested.h5")
-
-print(arg_in)
-print(arg_out)
 assert arg_in == arg_out
 
-# }}}
+# # }}}
 
 if os.path.exists("pickled_subgroup.h5"):
     os.remove("pickled_subgroup.h5")
 
-# {{{ subgroup
+# # {{{ subgroup
 
 from h5pyckle import dump_to_group, load_from_group, load_by_pattern
 
@@ -45,12 +41,11 @@ with h5py.File("pickled_subgroup.h5", mode="r") as h5:
     arg_out = load_from_group(subgroup)
     first_name = load_by_pattern(subgroup, pattern="FirstName")
 
-print(arg_out)
-print(first_name)
 assert arg_in == arg_out
 assert first_name == arg_in["Author"]["FirstName"]
 
-# }}}
+# # }}}
+
 
 # {{{ custom type
 
@@ -58,6 +53,10 @@ assert first_name == arg_in["Author"]["FirstName"]
 class CustomClass:
     name: str
     values: np.ndarray
+
+    def __eq__(self, other):
+        return self.name == other.name \
+                and np.array_equal(self.values, other.values)
 
 
 @dumper.register(CustomClass)
@@ -75,13 +74,9 @@ def _(parent: PickleGroup) -> CustomClass:
 
 
 cc_in = CustomClass(name="George", values=np.ones(42))
-cc_out = pickle.loads(pickle.dumps(cc_in))
-print(cc_in)
-print(cc_out)
 
-dump(cc_in, "pickled_custom.h5")
-cc_out = load("pickled_custom.h5")
-print(cc_out)
+dump({"cc": cc_in}, "pickled_custom.h5")
+cc_out = load("pickled_custom.h5")["cc"]
+assert cc_in == cc_out
 
 # }}}
-

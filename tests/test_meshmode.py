@@ -9,7 +9,7 @@ from pyopencl.tools import (  # noqa: F401
         pytest_generate_tests_for_pyopencl
         as pytest_generate_tests)
 
-from h5pyckle.interop_meshmode import dump_to_file, load_from_file
+from h5pyckle.interop_meshmode import dump, load
 
 
 def norm(actx, x):
@@ -74,7 +74,7 @@ def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
     nodes = thaw(actx, discr.nodes())
 
     filename = os.path.join(os.path.dirname(__file__), "pickle_meshmode.h5")
-    dump_to_file(actx, {
+    dump(actx, {
         "Field": nodes[0],
         "Nodes": nodes,
         "Mesh": mesh,
@@ -82,7 +82,7 @@ def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
         "Connection": conn,
         }, filename)
 
-    data = load_from_file(actx, filename)
+    data = load(actx, filename)
     x_new = data["Field"]
     nodes_new = data["Nodes"]
     mesh_new = data["Mesh"]

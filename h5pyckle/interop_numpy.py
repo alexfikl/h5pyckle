@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 
 from h5pyckle.base import dumper, loader
-from h5pyckle.base import PickleGroup, load_from_type, create_type
+from h5pyckle.base import PickleGroup, load_from_type
 
 
 def make_obj_array(arrays):
@@ -20,17 +20,17 @@ def make_obj_array(arrays):
 # {{{ dtype
 
 @dumper.register(np.dtype)
-def _(obj: np.dtype, pkl: PickleGroup, *, name: Optional[str] = None):
+def _(obj: np.dtype, parent: PickleGroup, *, name: Optional[str] = None):
     if name is None:
-        pkl.attrs["dtype"] = np.array(obj.str.encode())
+        parent.attrs["dtype"] = np.array(obj.str.encode())
     else:
-        grp = create_type(obj, pkl, name=name)
+        grp = parent.create_type(name, obj)
         grp.attrs["dtype"] = np.array(obj.str.encode())
 
 
 @loader.register(np.dtype)
-def _(pkl: PickleGroup) -> np.dtype:
-    return np.dtype(pkl.attrs["dtype"])
+def _(parent: PickleGroup) -> np.dtype:
+    return np.dtype(parent.attrs["dtype"])
 
 # }}}
 
@@ -38,8 +38,8 @@ def _(pkl: PickleGroup) -> np.dtype:
 # {{{ ndarray
 
 @dumper.register(np.ndarray)
-def _(obj: np.ndarray, pkl: PickleGroup, *, name: Optional[str] = None):
-    grp = create_type(obj, pkl, name=name)
+def _(obj: np.ndarray, parent: PickleGroup, *, name: Optional[str] = None):
+    grp = parent.create_type(name, obj)
     dumper(obj.dtype, grp)
 
     if obj.dtype.char == "O":
@@ -50,14 +50,14 @@ def _(obj: np.ndarray, pkl: PickleGroup, *, name: Optional[str] = None):
 
 
 @loader.register(np.ndarray)
-def _(pkl: PickleGroup) -> np.ndarray:
-    dtype = load_from_type(pkl, obj_type=np.dtype)
+def _(parent: PickleGroup) -> np.ndarray:
+    dtype = load_from_type(parent, obj_type=np.dtype)
 
     if dtype.char == "O":
         return make_obj_array([
-            load_from_type(pkl[name]) for name in sorted(pkl)
+            load_from_type(parent[name]) for name in sorted(parent)
             ])
 
-    return pkl["entry"][:]
+    return parent["entry"][:]
 
 # }}}

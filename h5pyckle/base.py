@@ -40,8 +40,7 @@ except ImportError:
     import pickle
 
 from functools import singledispatch
-from contextlib import AbstractContextManager
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import h5py
 import numpy as np
@@ -82,24 +81,32 @@ class PickleGroup(h5py.Group):
 
         super().__init__(gid)
         self.h5_dset_options = h5_dset_options
+        self._type = None
 
     @classmethod
-    def from_h5(cls, h5) -> "h5pyckle.PickleGroup":
+    def from_h5(cls, h5) -> "PickleGroup":
         """Constructs a :class:`PickleGroup` from an ``h5py`` object."""
-        if isinstance(h5, h5py.Group):
-            return cls(h5.id)
+        if isinstance(h5, cls):
+            return h5
         elif isinstance(h5, h5py.File):
             return cls(h5["/"].id)
-        elif isinstance(h5, PickleGroup):
-            return h5
+        elif isinstance(h5, h5py.Group):
+            return cls(h5.id)
         else:
             raise TypeError(f"unsupported parent type: {type(h5).__name__}")
+
+    def replace(self, **kwargs):
+        kwargs["gid"] = kwargs.get("gid", self.id)
+        kwargs["h5_dset_options"] = kwargs.get(
+                "h5_dset_options", self.h5_dset_options)
+
+        return type(self)(**kwargs)
 
     # {{{ h5py.Group overwrites
 
     # pylint: disable=arguments-differ
     def create_group(self, name: str, *,
-            track_order: Optional[bool] = True) -> "h5pyckle.PickleGroup":
+            track_order: Optional[bool] = True) -> "PickleGroup":
         """Thin wrapper around :meth:`h5py.Group.create_group`.
 
         :param name: name of the new group.
@@ -107,7 +114,7 @@ class PickleGroup(h5py.Group):
             This is the default to match the default :class:`dict` behavior.
         """
         grp = super().create_group(name, track_order=track_order)
-        return PickleGroup(grp.id, h5_dset_options=self.h5_dset_options)
+        return self.replace(gid=grp.id)
 
     # pylint: disable=arguments-differ
     def create_dataset(self, name, *, shape=None, dtype=None, data=None):
@@ -126,7 +133,7 @@ class PickleGroup(h5py.Group):
         """
         item = super().__getitem__(name)
         if isinstance(item, h5py.Group):
-            return PickleGroup(item.id, h5_dset_options=self.h5_dset_options)
+            return self.replace(gid=item.id)
 
         return item
 
@@ -135,10 +142,10 @@ class PickleGroup(h5py.Group):
     # {{{ type handling
 
     @property
-    def _type_attr_name(self):
-        return "__type"
+    def reserved_names(self):
+        return ["__type", "__type_name"]
 
-    def create_type(self, name: str, obj: Any) -> "h5pyckle.PickleGroup":
+    def create_type(self, name: str, obj: Any) -> "PickleGroup":
         """Creates a new group and adds appropriate type information.
 
         :param name: name of the new group.
@@ -149,9 +156,7 @@ class PickleGroup(h5py.Group):
             name = "_{}_{}".format(type(obj).__name__, uuid.uuid4().hex)
 
         grp = self.create_group(name)
-        grp.attrs["__type"] = np.void(pickle.dumps(type(obj)))
-
-        return grp
+        return grp.append_type(obj)
 
     def append_type(self, obj: Any):
         """Append type information to the current group."""
@@ -159,6 +164,7 @@ class PickleGroup(h5py.Group):
             raise RuntimeError(f"group '{self.name}' already has a type")
 
         self.attrs["__type"] = np.void(pickle.dumps(type(obj)))
+        self.attrs["__type_name"] = np.array(type(obj).__name__.encode())
         return self
 
     @property
@@ -166,7 +172,15 @@ class PickleGroup(h5py.Group):
         if not self.has_type:
             raise AttributeError(f"group '{self.name}' has no known type")
 
-        return pickle.loads(self.attrs["__type"].tobytes())
+        if self._type is None:
+            # pylint: disable=no-member
+            cls = pickle.loads(self.attrs["__type"].tobytes())
+
+            import importlib
+            mod = importlib.import_module(cls.__module__)
+            self._type = getattr(mod, cls.__name__)
+
+        return self._type
 
     @property
     def has_type(self) -> bool:
@@ -195,7 +209,7 @@ def loader(parent: PickleGroup) -> Any:
 
 def dump_to_group(
         obj: Any,
-        parent: "h5pyckle.PickleGroup", *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
     """
     :param parent: a group in an open :class:`h5py.File`.
@@ -206,7 +220,7 @@ def dump_to_group(
 
 
 def load_from_group(
-        parent: "h5pyckle.PickleGroup", *,
+        parent: PickleGroup, *,
         exclude: Optional[List[str]] = None) -> Dict[str, Any]:
     """
     :param parent: a group in an open :class:`h5py.File`.
@@ -216,7 +230,7 @@ def load_from_group(
         exclude = []
 
     parent = PickleGroup.from_h5(parent)
-    exclude += [parent._type_attr_name]
+    exclude += parent.reserved_names
 
     groups = {}
     for name in parent:
@@ -252,7 +266,7 @@ def load_from_group(
     return groups
 
 
-def load_by_pattern(parent: "h5pyckle.PickleGroup", *, pattern: str) -> Any:
+def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
     """
     :param parent: a group in an open :class:`h5py.File`.
     :param pattern: the pattern is searched for using :meth:`h5py.Group.visit`
@@ -268,6 +282,8 @@ def load_by_pattern(parent: "h5pyckle.PickleGroup", *, pattern: str) -> Any:
             if pattern in key:
                 return name
 
+        return None
+
     parent = PickleGroup.from_h5(parent)
     name = parent.visititems(callback)
     if name is None:
@@ -281,7 +297,7 @@ def load_by_pattern(parent: "h5pyckle.PickleGroup", *, pattern: str) -> Any:
         if isinstance(obj, h5py.Dataset):
             return obj[:]
 
-        return load_from_group(h5grp)
+        return load_from_group(obj)
 
     found = None
     for key, value in obj.attrs.items():
@@ -326,11 +342,13 @@ def load(filename: os.PathLike) -> Dict[str, Any]:
 # {{{ helpers
 
 def load_from_type(group: PickleGroup, *, obj_type=None):
-    # import pudb; pudb.set_trace()
-    if obj_type is None and not group.has_type:
-        raise ValueError(f"cannot find type information in group '{group.name}'")
+    if obj_type is None:
+        if not group.has_type:
+            raise ValueError(f"cannot find type information in group '{group.name}'")
 
-    return loader.dispatch(group.type)(group)
+        obj_type = group.type
+
+    return loader.dispatch(obj_type)(group)
 
 
 def create_type(obj, pkl, *, name=None, only_with_name=False):

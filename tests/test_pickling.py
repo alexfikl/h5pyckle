@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 import numpy.linalg as la
 
-from h5pyckle import dump_to_file, load_from_file
+from h5pyckle import dump, load
 
 
 def norm(x):
@@ -30,8 +30,8 @@ def rnorm(x, y):
 def test_pickling_dict(arg_in):
     filename = os.path.join(os.path.dirname(__file__), "pickle_dict.h5")
 
-    dump_to_file(arg_in, filename)
-    arg_out = load_from_file(filename)
+    dump(arg_in, filename)
+    arg_out = load(filename)
 
     print("expected: ", arg_in)
     print("got:      ", arg_out)
@@ -40,17 +40,17 @@ def test_pickling_dict(arg_in):
 
 @pytest.mark.parametrize("arg_in", [
     [1, 2, 3, 4, 5],
-    [1, int, "string", 1.0],
+    [1, int, "string", 2.0],
     ])
 def test_pickling_list_like(arg_in):
     filename = os.path.join(os.path.dirname(__file__), "pickle_list_like.h5")
 
-    dump_to_file({
+    dump({
         "list": arg_in,
         "tuple": tuple(arg_in),
         "set": set(arg_in),
         }, filename)
-    out = load_from_file(filename)
+    out = load(filename)
 
     print("expected: ", arg_in)
     print("got:      ", out["list"], out["tuple"], out["set"])
@@ -81,8 +81,8 @@ def test_pickling_numpy(arg_in_type, dtype_in):
                 np.random.rand(42).astype(dtype_in) for _ in range(3)
                 ])
 
-    dump_to_file({"array": arg_in}, filename)
-    arg_out = load_from_file(filename)["array"]
+    dump({"array": arg_in}, filename)
+    arg_out = load(filename)["array"]
 
     error = rnorm(arg_out, arg_in)
     print("error[{}, {}]: {}".format(arg_in_type, dtype_in, error))
