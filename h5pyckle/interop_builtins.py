@@ -1,47 +1,61 @@
-import pickle
+try:
+    import dill as pickle
+except ImportError:
+    import pickle
+from pickle import PicklingError, UnpicklingError
+
 from numbers import Number
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import numpy as np
 
 from h5pyckle.base import dumper, loader
-from h5pyckle.base import PickleGroup, dump, load_from_type, create_type
+from h5pyckle.base import PickleGroup, load_from_type
+
+# https://docs.h5py.org/en/stable/high/attr.html#attributes
+_MAX_ATTRIBUTE_SIZE = 2**13
 
 
-def _dump_object(obj, pkl, name):
-    from h5pyckle.base import _MAX_ATTRIBUTE_SIZE
-    try:
-        dumper(obj, pkl, name=name)
-    except NotImplementedError:
-        obj = pickle.dumps(obj)
+# {{{ object
 
-        if len(obj) < _MAX_ATTRIBUTE_SIZE:
-            pkl.attrs[name] = np.void(obj)
+@dumper.register(object)
+def _(obj: object, parent: PickleGroup, *, name: Optional[str] = None):
+    # NOTE: if we got here, it means no other (more specific) dumping method
+    # was found and we should fall back to the generic pickle
+    group = parent.create_type(name, obj)
+
+    if hasattr(obj, "__getstate__"):
+        state = obj.__getstate__()
+        dumper(state, group, name="state")
+    else:
+        state = pickle.dumps(obj)
+        if len(state) < _MAX_ATTRIBUTE_SIZE:
+            group.attrs["pickle"] = np.void(state)
         else:
-            pkl.create_dataset(name, data=np.array(obj))
+            group.create_dataset("pickle", data=state)
 
 
-# {{{ numeric
-
-@dumper.register(Number)
-def _(obj: Number, pkl: PickleGroup, *, name: Optional[str] = None):
-    pkl.attrs[name] = obj
+@loader.register(object)
+def _(parent: PickleGroup) -> object:
+    if "state" in parent:
+        cls = parent.type
+        state = load_from_type(parent["state"])
+        return cls.__new__().__setstate__(state)
+    elif "pickle" in parent:
+        return pickle.loads(parent["pickle"][:])
+    elif "pickle" in parent.attrs:
+        return pickle.loads(parent.attrs["pickle"].tobytes())
+    else:
+        raise UnpicklingError
 
 # }}}
 
 
-# {{{ type
+# {{{ number
 
-@dumper.register(type)
-def _(obj: type, pkl: PickleGroup, *, name: Optional[str] = None):
-    if name is None:
-        name = "type"
-    pkl.attrs[name] = np.void(pickle.dumps(obj))
-
-
-@loader.register(type)
-def _(pkl: PickleGroup) -> type:
-    return pickle.loads(pkl.attrs["type"].tobytes())
+@dumper.register(Number)
+def _(obj: Number, parent: PickleGroup, *, name: Optional[str] = None):
+    parent.attrs[name] = obj
 
 # }}}
 
@@ -49,55 +63,58 @@ def _(pkl: PickleGroup) -> type:
 # {{{ dict
 
 @dumper.register(dict)
-def _(obj: Dict[str, Any], pkl: PickleGroup, *, name: Optional[str] = None):
-    pkl = create_type(obj, pkl, name=name, only_with_name=True)
+def _(obj: Dict[str, Any], parent: PickleGroup, *, name: Optional[str] = None):
+    if name is None:
+        group = parent.append_type(obj)
+    else:
+        group = parent.create_type(name, obj)
+
     for key, value in obj.items():
-        _dump_object(value, pkl, name=key)
+        dumper(value, group, name=key)
 
 
 @loader.register(dict)
-def _(pkl: PickleGroup) -> Dict[str, Any]:
-    from h5pyckle.base import load
-    return load(pkl, exclude=["type"])
+def _(parent: PickleGroup) -> Dict[str, Any]:
+    from h5pyckle.base import load_from_group
+    return load_from_group(parent)
 
 # }}}
 
 
-# {{{ list / tuple
+# {{{ list / tuple / set
 
 @dumper.register(set)
 @dumper.register(list)
 @dumper.register(tuple)
-def _(obj: Union[List, Set, Tuple], pkl: PickleGroup, *, name: Optional[str] = None):
-    pkl = create_type(obj, pkl, name=name)
+def _(obj: Union[List, Set, Tuple], parent: PickleGroup, *, name: Optional[str] = None):
+    group = parent.create_type(name, obj)
     is_number = all(isinstance(el, Number) for el in obj)
 
     if is_number:
-        pkl.create_dataset("entry", data=np.array(list(obj)))
+        group.create_dataset("entry", data=np.array(list(obj)))
     else:
         for i, el in enumerate(obj):
-            _dump_object(el, pkl, name=f"entry_{i}")
+            dumper(el, group, name=f"entry_{i}")
 
 
 @loader.register(list)
-def _(pkl: PickleGroup) -> List:
-    from h5pyckle.base import load
+def _(parent: PickleGroup) -> List:
+    from h5pyckle.base import load_from_group
 
-    if "entry" in pkl:
-        result = list(pkl["entry"][:])
-    else:
-        result = list(load(pkl, exclude=["type"]).values())
+    if "entry" in parent:
+        assert isinstance(parent["entry"], h5py.Dataset)
+        return list(parent["entry"][:])
 
-    return result
+    return list(load_from_group(parent).values())
 
 
 @loader.register(tuple)
-def _(pkl: PickleGroup) -> Tuple:
-    return tuple(load_from_type(pkl, obj_type=list))
+def _(parent: PickleGroup) -> Tuple:
+    return tuple(load_from_type(parent, obj_type=list))
 
 
 @loader.register(set)
-def _(pkl: PickleGroup) -> Set:
-    return set(load_from_type(pkl, obj_type=list))
+def _(parent: PickleGroup) -> Set:
+    return set(load_from_type(parent, obj_type=list))
 
 # }}}

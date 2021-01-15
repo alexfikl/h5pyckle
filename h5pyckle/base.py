@@ -1,8 +1,6 @@
 """
 .. currentmodule:: h5pyckle
 
-.. autoclass:: PickleFile
-    :no-show-inheritance:
 .. autoclass:: PickleGroup
     :no-show-inheritance:
 
@@ -30,17 +28,16 @@ Canonical Names
 
 .. currentmodule:: h5pyckle.base
 
-.. class:: PickleFile
-
-    See :class:`h5pyckle.PickleFile`.
-
 .. class:: PickleGroup
 
     See :class:`h5pyckle.PickleGroup`.
 """
 
 import os
-import pickle
+try:
+    import dill as pickle
+except ImportError:
+    import pickle
 
 from functools import singledispatch
 from contextlib import AbstractContextManager
@@ -48,9 +45,6 @@ from typing import Any, Dict, List, Optional, Union
 
 import h5py
 import numpy as np
-
-# https://docs.h5py.org/en/stable/high/attr.html#attributes
-_MAX_ATTRIBUTE_SIZE = 2**13
 
 
 # {{{ wrapper for h5py.Group
@@ -62,58 +56,63 @@ class PickleGroup(h5py.Group):
         If the group has type information, this attribute will return the
         corresponding class.
 
-    .. attribute:: is_type
+    .. attribute:: has_type
 
         If *True*, the group has type information that can be used to
         reconstruct the object.
 
-    .. attribute:: context
-
-        The instance of the :class:`~h5pyckle.PickleFile` used for I/O.
+    .. attribute:: h5_dset_options
 
     .. automethod:: __init__
+    .. automethod:: from_h5
+
     .. automethod:: create_group
     .. automethod:: create_dataset
     .. automethod:: __getitem__
 
     .. automethod:: create_type
     .. automethod:: append_type
-
     """
 
     def __init__(self,
-            gid: Union["h5py.Group", h5py.h5g.GroupID], *
-            context: Optional["h5pyckle.PickleFile"] = None):
-        if isinstance(gid, h5py.Group):
-            gid = gid.id
+            gid: h5py.h5g.GroupID, *,
+            h5_dset_options: Optional[Dict[str, Any]] = None):
+        if h5_dset_options is None:
+            h5_dset_options = {}
 
         super().__init__(gid)
-        self.context = context
+        self.h5_dset_options = h5_dset_options
 
-        if context is None:
-            self.h5_dset_options = {}
+    @classmethod
+    def from_h5(cls, h5) -> "h5pyckle.PickleGroup":
+        """Constructs a :class:`PickleGroup` from an ``h5py`` object."""
+        if isinstance(h5, h5py.Group):
+            return cls(h5.id)
+        elif isinstance(h5, h5py.File):
+            return cls(h5["/"].id)
+        elif isinstance(h5, PickleGroup):
+            return h5
         else:
-            self.h5_dset_options = self.context.h5_dset_options
+            raise TypeError(f"unsupported parent type: {type(h5).__name__}")
 
     # {{{ h5py.Group overwrites
 
     # pylint: disable=arguments-differ
     def create_group(self, name: str, *,
-            track_order: Optional[bool] = None) -> "h5pyckle.PickleGroup":
+            track_order: Optional[bool] = True) -> "h5pyckle.PickleGroup":
         """Thin wrapper around :meth:`h5py.Group.create_group`.
 
         :param name: name of the new group.
         :param track_order: If *True*, creation order in the group is preserved.
+            This is the default to match the default :class:`dict` behavior.
         """
-
         grp = super().create_group(name, track_order=track_order)
-        return PickleGroup(self.context, grp)
+        return PickleGroup(grp.id, h5_dset_options=self.h5_dset_options)
 
     # pylint: disable=arguments-differ
     def create_dataset(self, name, *, shape=None, dtype=None, data=None):
         """Thin wrapper around :meth:`h5py.Group.create_dataset`. It uses
-        the options from :attr:`~h5pyckle.PickleFile.h5_dset_options` to create
-        the dataset.
+        the options from :attr:`h5_dset_options` to create the dataset.
         """
 
         return super().create_dataset(name,
@@ -125,16 +124,19 @@ class PickleGroup(h5py.Group):
 
         :param name: a relative or absolute path in the group.
         """
-        grp = super().__getitem__(name)
+        item = super().__getitem__(name)
+        if isinstance(item, h5py.Group):
+            return PickleGroup(item.id, h5_dset_options=self.h5_dset_options)
 
-        if isinstance(grp, h5py.Group):
-            return PickleGroup(self.context, grp)
-
-        return grp
+        return item
 
     # }}}
 
     # {{{ type handling
+
+    @property
+    def _type_attr_name(self):
+        return "__type"
 
     def create_type(self, name: str, obj: Any) -> "h5pyckle.PickleGroup":
         """Creates a new group and adds appropriate type information.
@@ -142,76 +144,35 @@ class PickleGroup(h5py.Group):
         :param name: name of the new group.
         :param obj: object that will be pickled in the new group.
         """
+        if name is None:
+            import uuid
+            name = "_{}_{}".format(type(obj).__name__, uuid.uuid4().hex)
+
         grp = self.create_group(name)
         grp.attrs["__type"] = np.void(pickle.dumps(type(obj)))
 
         return grp
 
-    def append_type(self, name: str, obj: Any):
+    def append_type(self, obj: Any):
         """Append type information to the current group."""
-        pkl.attrs["__type"] = np.void(pickle.dumps(type(obj)))
+        if self.has_type:
+            raise RuntimeError(f"group '{self.name}' already has a type")
+
+        self.attrs["__type"] = np.void(pickle.dumps(type(obj)))
+        return self
 
     @property
     def type(self) -> type:
-        if not self.is_type:
-            raise AttributeError(f"group '{self.name}' has no type information")
+        if not self.has_type:
+            raise AttributeError(f"group '{self.name}' has no known type")
 
         return pickle.loads(self.attrs["__type"].tobytes())
 
     @property
-    def is_type(self) -> bool:
+    def has_type(self) -> bool:
         return "__type" in self.attrs
 
     # }}}
-
-# }}}
-
-
-# {{{ pickling context manager
-
-class PickleFile(AbstractContextManager):
-    """Handles an :class:`h5py.File` and other pickling options.
-
-    .. attribute:: h5_file_options
-    .. attribute:: h5_dset_options
-
-    .. automethod:: __init__
-    .. automethod:: __enter__
-    .. automethod:: __exit__
-    """
-
-    def __init__(self,
-            filename: os.PathLike, *,
-            mode: str = "w",
-            h5_file_options: Optional[Dict[str, Any]] = None,
-            h5_dset_options: Optional[Dict[str, Any]] = None):
-        if h5_file_options is None:
-            h5_file_options = {}
-
-        if h5_dset_options is None:
-            h5_dset_options = {}
-
-        self.filename = filename
-        self.mode = mode
-
-        self.h5 = None
-        self.h5_file_options = h5_file_options
-        self.h5_dset_options = h5_dset_options
-
-    def __enter__(self) -> "h5pyckle.PickleGroup":
-        """Open HDF5 file and enter context."""
-        if self.h5 is not None:
-            raise RuntimeError("cannot nest pickling contexts")
-
-        self.h5 = h5py.File(self.filename,
-                mode=self.mode,
-                **self.h5_file_options)
-
-        return PickleGroup(self, self.h5["/"])
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.h5.close()
-        self.h5 = None
 
 # }}}
 
@@ -224,7 +185,7 @@ def dumper(obj: Any, parent: PickleGroup, *, name: Optional[str] = None):
 
 
 @singledispatch
-def loader(group: PickleGroup) -> Any:
+def loader(parent: PickleGroup) -> Any:
     raise NotImplementedError
 
 # }}}
@@ -232,31 +193,45 @@ def loader(group: PickleGroup) -> Any:
 
 # {{{ io
 
-def dump_to_group(obj: Any, parent: PickleGroup, *, name: Optional[str] = None):
+def dump_to_group(
+        obj: Any,
+        parent: "h5pyckle.PickleGroup", *,
+        name: Optional[str] = None):
+    """
+    :param parent: a group in an open :class:`h5py.File`.
+    :param name: if provided, a new subgroup is created for this object.
+    """
+    parent = PickleGroup.from_h5(parent)
     dumper(obj, parent, name=name)
 
 
-def load_from_group(group: PickleGroup, *, exclude: Optional[List[str]] = None):
+def load_from_group(
+        parent: "h5pyckle.PickleGroup", *,
+        exclude: Optional[List[str]] = None) -> Dict[str, Any]:
     """
-    :param group: a group in an open :class:`h5py.File`.
+    :param parent: a group in an open :class:`h5py.File`.
+    :param exclude: a list of patterns to exclude when loading data.
     """
     if exclude is None:
         exclude = []
 
+    parent = PickleGroup.from_h5(parent)
+    exclude += [parent._type_attr_name]
+
     groups = {}
-    for name in pkl:
+    for name in parent:
         if any(ex in name for ex in exclude):
             continue
 
-        obj = pkl[name]
-        if obj.is_type:
+        obj = parent[name]
+        if obj.has_type:
             groups[name] = load_from_type(obj)
         elif isinstance(obj, h5py.Dataset):
             groups[name] = obj[:]
         else:
             raise TypeError(f"cannot unpickle '{name}'")
 
-    for name, value in pkl.attrs.items():
+    for name, value in parent.attrs.items():
         if any(ex in name for ex in exclude):
             continue
 
@@ -277,8 +252,9 @@ def load_from_group(group: PickleGroup, *, exclude: Optional[List[str]] = None):
     return groups
 
 
-def load_by_pattern(pkl: PickleGroup, *, pattern: str) -> Any:
+def load_by_pattern(parent: "h5pyckle.PickleGroup", *, pattern: str) -> Any:
     """
+    :param parent: a group in an open :class:`h5py.File`.
     :param pattern: the pattern is searched for using :meth:`h5py.Group.visit`
         and only the first match is returned. It searchs through groups,
         datasets, and their attributes.
@@ -292,16 +268,16 @@ def load_by_pattern(pkl: PickleGroup, *, pattern: str) -> Any:
             if pattern in key:
                 return name
 
-    name = pkl.visititems(callback)
+    parent = PickleGroup.from_h5(parent)
+    name = parent.visititems(callback)
     if name is None:
         raise ValueError(f"could not find any match for '{pattern}'")
 
-    obj = pkl[name]
+    obj = parent[name]
     if pattern in name:
         # found a group / dataset
-        if obj.is_type:
-            return load_from_type(h5grp)
-
+        if obj.has_type:
+            return load_from_type(obj)
         if isinstance(obj, h5py.Dataset):
             return obj[:]
 
@@ -314,7 +290,7 @@ def load_by_pattern(pkl: PickleGroup, *, pattern: str) -> Any:
             break
 
     if found is None:
-        # NOTE: this should really not fail since the patter was found somewhere
+        # NOTE: this should really not fail since the pattern was found somewhere
         raise RuntimeError(f"attribute matching '{pattern}' not found in '{name}'")
 
     try:
@@ -325,33 +301,36 @@ def load_by_pattern(pkl: PickleGroup, *, pattern: str) -> Any:
     return value
 
 
-
 def dump(obj: Any, filename: os.PathLike, *,
+        mode: str = "w",
         h5_file_options: Optional[Dict[str, Any]] = None,
         h5_dset_options: Optional[Dict[str, Any]] = None):
-    with PickleFile(filename, mode="w",
-            h5_file_options=h5_file_options,
-            h5_dset_options=h5_dset_options) as root:
-        dump_to_group(obj, root, name=name)
+    if h5_file_options is None:
+        h5_file_options = {}
+
+    if h5_dset_options is None:
+        h5_dset_options = {}
+
+    with h5py.File(filename, mode=mode, **h5_file_options) as h5:
+        root = PickleGroup(h5["/"].id, h5_dset_options=h5_dset_options)
+        dump_to_group(obj, root)
 
 
-def load(filename: os.PathLike):
-    with PicklerFile(filename, mode="r") as root:
-        return load_from_group(root)
+def load(filename: os.PathLike) -> Dict[str, Any]:
+    with h5py.File(filename, mode="r") as h5:
+        return load_from_group(h5)
 
 # }}}
 
 
 # {{{ helpers
 
-def load_from_type(pkl: PickleGroup, *, obj_type=None):
-    if obj_type is None:
-        if "type" not in pkl.attrs:
-            raise ValueError(f"cannot find type information in group '{pkl.name}'")
+def load_from_type(group: PickleGroup, *, obj_type=None):
+    # import pudb; pudb.set_trace()
+    if obj_type is None and not group.has_type:
+        raise ValueError(f"cannot find type information in group '{group.name}'")
 
-        obj_type = loader.dispatch(type)(pkl)
-
-    return loader.dispatch(obj_type)(pkl)
+    return loader.dispatch(group.type)(group)
 
 
 def create_type(obj, pkl, *, name=None, only_with_name=False):
