@@ -51,12 +51,59 @@ Reference
 Numpy
 -----
 
+In general, ``h5py`` has very good interopability with :mod:`numpy`. This
+module offers some basic handling of :mod:`numpy` types
+
+* :class:`~numpy.dtype`
+* :class:`~numpy.ndarray` of all the supported types. Object arrays are also
+  supported and are stored largely the same as a Python :class:`list`.
+
+This is very much a work in progress and additional support is encouraged.
+
 .. automodule:: h5pyckle.interop_numpy
 
 Meshmode
 --------
 
-.. automodule:: h5pyckle.interop_meshmode
+:mod:`meshmode` is a library used to represent and work with high-order
+unstructured meshes. It contains a lot of non-trivial types.
+
+Currently, the following types are supported
+
+* :class:`meshmode.dof_array.DOFArray` of any underlying type,
+* :class:`meshmode.mesh.MeshElementGroup` and its subclasses,
+* :class:`meshmode.mesh.Mesh`,
+* :class:`meshmode.discretization.Discretization`,
+* :class:`meshmode.discretization.connection.DirectDiscretizationConnection`.
+
+The array type in :mod:`meshmode` is handled by an
+:class:`~meshmode.array_context.ArrayContext` and cannot be stored directly
+(as it could be on a GPU device). When pickling objects of the types above,
+the :mod:`meshmode`-specific :func:`~h5pyckle.interop_meshmode.dump` and
+:func:`~h5pyckle.interop_meshmode.load` should be used.
+
+.. currentmodule:: h5pyckle.interop_meshmode
+
+.. class:: ArrayContextPickleGroup
+
+    A :class:`~h5pyckle.PickleGroup` with access to an
+    :class:`meshmode.array_context.ArrayContext`.
+
+    .. attribute:: actx
+
+    .. method:: __init__(actx, ...)
+
+.. function:: dump(actx, ...)
+
+    This function should be used instead of :func:`~h5pyckle.dump` when the
+    object hierarchy contains :mod:`meshmode` objects that require an
+    :class:`~meshmode.array_context.ArrayContext`.
+
+.. function:: load(actx, ...)
+
+    This function should be used instead of :func:`~h5pyckle.load` when
+    the object hierarchy contains :mod:`meshmode` objects that require an
+    :class:`~meshmode.array_context.ArrayContext`.
 
 Indices and tables
 ==================
