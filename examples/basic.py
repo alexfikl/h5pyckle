@@ -70,13 +70,16 @@ def _(obj: CustomClass, parent: PickleGroup, name: str = None):
 def _(parent: PickleGroup) -> CustomClass:
     name = parent.attrs["name"]
     values = parent["values"][:]
-    return CustomClass(name=name, values=values)
+    return parent.type(name=name, values=values)
 
 
 cc_in = CustomClass(name="George", values=np.ones(42))
 
-dump({"cc": cc_in}, "pickled_custom.h5")
-cc_out = load("pickled_custom.h5")["cc"]
+dump(cc_in, "pickled_custom.h5")
+cc_out = load("pickled_custom.h5")
+
+print(cc_in)
+print(cc_out)
 assert cc_in == cc_out
 
 # }}}
