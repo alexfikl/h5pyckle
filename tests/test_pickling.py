@@ -24,6 +24,7 @@ def rnorm(x, y):
 # {{{ test_pickling_dict
 
 @pytest.mark.parametrize("arg_in", [
+    {},
     {"key": 1, "value": "dict"},
     {"author": {"name": "John", "family": "Smith", "affiliations": [
         "University 1", "Universtity 2",
@@ -48,6 +49,7 @@ def test_pickling_dict(arg_in):
 # {{{ test_pickling_list_like
 
 @pytest.mark.parametrize("arg_in", [
+    [],
     [1, 2, 3, 4, 5],
     [1, int, "string", 2.0],
     ])
@@ -118,6 +120,8 @@ def test_pickling_numpy_subclass():
     dump(x_in, filename)
     x_out = load(filename)
 
+    print("expected: ", x_in)
+    print("got:      ", x_out)
     assert (x_in == x_out).all()
 
 # }}}
@@ -138,6 +142,8 @@ def test_pickling_bytesio():
     dump(arg_in, bio)
     arg_out = load(bio)
 
+    print("expected: ", arg_in)
+    print("got:      ", arg_out)
     assert arg_in == arg_out
 
 # }}}
