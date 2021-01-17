@@ -4,6 +4,12 @@ from functools import partial
 import pytest
 import numpy as np
 
+try:
+    from pytools import Record
+except ImportError:
+    class Record(dict):
+        pass
+
 
 def norm(actx, x):
     if isinstance(x, np.ndarray):
@@ -125,15 +131,14 @@ def test_discretization_pickling(ambient_dim, visualize=False, target_order=3):
 
 # {{{ test_record_pickling
 
+class TimingRecord(Record):
+    pass
+
+
 def test_record_pickling():
     """Tests handling of __getstate__/__setstate__ with a Record."""
 
     pytest.importorskip("meshmode")
-
-    from pytools import Record
-
-    class TimingRecord(Record):
-        pass
 
     cr_in = TimingRecord(
             name="run_12857",
