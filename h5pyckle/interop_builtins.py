@@ -83,7 +83,8 @@ def _(obj: Dict[str, Any], parent: PickleGroup, *, name: Optional[str] = None):
 @loader.register(dict)
 def _(parent: PickleGroup) -> Dict[str, Any]:
     from h5pyckle.base import load_from_group
-    return load_from_group(parent)
+    cls = parent.type
+    return cls(load_from_group(parent))
 
 # }}}
 
@@ -113,17 +114,24 @@ def _(parent: PickleGroup) -> List:
         return list(parent["entry"][:])
 
     entries = load_from_group(parent)
+
+    # NOTE: entries are all named "entry_XXXX", so we sort them by the index
     keys = sorted(entries, key=lambda el: int(el[6:]))
-    return [entries[k] for k in keys]
+    entries = [entries[k] for k in keys]
+
+    cls = parent.type
+    return cls(entries)
 
 
 @loader.register(tuple)
 def _(parent: PickleGroup) -> Tuple:
-    return tuple(load_from_type(parent, obj_type=list))
+    cls = parent.type
+    return cls(load_from_type(parent, obj_type=list))
 
 
 @loader.register(set)
 def _(parent: PickleGroup) -> Set:
-    return set(load_from_type(parent, obj_type=list))
+    cls = parent.type
+    return cls(load_from_type(parent, obj_type=list))
 
 # }}}

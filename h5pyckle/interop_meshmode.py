@@ -70,29 +70,40 @@ def load(actx, filename: os.PathLike):
 
 # {{{ dof arrays
 
+def _to_numpy(actx, x):
+    return actx.to_numpy(actx.thaw(x))
+
+
+def _from_numpy(actx, x):
+    return actx.freeze(actx.from_numpy(x))
+
+
 @dumper.register(DOFArray)
-def _(obj: DOFArray, parent: PickleGroup, *, name: Optional[str] = None):
-    actx = parent.actx
+def _(obj: DOFArray,
+        parent: ArrayContextPickleGroup, *,
+        name: Optional[str] = None):
+    group = parent.create_type(name, obj)
+    group.attrs["frozen"] = obj.array_context is None
 
-    from meshmode.dof_array import thaw, freeze
-    if obj.array_context is None:
-        obj = thaw(actx, obj)
-    else:
-        obj = thaw(actx, freeze(obj))
-
-    # TODO: handle complex dtypes
-    subgrp = parent.create_type(name, obj)
-    for i, ary in enumerate(obj):
-        subgrp.create_dataset(f"entry_{i}", data=actx.to_numpy(ary))
+    dumper([
+        _to_numpy(parent.actx, x) for x in obj
+        ], group, name="entries")
 
 
 @loader.register(DOFArray)
-def _(parent: PickleGroup) -> DOFArray:
-    actx = parent.actx
+def _(parent: ArrayContextPickleGroup) -> DOFArray:
+    entries = load_from_type(parent["entries"])
 
-    return DOFArray(actx, tuple([
-        actx.from_numpy(parent[name][:]) for name in parent
-        ]))
+    if parent.attrs["frozen"]:
+        from functools import partial
+        array_context = None
+        from_numpy = partial(_from_numpy, parent.actx)
+    else:
+        array_context = parent.actx
+        from_numpy = parent.actx.from_numpy
+
+    cls = parent.type
+    return cls(array_context, tuple([from_numpy(x) for x in entries]))
 
 # }}}
 
@@ -100,7 +111,9 @@ def _(parent: PickleGroup) -> DOFArray:
 # {{{ mesh
 
 @dumper.register(MeshElementGroup)
-def _(obj: MeshElementGroup, parent: PickleGroup, *, name: Optional[str] = None):
+def _(obj: MeshElementGroup,
+        parent: ArrayContextPickleGroup, *,
+        name: Optional[str] = None):
     subgrp = parent.create_type(name, obj)
 
     subgrp.attrs["order"] = obj.order
@@ -112,7 +125,7 @@ def _(obj: MeshElementGroup, parent: PickleGroup, *, name: Optional[str] = None)
 
 
 @loader.register(MeshElementGroup)
-def _(parent: PickleGroup) -> MeshElementGroup:
+def _(parent: ArrayContextPickleGroup) -> MeshElementGroup:
     # NOTE: h5py extracts these as np.intp
     order = int(parent.attrs["order"])
     dim = int(parent.attrs["dim"])
@@ -128,19 +141,18 @@ def _(parent: PickleGroup) -> MeshElementGroup:
 
 
 @dumper.register(Mesh)
-def _(obj: Mesh, parent: PickleGroup, *, name: Optional[str] = None):
+def _(obj: Mesh,
+        parent: ArrayContextPickleGroup, *,
+        name: Optional[str] = None):
     parent = parent.create_type(name, obj)
-
-    dumper(obj.vertex_id_dtype, parent, name="vertex_id_dtype")
-    dumper(obj.element_id_dtype, parent, name="element_id_dtype")
 
     parent.attrs["is_conforming"] = obj.is_conforming
     parent.attrs["boundary_tags"] = np.void(pickle.dumps(obj.boundary_tags))
     parent.create_dataset("vertices", data=obj.vertices)
 
-    subgrp = parent.create_group("groups")
-    for i, grp in enumerate(obj.groups):
-        dumper(grp, subgrp, name=f"group_{i:05d}")
+    dumper(obj.vertex_id_dtype, parent, name="vertex_id_dtype")
+    dumper(obj.element_id_dtype, parent, name="element_id_dtype")
+    dumper(obj.groups, parent, name="groups")
 
     # TODO
     # FacialAdjacencyGroup
@@ -148,20 +160,21 @@ def _(obj: Mesh, parent: PickleGroup, *, name: Optional[str] = None):
 
 
 @loader.register(Mesh)
-def _(parent: PickleGroup) -> Mesh:
-    vertex_id_dtype = load_from_type(parent["vertex_id_dtype"])
-    element_id_dtype = load_from_type(parent["element_id_dtype"])
-
+def _(parent: ArrayContextPickleGroup) -> Mesh:
     is_conforming = parent.attrs["is_conforming"]
     boundary_tags = pickle.loads(parent.attrs["boundary_tags"].tobytes())
     vertices = parent["vertices"][:]
-    groups = [load_from_type(parent["groups"][name]) for name in parent["groups"]]
+
+    vertex_id_dtype = load_from_type(parent["vertex_id_dtype"])
+    element_id_dtype = load_from_type(parent["element_id_dtype"])
+    groups = load_from_type(parent["groups"])
 
     # TODO
     # FacialAdjacencyGroup
     # NodalAdjacency
 
-    return Mesh(vertices, groups,
+    cls = parent.type
+    return cls(vertices, groups,
             boundary_tags=boundary_tags,
             vertex_id_dtype=vertex_id_dtype,
             element_id_dtype=element_id_dtype,
@@ -203,38 +216,46 @@ class _SameElementGroupFactory:
 
 
 @dumper.register(ElementGroupBase)
-def _(obj: ElementGroupBase, parent: PickleGroup, *, name: Optional[str] = None):
-    subgrp = parent.create_type(name, obj)
-    subgrp.attrs["order"] = obj.order
+def _(obj: ElementGroupBase,
+        parent: ArrayContextPickleGroup, *,
+        name: Optional[str] = None):
+    # NOTE: these are dumped only for use in Discretization at the moment.
+    # There we don't really need to dump mesh_el_group again
+    group = parent.create_type(name, obj)
+    group.attrs["order"] = obj.order
+    group.attrs["index"] = obj.index
 
 
 @loader.register(ElementGroupBase)
-def _(parent: PickleGroup) -> ElementGroupBase:
+def _(parent: ArrayContextPickleGroup) -> ElementGroupBase:
     # NOTE: the mesh_el_group and index are set by the group factory
     cls = parent.type
-    return cls(None, int(parent.attrs["order"]), -1)
+    return cls(None,
+            int(parent.attrs["order"]),
+            int(parent.attrs["index"]))
 
 
 @dumper.register(Discretization)
-def _(obj: Discretization, parent: PickleGroup, *, name: Optional[str] = None):
-    subgrp = parent.create_type(name, obj)
-    dumper(obj.mesh, subgrp, name="mesh")
-    dumper(obj.real_dtype, subgrp, name="real_dtype")
+def _(obj: Discretization,
+        parent: ArrayContextPickleGroup, *,
+        name: Optional[str] = None):
+    group = parent.create_type(name, obj)
 
-    subgrp = subgrp.create_group("groups")
-    for i, grp in enumerate(obj.groups):
-        dumper(grp, subgrp, name=f"group_{i}")
+    dumper(obj.mesh, group, name="mesh")
+    dumper(obj.real_dtype, group, name="real_dtype")
+    dumper(obj.groups, group, name="groups")
 
 
 @loader.register(Discretization)
-def _(parent: PickleGroup) -> Discretization:
+def _(parent: ArrayContextPickleGroup) -> Discretization:
     actx = parent.actx
 
     mesh = load_from_type(parent["mesh"])
     real_dtype = load_from_type(parent["real_dtype"])
-    groups = [load_from_type(parent["groups"][name]) for name in parent["groups"]]
+    groups = load_from_type(parent["groups"])
 
-    return Discretization(actx, mesh,
+    cls = parent.type
+    return cls(actx, mesh,
             group_factory=_SameElementGroupFactory(groups),
             real_dtype=real_dtype)
 
@@ -244,7 +265,9 @@ def _(parent: PickleGroup) -> Discretization:
 # {{{ direct connection
 
 @dumper.register(InterpolationBatch)
-def _(obj: InterpolationBatch, parent: PickleGroup, *, name: Optional[str] = None):
+def _(obj: InterpolationBatch,
+        parent: ArrayContextPickleGroup, *,
+        name: Optional[str] = None):
     actx = parent.actx
     grp = parent.create_type(name, obj)
 
@@ -253,14 +276,14 @@ def _(obj: InterpolationBatch, parent: PickleGroup, *, name: Optional[str] = Non
         grp.attrs["to_element_face"] = obj.to_element_face
 
     grp.create_dataset("from_element_indices",
-            data=actx.to_numpy(obj.from_element_indices))
+            data=_to_numpy(actx, obj.from_element_indices))
     grp.create_dataset("to_element_indices",
-            data=actx.to_numpy(obj.to_element_indices))
+            data=_to_numpy(actx, obj.to_element_indices))
     grp.create_dataset("result_unit_nodes", data=obj.result_unit_nodes)
 
 
 @loader.register(InterpolationBatch)
-def _(parent: PickleGroup) -> InterpolationBatch:
+def _(parent: ArrayContextPickleGroup) -> InterpolationBatch:
     actx = parent.actx
 
     from_group_index = parent.attrs["from_group_index"]
@@ -270,9 +293,10 @@ def _(parent: PickleGroup) -> InterpolationBatch:
     to_element_indices = parent["from_element_indices"][:]
     result_unit_nodes = parent["result_unit_nodes"][:]
 
-    return InterpolationBatch(from_group_index,
-            from_element_indices=actx.freeze(actx.from_numpy(from_element_indices)),
-            to_element_indices=actx.freeze(actx.from_numpy(to_element_indices)),
+    cls = parent.type
+    return cls(from_group_index,
+            from_element_indices=_from_numpy(actx, from_element_indices),
+            to_element_indices=_from_numpy(actx, to_element_indices),
             result_unit_nodes=result_unit_nodes,
             to_element_face=to_element_face,
             )
@@ -280,44 +304,40 @@ def _(parent: PickleGroup) -> InterpolationBatch:
 
 @dumper.register(DiscretizationConnectionElementGroup)
 def _(obj: DiscretizationConnectionElementGroup,
-        parent: PickleGroup, *,
+        parent: ArrayContextPickleGroup, *,
         name: Optional[str] = None):
-    grp = parent.create_type(name, obj)
-    for i, batch in enumerate(obj.batches):
-        dumper(batch, grp, name=f"batch_{i}")
+    group = parent.create_type(name, obj)
+    dumper(obj.batches, group, name="batches")
 
 
 @loader.register(DiscretizationConnectionElementGroup)
-def _(parent: PickleGroup) -> DiscretizationConnectionElementGroup:
-    batches = [load_from_type(parent[name]) for name in parent]
-    return DiscretizationConnectionElementGroup(batches)
+def _(parent: ArrayContextPickleGroup) -> DiscretizationConnectionElementGroup:
+    batches = load_from_type(parent["batches"])
+
+    cls = parent.type
+    return cls(batches)
 
 
 @dumper.register(DirectDiscretizationConnection)
 def _(obj: DirectDiscretizationConnection,
-        parent: PickleGroup, *,
+        parent: ArrayContextPickleGroup, *,
         name: Optional[str] = None):
-    h5grp = parent.create_type(name, obj)
+    group = parent.create_type(name, obj)
 
-    dumper(obj.from_discr, h5grp, name="from_discr")
-    dumper(obj.to_discr, h5grp, name="to_discr")
-    h5grp.attrs["is_surjective"] = obj.is_surjective
-
-    h5grp = h5grp.create_group("groups")
-    for i, grp in enumerate(obj.groups):
-        dumper(grp, h5grp, name=f"group_{i}")
+    group.attrs["is_surjective"] = obj.is_surjective
+    dumper(obj.from_discr, group, name="from_discr")
+    dumper(obj.to_discr, group, name="to_discr")
+    dumper(obj.groups, group, name="groups")
 
 
 @loader.register(DirectDiscretizationConnection)
-def _(parent: PickleGroup) -> DirectDiscretizationConnection:
+def _(parent: ArrayContextPickleGroup) -> DirectDiscretizationConnection:
     is_surjective = parent.attrs["is_surjective"]
-
     from_discr = load_from_type(parent["from_discr"])
     to_discr = load_from_type(parent["to_discr"])
+    groups = load_from_type(parent["groups"])
 
-    groups = [load_from_type(parent["groups"][name]) for name in parent["groups"]]
-
-    return DirectDiscretizationConnection(from_discr, to_discr, groups,
-            is_surjective=is_surjective)
+    cls = parent.type
+    return cls(from_discr, to_discr, groups, is_surjective=is_surjective)
 
 # }}}
