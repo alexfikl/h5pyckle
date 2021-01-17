@@ -82,9 +82,9 @@ def _(obj: Dict[str, Any], parent: PickleGroup, *, name: Optional[str] = None):
 
 @loader.register(dict)
 def _(parent: PickleGroup) -> Dict[str, Any]:
-    from h5pyckle.base import load_from_group
+    from h5pyckle.base import load_group_as_dict
     cls = parent.type
-    return cls(load_from_group(parent))
+    return cls(load_group_as_dict(parent))
 
 # }}}
 
@@ -107,13 +107,13 @@ def _(obj: Union[List, Set, Tuple], parent: PickleGroup, *, name: Optional[str] 
 
 @loader.register(list)
 def _(parent: PickleGroup) -> List:
-    from h5pyckle.base import load_from_group
+    from h5pyckle.base import load_group_as_dict
 
     if "entry" in parent:
         assert isinstance(parent["entry"], h5py.Dataset)
         return list(parent["entry"][:])
 
-    entries = load_from_group(parent)
+    entries = load_group_as_dict(parent)
 
     # NOTE: entries are all named "entry_XXXX", so we sort them by the index
     keys = sorted(entries, key=lambda el: int(el[6:]))

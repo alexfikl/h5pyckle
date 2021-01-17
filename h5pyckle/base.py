@@ -40,7 +40,7 @@ except ImportError:
     import pickle
 
 from functools import singledispatch
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import h5py
 import numpy as np
@@ -148,12 +148,12 @@ class PickleGroup(h5py.Group):
     def create_type(self, name: str, obj: Any) -> "PickleGroup":
         """Creates a new group and adds appropriate type information.
 
-        :param name: name of the new group.
+        :param name: name of the new group. If *None*, :meth:`append_type` is
+            called instead.
         :param obj: object that will be pickled in the new group.
         """
         if name is None:
-            import uuid
-            name = "_{}_{}".format(type(obj).__name__, uuid.uuid4().hex)
+            return self.append_type(obj)
 
         grp = self.create_group(name)
         return grp.append_type(obj)
@@ -221,7 +221,7 @@ def dump_to_group(
 
 def load_from_group(
         parent: PickleGroup, *,
-        exclude: Optional[List[str]] = None) -> Dict[str, Any]:
+        exclude: Optional[List[str]] = None) -> Union[Any, Dict[str, Any]]:
     """
     :param parent: a group in an open :class:`h5py.File`.
     :param exclude: a list of patterns to exclude when loading data.
@@ -230,40 +230,11 @@ def load_from_group(
         exclude = []
 
     parent = PickleGroup.from_h5(parent)
+    if parent.has_type:
+        return load_from_type(parent)
+
     exclude += parent.reserved_names
-
-    groups = {}
-    for name in parent:
-        if any(ex in name for ex in exclude):
-            continue
-
-        obj = parent[name]
-        if obj.has_type:
-            groups[name] = load_from_type(obj)
-        elif isinstance(obj, h5py.Dataset):
-            groups[name] = obj[:]
-        else:
-            raise TypeError(f"cannot unpickle '{name}'")
-
-    for name, value in parent.attrs.items():
-        if any(ex in name for ex in exclude):
-            continue
-
-        # NOTE: values pickled with `pickle` are stored as void
-        if isinstance(value, np.void):
-            value = value.tobytes()
-
-        if isinstance(value, bytes):
-            try:
-                real_value = pickle.loads(value)
-            except pickle.PicklingError:
-                real_value = value
-        else:
-            real_value = value
-
-        groups[name] = real_value
-
-    return groups
+    return load_group_as_dict(parent, exclude=exclude)
 
 
 def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
@@ -302,19 +273,14 @@ def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
     found = None
     for key, value in obj.attrs.items():
         if pattern in key:
-            found = value
+            found = key
             break
 
     if found is None:
         # NOTE: this should really not fail since the pattern was found somewhere
         raise RuntimeError(f"attribute matching '{pattern}' not found in '{name}'")
 
-    try:
-        value = pickle.loads(found)
-    except pickle.PicklingError:
-        value = found
-
-    return value
+    return load_from_attribute(found, obj)
 
 
 def dump(obj: Any, filename: os.PathLike, *,
@@ -351,14 +317,48 @@ def load_from_type(group: PickleGroup, *, obj_type=None):
     return loader.dispatch(obj_type)(group)
 
 
-def create_type(obj, pkl, *, name=None, only_with_name=False):
-    if name is not None:
-        pkl = pkl.create_group(name)
-        dump(type(obj), pkl)
-    else:
-        if not only_with_name:
-            dump(type(obj), pkl)
+def load_from_attribute(name: str, group: PickleGroup):
+    if name not in group.attrs:
+        return
 
-    return pkl
+    attr = group.attrs[name]
+    if isinstance(attr, np.void):
+        attr = attr.tobytes()
+
+    if isinstance(attr, bytes):
+        try:
+            attr = pickle.loads(attr)
+        except pickle.UnpicklingError:
+            pass
+
+    return attr
+
+
+def load_group_as_dict(
+        parent: PickleGroup,
+        exclude: Optional[List[str]] = None) -> Dict[str, Any]:
+    if exclude is None:
+        exclude = parent.reserved_names
+
+    groups = {}
+    for name in parent:
+        if any(ex in name for ex in exclude):
+            continue
+
+        obj = parent[name]
+        if obj.has_type:
+            groups[name] = load_from_type(obj)
+        elif isinstance(obj, h5py.Dataset):
+            groups[name] = obj[:]
+        else:
+            raise TypeError(f"cannot unpickle '{name}'")
+
+    for name in parent.attrs:
+        if any(ex in name for ex in exclude):
+            continue
+
+        groups[name] = load_from_attribute(name, parent)
+
+    return groups
 
 # }}}
