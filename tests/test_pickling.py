@@ -21,6 +21,8 @@ def rnorm(x, y):
     return norm(x - y) / norm_y
 
 
+# {{{ test_pickling_dict
+
 @pytest.mark.parametrize("arg_in", [
     {"key": 1, "value": "dict"},
     {"author": {"name": "John", "family": "Smith", "affiliations": [
@@ -37,6 +39,10 @@ def test_pickling_dict(arg_in):
     print("got:      ", arg_out)
     assert arg_in == arg_out
 
+# }}}
+
+
+# {{{ test_pickling_list_like
 
 @pytest.mark.parametrize("arg_in", [
     [1, 2, 3, 4, 5],
@@ -58,6 +64,10 @@ def test_pickling_list_like(arg_in):
     assert tuple(arg_in) == out["tuple"]
     assert set(arg_in) == out["set"]
 
+# }}}
+
+
+# {{{ test_pickling_numpy
 
 @pytest.mark.parametrize("arg_in_type", ["scalar", "object"])
 @pytest.mark.parametrize("dtype_in", [np.int32, np.float32, np.float64])
@@ -91,6 +101,23 @@ def test_pickling_numpy(arg_in_type, dtype_in):
     assert arg_out.dtype == arg_in.dtype
     if arg_in.dtype.char == "O":
         assert arg_out[0].dtype == arg_in[0].dtype
+
+# }}}
+
+
+# {{{ test_pickling_numpy_subclass
+
+def test_pickling_numpy_subclass():
+    unyt = pytest.importorskip("unyt")
+    x_in = unyt.unyt_array([1, 2, 3, 4, 5, 6], units=unyt.K)
+
+    filename = os.path.join(os.path.dirname(__file__), "pickle_unyt.h5")
+    dump(x_in, filename)
+    x_out = load(filename)
+
+    assert (x_in == x_out).all()
+
+# }}}
 
 
 if __name__ == "__main__":

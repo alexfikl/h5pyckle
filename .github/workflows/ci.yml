@@ -19,7 +19,7 @@ jobs:
     - name: Main Script
       run: |
         python -m pip install --upgrade pip
-        python -m pip install -e .[dev]
+        python -m pip install -e .[dev,unittest]
         python -m flake8 h5pyckle tests setup.py docs/conf.py
 
   pylint:
@@ -35,7 +35,7 @@ jobs:
     - name: Main Script
       run: |
         python -m pip install --upgrade pip
-        python -m pip install -e .[dev]
+        python -m pip install -e .[dev,unittest]
         python -m pylint h5pyckle tests/*.py
 
   pytest:
@@ -54,7 +54,7 @@ jobs:
     - name: Main Script
       run: |
         python -m pip install --upgrade pip
-        python -m pip install -e .[dev]
+        python -m pip install -e .[dev,unittest]
         rm -rf tests/test_meshmode.py
         python -m pytest
 

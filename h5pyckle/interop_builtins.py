@@ -33,7 +33,7 @@ def _(obj: object, parent: PickleGroup, *, name: Optional[str] = None):
         if len(state) < _MAX_ATTRIBUTE_SIZE:
             group.attrs["pickle"] = np.void(state)
         else:
-            group.create_dataset("pickle", data=state)
+            group.create_dataset("pickle", data=np.array(state))
 
 
 @loader.register(object)
@@ -45,7 +45,7 @@ def _(parent: PickleGroup) -> object:
         obj.__setstate__(state)
         return obj
     elif "pickle" in parent:
-        return pickle.loads(parent["pickle"][:])
+        return pickle.loads(parent["pickle"][()])
     elif "pickle" in parent.attrs:
         return pickle.loads(parent.attrs["pickle"].tobytes())
     else:
@@ -54,7 +54,7 @@ def _(parent: PickleGroup) -> object:
 # }}}
 
 
-# {{{ number
+# {{{ scalar
 
 @dumper.register(Number)
 def _(obj: Number, parent: PickleGroup, *, name: Optional[str] = None):

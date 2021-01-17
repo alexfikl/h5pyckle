@@ -51,7 +51,10 @@ def _(parent: PickleGroup) -> np.dtype:
 @dumper.register(np.ndarray)
 def _(obj: np.ndarray, parent: PickleGroup, *, name: Optional[str] = None):
     grp = parent.create_type(name, obj)
+
     dumper(obj.dtype, grp)
+    if hasattr(obj, "__dict__"):
+        dumper(obj.__dict__, grp, name="__dict__")
 
     if obj.dtype.char == "O":
         for i, ary in enumerate(obj):
@@ -65,10 +68,19 @@ def _(parent: PickleGroup) -> np.ndarray:
     dtype = load_from_type(parent, obj_type=np.dtype)
 
     if dtype.char == "O":
-        return make_obj_array([
+        obj = make_obj_array([
             load_from_type(parent[name]) for name in sorted(parent)
             ])
+    else:
+        obj = parent.type(parent["entry"][:])
 
-    return parent["entry"][:]
+    if "__dict__" in parent:
+        fields = load_from_type(parent["__dict__"])
+        if not hasattr(obj, "__dict__"):
+            obj.__dict__ = {}
+
+        obj.__dict__.update(fields)
+
+    return obj
 
 # }}}
