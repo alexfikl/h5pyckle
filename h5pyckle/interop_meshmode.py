@@ -23,8 +23,12 @@ the :mod:`meshmode`-specific :func:`dump` and :func:`load` should be used.
 """
 
 import os
-import pickle
 from typing import Any, Optional, Dict
+
+try:
+    import dill as pickle
+except ImportError:
+    import pickle
 
 import h5py
 import numpy as np
