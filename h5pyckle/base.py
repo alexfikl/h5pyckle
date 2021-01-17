@@ -48,6 +48,9 @@ import numpy as np
 
 # {{{ wrapper for h5py.Group
 
+_H5PYCKLE_RESERVED_ATTRS = ["__type", "__type_name", "__pickle"]
+
+
 class PickleGroup(h5py.Group):
     """
     .. attribute:: type
@@ -116,6 +119,9 @@ class PickleGroup(h5py.Group):
         :param track_order: If *True*, creation order in the group is preserved.
             This is the default to match the default :class:`dict` behavior.
         """
+        if "/" in name:
+            raise ValueError(f"group names cannot contain a '/': '{name}'")
+
         grp = super().create_group(name, track_order=track_order)
         return self.replace(gid=grp.id)
 
@@ -124,6 +130,8 @@ class PickleGroup(h5py.Group):
         """Thin wrapper around :meth:`h5py.Group.create_dataset`. It uses
         the options from :attr:`h5_dset_options` to create the dataset.
         """
+        if "/" in name:
+            raise ValueError(f"dataset names cannot contain a '/': '{name}'")
 
         return super().create_dataset(name,
                 shape=shape, dtype=dtype, data=data,
@@ -236,11 +244,12 @@ def load_from_group(
     if exclude is None:
         exclude = []
 
+    exclude = set(exclude + _H5PYCKLE_RESERVED_ATTRS)
+
     parent = PickleGroup.from_h5(parent)
     if parent.has_type:
         return load_from_type(parent)
 
-    exclude += parent.reserved_names
     return load_group_as_dict(parent, exclude=exclude)
 
 
@@ -360,7 +369,8 @@ def load_group_as_dict(
         parent: PickleGroup,
         exclude: Optional[List[str]] = None) -> Dict[str, Any]:
     if exclude is None:
-        exclude = parent.reserved_names
+        exclude = []
+    exclude = set(exclude + _H5PYCKLE_RESERVED_ATTRS)
 
     groups = {}
     for name in parent:

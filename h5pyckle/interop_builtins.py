@@ -26,28 +26,35 @@ def _(obj: object, parent: PickleGroup, *, name: Optional[str] = None):
     group = parent.create_type(name, obj)
 
     if hasattr(obj, "__getstate__"):
+        group.attrs["__pickle"] = "getstate"
+
         state = obj.__getstate__()
         dumper(state, group, name="state")
     else:
+        group.attrs["__pickle"] = "pickle"
+
         state = pickle.dumps(obj)
         if len(state) < _MAX_ATTRIBUTE_SIZE:
-            group.attrs["pickle"] = np.void(state)
+            group.attrs["state"] = np.void(state)
         else:
-            group.create_dataset("pickle", data=np.array(state))
+            group.create_dataset("state", data=np.array(state))
 
 
 @loader.register(object)
 def _(parent: PickleGroup) -> object:
-    if "state" in parent:
+    method = parent.attrs.get("__pickle")
+
+    if method == "getstate":
         state = load_from_type(parent["state"])
 
         obj = parent.type()
         obj.__setstate__(state)
         return obj
-    elif "pickle" in parent:
-        return pickle.loads(parent["pickle"][()])
-    elif "pickle" in parent.attrs:
-        return pickle.loads(parent.attrs["pickle"].tobytes())
+    elif method == "pickle":
+        if "state" in parent:
+            return pickle.loads(parent["state"][()])
+        else:
+            return pickle.loads(parent.attrs["state"].tobytes())
     else:
         raise UnpicklingError
 
@@ -65,6 +72,22 @@ def _(obj: Number, parent: PickleGroup, *, name: Optional[str] = None):
 @dumper.register(bytes)
 def _(obj: Union[str, bytes], parent: PickleGroup, *, name: Optional[str] = None):
     parent.attrs[name] = obj
+
+
+@dumper.register(int)
+def _(obj: Number, parent: PickleGroup, *, name: Optional[str] = None):
+    try:
+        parent.attrs[name] = obj
+    except TypeError:
+        # NOTE: managed to hit an arbitrary precision int
+        grp = parent.create_type(name, obj)
+        grp.attrs["value"] = repr(obj).encode()
+
+
+@loader.register(int)
+def _(parent: PickleGroup) -> int:
+    from h5pyckle.base import load_from_attribute
+    return parent.type(load_from_attribute("value", parent))
 
 # }}}
 

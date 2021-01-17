@@ -27,7 +27,10 @@ def rnorm(x, y):
     {"key": 1, "value": "dict"},
     {"author": {"name": "John", "family": "Smith", "affiliations": [
         "University 1", "Universtity 2",
-        ]}}
+        ]}},
+    {"long_int": 123456789101112131415,
+        "long_float": 3.14159265358979323846264338327950288419716939937510582097494
+        },
     ])
 def test_pickling_dict(arg_in):
     filename = os.path.join(os.path.dirname(__file__), "pickle_dict.h5")
@@ -116,6 +119,26 @@ def test_pickling_numpy_subclass():
     x_out = load(filename)
 
     assert (x_in == x_out).all()
+
+# }}}
+
+
+# {{{ test_pickling_bytesio
+
+def test_pickling_bytesio():
+    import io
+    bio = io.BytesIO()
+
+    arg_in = {
+            "name": "BytesIO",
+            "values": (1, 2, 3),
+            "nested": {"key": 42}
+            }
+
+    dump(arg_in, bio)
+    arg_out = load(bio)
+
+    assert arg_in == arg_out
 
 # }}}
 
