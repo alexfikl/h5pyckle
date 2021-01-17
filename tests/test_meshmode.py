@@ -4,13 +4,6 @@ from functools import partial
 import pytest
 import numpy as np
 
-import pyopencl as cl
-from pyopencl.tools import (  # noqa: F401
-        pytest_generate_tests_for_pyopencl
-        as pytest_generate_tests)
-
-from h5pyckle.interop_meshmode import dump, load
-
 
 def norm(actx, x):
     if isinstance(x, np.ndarray):
@@ -27,14 +20,17 @@ def rnorm(actx, x, y):
     return norm(actx, x - y) / norm_y
 
 
-# {{{ test_pickling
+# {{{ test_discretization_pickling
 
 @pytest.mark.parametrize("ambient_dim", [2, 3])
-def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
+def test_discretization_pickling(ambient_dim, visualize=False, target_order=3):
+    """Tests that the interop_meshmode types can all be dumped/loaded correctly."""
+
     pytest.importorskip("meshmode")
 
+    import pyopencl as cl
     from meshmode.array_context import PyOpenCLArrayContext
-    ctx = ctx_factory()
+    ctx = cl.create_some_context()
     queue = cl.CommandQueue(ctx)
     actx = PyOpenCLArrayContext(queue)
 
@@ -70,6 +66,8 @@ def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
 
     # {{{ pickle
 
+    from h5pyckle.interop_meshmode import dump, load
+
     from meshmode.dof_array import thaw
     nodes = thaw(actx, discr.nodes())
 
@@ -81,8 +79,8 @@ def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
         "Discretization": discr,
         "Connection": conn,
         }, filename)
-
     data = load(actx, filename)
+
     x_new = data["Field"]
     nodes_new = data["Nodes"]
     mesh_new = data["Mesh"]
@@ -121,6 +119,37 @@ def test_pickling(ctx_factory, ambient_dim, visualize=False, target_order=3):
     assert error < 1.0e-15
 
     # }}}
+
+# }}}
+
+
+# {{{ test_record_pickling
+
+def test_record_pickling():
+    """Tests handling of __getstate__/__setstate__ with a Record."""
+
+    pytest.importorskip("meshmode")
+
+    from pytools import Record
+
+    class TimingRecord(Record):
+        pass
+
+    cr_in = TimingRecord(
+            name="run_12857",
+            mean=1.0,
+            std=0.2,
+            history=np.random.rand(256),
+            )
+
+    from h5pyckle import dump, load
+
+    filename = os.path.join(os.path.dirname(__file__), "pickle_record.h5")
+    dump(cr_in, filename)
+    cr_out = load(filename)
+
+    assert cr_in.name == cr_out.name
+    assert np.array_equal(cr_in.history, cr_out.history)
 
 # }}}
 

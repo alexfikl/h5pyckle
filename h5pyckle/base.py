@@ -180,8 +180,11 @@ class PickleGroup(h5py.Group):
             cls = pickle.loads(self.attrs["__type"].tobytes())
 
             import importlib
-            mod = importlib.import_module(cls.__module__)
-            self._type = getattr(mod, cls.__name__)
+            try:
+                mod = importlib.import_module(cls.__module__)
+                self._type = getattr(mod, cls.__name__)
+            except AttributeError:
+                self._type = cls
 
         return self._type
 

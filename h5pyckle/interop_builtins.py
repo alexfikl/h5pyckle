@@ -39,9 +39,11 @@ def _(obj: object, parent: PickleGroup, *, name: Optional[str] = None):
 @loader.register(object)
 def _(parent: PickleGroup) -> object:
     if "state" in parent:
-        cls = parent.type
         state = load_from_type(parent["state"])
-        return cls.__new__().__setstate__(state)
+
+        obj = parent.type()
+        obj.__setstate__(state)
+        return obj
     elif "pickle" in parent:
         return pickle.loads(parent["pickle"][:])
     elif "pickle" in parent.attrs:
