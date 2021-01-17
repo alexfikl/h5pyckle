@@ -339,7 +339,25 @@ def load(filename: os.PathLike) -> Dict[str, Any]:
 # }}}
 
 
-# {{{ helpers
+# {{{ dump helpers
+
+def dump_iterable_to_group(obj, parent: PickleGroup, *, name: Optional[str] = None):
+    grp = parent.create_type(name, obj)
+    obj = list(obj)
+
+    from numbers import Number
+    is_number = all(isinstance(el, Number) for el in obj)
+
+    if is_number:
+        grp.create_dataset("entry", data=np.array(obj))
+    else:
+        for i, el in enumerate(obj):
+            dumper(el, grp, name=f"entry_{i}")
+
+# }}}
+
+
+# {{{ load helpers
 
 def load_from_type(group: PickleGroup, *, obj_type=None):
     if obj_type is None:

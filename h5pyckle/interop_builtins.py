@@ -120,14 +120,8 @@ def _(parent: PickleGroup) -> Dict[str, Any]:
 @dumper.register(list)
 @dumper.register(tuple)
 def _(obj: Union[List, Set, Tuple], parent: PickleGroup, *, name: Optional[str] = None):
-    group = parent.create_type(name, obj)
-    is_number = all(isinstance(el, Number) for el in obj)
-
-    if is_number:
-        group.create_dataset("entry", data=np.array(list(obj)))
-    else:
-        for i, el in enumerate(obj):
-            dumper(el, group, name=f"entry_{i}")
+    from h5pyckle.base import dump_iterable_to_group
+    dump_iterable_to_group(obj, parent, name=name)
 
 
 @loader.register(list)
