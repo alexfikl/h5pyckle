@@ -21,5 +21,5 @@ implement the pickling for various types, which makes it quite flexible.
 
 Links
 
-* Documentation
+* `Documentation <https://h5pyckle.readthedocs.io/en/latest/>`__
 * `Code <https://github.com/alexfikl/h5pyckle>`__
