@@ -1,3 +1,27 @@
+"""
+:mod:`meshmode` is a library used to represent and work with high-order
+unstructured meshes. It contains a lot of non-trivial types.
+
+Currently, the following types are supported
+
+* :class:`meshmode.dof_array.DOFArray` of any underlying type,
+* :class:`meshmode.mesh.MeshElementGroup` and its subclasses,
+* :class:`meshmode.mesh.Mesh`,
+* :class:`meshmode.discretization.Discretization`,
+* :class:`meshmode.discretization.connection.DirectDiscretizationConnection`.
+
+The array type in :mod:`meshmode` is handled by an
+:class:`~meshmode.array_context.ArrayContext` and cannot be stored directly
+(as it could be on a GPU device). When pickling objects of the types above,
+the :mod:`meshmode`-specific :func:`dump` and :func:`load` should be used.
+
+.. autoclass:: ArrayContextPickleGroup
+    :no-show-inheritance:
+
+.. autofunction:: dump
+.. autofunction:: load
+"""
+
 import os
 import pickle
 from typing import Any, Optional, Dict
@@ -24,7 +48,9 @@ __all__ = ["ArrayContextPickleGroup"]
 # {{{ context manager
 
 class ArrayContextPickleGroup(PickleGroup):
-    """
+    """A :class:`~h5pyckle.PickleGroup` with access to an
+    :class:`meshmode.array_context.ArrayContext`.
+
     .. attribute:: actx
     """
 
@@ -47,6 +73,12 @@ def dump(actx, obj: Any, filename: os.PathLike, *,
         mode: str = "w",
         h5_file_options: Optional[Dict[str, Any]] = None,
         h5_dset_options: Optional[Dict[str, Any]] = None):
+    """This function should be used when the object hierarchy contains
+    :mod:`meshmode` objects that require an
+    :class:`~meshmode.array_context.ArrayContext`.
+
+    :param actx: :class:`~meshmode.array_context.ArrayContext` used for pickling.
+    """
     if h5_file_options is None:
         h5_file_options = {}
 
@@ -61,6 +93,13 @@ def dump(actx, obj: Any, filename: os.PathLike, *,
 
 
 def load(actx, filename: os.PathLike):
+    """This function should be used when the object hierarchy contains
+    :mod:`meshmode` objects that require an
+    :class:`~meshmode.array_context.ArrayContext`.
+
+    :param actx: :class:`~meshmode.array_context.ArrayContext` used for unpickling.
+    """
+
     from h5pyckle.base import load_from_group
     with h5py.File(filename, mode="r") as h5:
         return load_from_group(ArrayContextPickleGroup(actx, h5["/"].id))

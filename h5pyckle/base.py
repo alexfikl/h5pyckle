@@ -64,6 +64,7 @@ class PickleGroup(h5py.Group):
 
     .. automethod:: __init__
     .. automethod:: from_h5
+    .. automethod:: replace
 
     .. automethod:: create_group
     .. automethod:: create_dataset
@@ -96,6 +97,8 @@ class PickleGroup(h5py.Group):
             raise TypeError(f"unsupported parent type: {type(h5).__name__}")
 
     def replace(self, **kwargs):
+        """Makes a copy of the current group."""
+
         kwargs["gid"] = kwargs.get("gid", self.id)
         kwargs["h5_dset_options"] = kwargs.get(
                 "h5_dset_options", self.h5_dset_options)
@@ -211,7 +214,8 @@ def dump_to_group(
         obj: Any,
         parent: PickleGroup, *,
         name: Optional[str] = None):
-    """
+    """Stores pickled data in a specific HDF5 subgroup.
+
     :param parent: a group in an open :class:`h5py.File`.
     :param name: if provided, a new subgroup is created for this object.
     """
@@ -241,7 +245,7 @@ def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
     """
     :param parent: a group in an open :class:`h5py.File`.
     :param pattern: the pattern is searched for using :meth:`h5py.Group.visit`
-        and only the first match is returned. It searchs through groups,
+        and only the first match is returned. It searches through groups,
         datasets, and their attributes.
     """
     def callback(name, obj):
@@ -287,6 +291,18 @@ def dump(obj: Any, filename: os.PathLike, *,
         mode: str = "w",
         h5_file_options: Optional[Dict[str, Any]] = None,
         h5_dset_options: Optional[Dict[str, Any]] = None):
+    """
+    :param obj: object to pickle.
+    :param filename: name of the file used for storage of pickled data.
+    :param mode: see :attr:`h5py.File.mode` and the
+        :ref:`h5py docs <h5py:file_open>`.
+    :param h5_file_options: additional options passed directly to the
+        :class:`h5py.File` constructor.
+    :param h5_dset_options: additional options used when creating datasets.
+        This is used when calling :meth:`PickleGroup.create_dataset`. See
+        the :ref:`h5py docs <h5py:dataset>` for additional information
+        about supported values.
+    """
     if h5_file_options is None:
         h5_file_options = {}
 
@@ -299,6 +315,12 @@ def dump(obj: Any, filename: os.PathLike, *,
 
 
 def load(filename: os.PathLike) -> Dict[str, Any]:
+    """
+    :param filename: file to load pickled data from.
+    :returns: a :class:`dict` containing the full contents of the file. If
+        only a subset of the file containts pickled data, use
+        :func:`load_from_group` or :class:`load_by_pattern` instead.
+    """
     with h5py.File(filename, mode="r") as h5:
         return load_from_group(h5)
 

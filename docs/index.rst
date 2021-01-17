@@ -9,7 +9,7 @@ Welcome to h5pyckle's documentation!
 .. automodule:: h5pyckle
 
 Example
--------
+=======
 
 The default interface to :mod:`h5pyckle` is the same as for the
 :mod:`pickle` module from the standard library. Arbitrary objects can be
@@ -41,20 +41,22 @@ method as
     :language: python
     :linenos:
 
+These examples can be found in :download:`examples/basic.py <../examples/basic.py>`.
+
 Reference
----------
+=========
 
 .. automodule:: h5pyckle.base
 
 Numpy
-^^^^^
+-----
 
-.. .. automodule:: h5pyckle.interop_numpy
+.. automodule:: h5pyckle.interop_numpy
 
 Meshmode
-^^^^^^^^
+--------
 
-.. .. automodule:: h5pyckle.interop_meshmode
+.. automodule:: h5pyckle.interop_meshmode
 
 Indices and tables
 ==================

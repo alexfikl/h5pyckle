@@ -79,7 +79,7 @@ nitpick_ignore = [
     ("py:class", "..")
 ]
 
-autodoc_mock_imports = ["h5py"]
+autodoc_mock_imports = ["h5py", "meshmode"]
 
 # }}}
 
@@ -88,8 +88,9 @@ autodoc_mock_imports = ["h5py"]
 intersphinx_mapping = {
     "https://docs.python.org/3": None,
     "https://numpy.org/doc/stable": None,
-    "https://docs.h5py.org/en/stable/": None,
+    "h5py": ("https://docs.h5py.org/en/stable", None),
     "https://api.h5py.org/": None,
+    "https://documen.tician.de/meshmode/": None,
 }
 
 # }}}

@@ -1,3 +1,14 @@
+"""
+In general, ``h5py`` has very good interopability with :mod:`numpy`. This
+module offers some basic handling of :mod:`numpy` types
+
+* :class:`~numpy.dtype`
+* :class:`~numpy.ndarray` of all the supported types. Object arrays are also
+  supported and are stored largely the same as a Python :class:`list`.
+
+This is very much a work in progress and additional support is encouraged.
+"""
+
 from typing import Optional
 
 import numpy as np
