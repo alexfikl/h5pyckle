@@ -1,13 +1,10 @@
 import os
 from dataclasses import dataclass
 
-import h5py
 import numpy as np
 
-from h5pyckle import PickleGroup, dumper, loader
 
-
-# # {{{ nested dictionary
+# {{{ nested dictionary
 
 from h5pyckle import dump, load
 
@@ -23,13 +20,14 @@ dump(arg_in, "pickled_nested.h5")
 arg_out = load("pickled_nested.h5")
 assert arg_in == arg_out
 
-# # }}}
+# }}}
 
 if os.path.exists("pickled_subgroup.h5"):
     os.remove("pickled_subgroup.h5")
 
-# # {{{ subgroup
+# {{{ subgroup
 
+import h5py
 from h5pyckle import dump_to_group, load_from_group, load_by_pattern
 
 with h5py.File("pickled_subgroup.h5", mode="a") as h5:
@@ -44,10 +42,12 @@ with h5py.File("pickled_subgroup.h5", mode="r") as h5:
 assert arg_in == arg_out
 assert first_name == arg_in["Author"]["FirstName"]
 
-# # }}}
-
+# }}}
 
 # {{{ custom type
+
+from h5pyckle import PickleGroup, dumper, loader
+
 
 @dataclass
 class CustomClass:

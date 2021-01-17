@@ -271,7 +271,7 @@ def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
         return load_from_group(obj)
 
     found = None
-    for key, value in obj.attrs.items():
+    for key in obj.attrs:
         if pattern in key:
             found = key
             break
@@ -318,9 +318,6 @@ def load_from_type(group: PickleGroup, *, obj_type=None):
 
 
 def load_from_attribute(name: str, group: PickleGroup):
-    if name not in group.attrs:
-        return
-
     attr = group.attrs[name]
     if isinstance(attr, np.void):
         attr = attr.tobytes()

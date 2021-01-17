@@ -16,14 +16,14 @@ The default interface to :mod:`h5pyckle` is the same as for the
 dumped and loaded from HDF5 files using
 
 .. literalinclude:: ../examples/basic.py
-    :lines: 12-24
+    :lines: 9-21
     :language: python
     :linenos:
 
 Data can also be stored and loaded directly from subgroups in HD5 files.
 
 .. literalinclude:: ../examples/basic.py
-    :lines: 33-45
+    :lines: 30-43
     :language: python
     :linenos:
 
@@ -37,7 +37,7 @@ To register custom methods for new types, use the :func:`functools.singledispatc
 method as
 
 .. literalinclude:: ../examples/basic.py
-    :lines: 52-80
+    :lines: 49-83
     :language: python
     :linenos:
 
@@ -48,7 +48,7 @@ Reference
 
 Numpy
 ^^^^^
-    return parent.type(name=name, values=values)
+
 .. .. automodule:: h5pyckle.interop_numpy
 
 Meshmode
