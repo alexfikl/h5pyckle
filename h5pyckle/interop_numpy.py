@@ -72,7 +72,7 @@ def _(parent: PickleGroup) -> np.ndarray:
             load_from_type(parent[name]) for name in sorted(parent)
             ])
     else:
-        obj = parent.type(parent["entry"][:])
+        obj = parent["entry"][:].view(parent.type)
 
     if "__dict__" in parent:
         fields = load_from_type(parent["__dict__"])
