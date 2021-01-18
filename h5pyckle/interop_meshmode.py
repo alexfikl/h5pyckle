@@ -240,13 +240,17 @@ def _(obj: ElementGroupBase,
     group = parent.create_type(name, obj)
     group.attrs["order"] = obj.order
     group.attrs["index"] = obj.index
+    group.attrs["dim"] = obj.dim
 
 
 @loader.register(ElementGroupBase)
 def _(parent: ArrayContextPickleGroup) -> ElementGroupBase:
-    # NOTE: the mesh_el_group and index are set by the group factory
-    cls = parent.type
-    return cls(None,
+    # NOTE: the real mesh_el_group is set by the group factory
+    from collections import namedtuple
+    ElementGroup = namedtuple("ElementGroup", ["dim"])
+
+    return parent.pycls(
+            ElementGroup(dim=int(parent.attrs["dim"])),
             int(parent.attrs["order"]),
             int(parent.attrs["index"]))
 
@@ -270,8 +274,7 @@ def _(parent: ArrayContextPickleGroup) -> Discretization:
     real_dtype = load_from_type(parent["real_dtype"])
     groups = load_from_type(parent["groups"])
 
-    cls = parent.type
-    return cls(actx, mesh,
+    return parent.pycls(actx, mesh,
             group_factory=_SameElementGroupFactory(groups),
             real_dtype=real_dtype)
 
@@ -309,8 +312,7 @@ def _(parent: ArrayContextPickleGroup) -> InterpolationBatch:
     to_element_indices = parent["from_element_indices"][:]
     result_unit_nodes = parent["result_unit_nodes"][:]
 
-    cls = parent.type
-    return cls(from_group_index,
+    return parent.pycls(from_group_index,
             from_element_indices=_from_numpy(actx, from_element_indices),
             to_element_indices=_from_numpy(actx, to_element_indices),
             result_unit_nodes=result_unit_nodes,
@@ -330,8 +332,7 @@ def _(obj: DiscretizationConnectionElementGroup,
 def _(parent: ArrayContextPickleGroup) -> DiscretizationConnectionElementGroup:
     batches = load_from_type(parent["batches"])
 
-    cls = parent.type
-    return cls(batches)
+    return parent.pycls(batches)
 
 
 @dumper.register(DirectDiscretizationConnection)
@@ -353,7 +354,6 @@ def _(parent: ArrayContextPickleGroup) -> DirectDiscretizationConnection:
     to_discr = load_from_type(parent["to_discr"])
     groups = load_from_type(parent["groups"])
 
-    cls = parent.type
-    return cls(from_discr, to_discr, groups, is_surjective=is_surjective)
+    return parent.pycls(from_discr, to_discr, groups, is_surjective=is_surjective)
 
 # }}}
