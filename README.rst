@@ -17,7 +17,10 @@ For a battle tested version of the same idea see the wonderful
 `hickle library <https://github.com/telegraphic/hickle>`__. The main difference
 between the two is that ``h5pyckle`` piggybacks on Python's
 `singledispatch <https://docs.python.org/3/library/functools.html>`__ to
-implement the pickling for various types, which makes it quite flexible.
+implement the pickling for various types. This has the benefit of
+
+* making it very easy to add custom pickling routines for new types
+* defering the dispatch issue for subclasses to a well-tested code
 
 Links
 
