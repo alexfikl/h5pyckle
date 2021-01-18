@@ -170,8 +170,15 @@ class PickleGroup(h5py.Group):
         if self.has_type:
             raise RuntimeError(f"group '{self.name}' already has a type")
 
-        self.attrs["__type"] = np.void(pickle.dumps(type(obj)))
-        self.attrs["__type_name"] = np.array(type(obj).__name__.encode())
+        cls = type(obj)
+        module = cls.__module__
+        name = cls.__qualname__
+        if not (module is None or module == str.__module__):
+            name = f"{module}.{name}"
+
+        self.attrs["__type"] = np.void(pickle.dumps(cls))
+        self.attrs["__type_name"] = name.encode()
+
         return self
 
     @property
