@@ -54,14 +54,14 @@ def _(obj: np.ndarray, parent: PickleGroup, *, name: Optional[str] = None):
 
 @loader.register(np.ndarray)
 def _(parent: PickleGroup) -> np.ndarray:
-    dtype = load_from_type(parent, obj_type=np.dtype)
+    dtype = load_from_type(parent, cls=np.dtype)
 
     if dtype.char == "O":
         obj = make_obj_array([
             load_from_type(parent[name]) for name in sorted(parent)
             ])
     else:
-        obj = parent["entry"][:].view(parent.type)
+        obj = parent["entry"][:].view(parent.pycls)
 
     if "__dict__" in parent:
         fields = load_from_type(parent["__dict__"])

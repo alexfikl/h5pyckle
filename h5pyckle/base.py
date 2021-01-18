@@ -53,7 +53,7 @@ _H5PYCKLE_RESERVED_ATTRS = ["__type", "__type_name", "__pickle"]
 
 class PickleGroup(h5py.Group):
     """
-    .. attribute:: type
+    .. attribute:: pycls
 
         If the group has type information, this attribute will return the
         corresponding class.
@@ -152,10 +152,6 @@ class PickleGroup(h5py.Group):
 
     # {{{ type handling
 
-    @property
-    def reserved_names(self):
-        return ["__type", "__type_name"]
-
     def create_type(self, name: str, obj: Any) -> "PickleGroup":
         """Creates a new group and adds appropriate type information.
 
@@ -179,7 +175,7 @@ class PickleGroup(h5py.Group):
         return self
 
     @property
-    def type(self) -> type:
+    def pycls(self) -> type:
         if not self.has_type:
             raise AttributeError(f"group '{self.name}' has no known type")
 
@@ -359,14 +355,14 @@ def dump_iterable_to_group(obj, parent: PickleGroup, *, name: Optional[str] = No
 
 # {{{ load helpers
 
-def load_from_type(group: PickleGroup, *, obj_type=None):
-    if obj_type is None:
+def load_from_type(group: PickleGroup, *, cls=None):
+    if cls is None:
         if not group.has_type:
             raise ValueError(f"cannot find type information in group '{group.name}'")
 
-        obj_type = group.type
+        cls = group.pycls
 
-    return loader.dispatch(obj_type)(group)
+    return loader.dispatch(cls)(group)
 
 
 def load_from_attribute(name: str, group: PickleGroup):

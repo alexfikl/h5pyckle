@@ -47,7 +47,7 @@ def _(parent: PickleGroup) -> object:
     if method == "getstate":
         state = load_from_type(parent["state"])
 
-        obj = parent.type()
+        obj = parent.pycls()
         obj.__setstate__(state)
         return obj
     elif method == "pickle":
@@ -87,7 +87,7 @@ def _(obj: Number, parent: PickleGroup, *, name: Optional[str] = None):
 @loader.register(int)
 def _(parent: PickleGroup) -> int:
     from h5pyckle.base import load_from_attribute
-    return parent.type(load_from_attribute("value", parent))
+    return parent.pycls(load_from_attribute("value", parent))
 
 # }}}
 
@@ -108,8 +108,7 @@ def _(obj: Dict[str, Any], parent: PickleGroup, *, name: Optional[str] = None):
 @loader.register(dict)
 def _(parent: PickleGroup) -> Dict[str, Any]:
     from h5pyckle.base import load_group_as_dict
-    cls = parent.type
-    return cls(load_group_as_dict(parent))
+    return parent.pycls(load_group_as_dict(parent))
 
 # }}}
 
@@ -138,19 +137,16 @@ def _(parent: PickleGroup) -> List:
     keys = sorted(entries, key=lambda el: int(el[6:]))
     entries = [entries[k] for k in keys]
 
-    cls = parent.type
-    return cls(entries)
+    return parent.pycls(entries)
 
 
 @loader.register(tuple)
 def _(parent: PickleGroup) -> Tuple:
-    cls = parent.type
-    return cls(load_from_type(parent, obj_type=list))
+    return parent.pycls(load_from_type(parent, cls=list))
 
 
 @loader.register(set)
 def _(parent: PickleGroup) -> Set:
-    cls = parent.type
-    return cls(load_from_type(parent, obj_type=list))
+    return parent.pycls(load_from_type(parent, cls=list))
 
 # }}}

@@ -121,8 +121,7 @@ def _(parent: ArrayContextPickleGroup) -> DOFArray:
         array_context = parent.actx
         from_numpy = parent.actx.from_numpy
 
-    cls = parent.type
-    return cls(array_context, tuple([from_numpy(x) for x in entries]))
+    return parent.pycls(array_context, tuple([from_numpy(x) for x in entries]))
 
 # }}}
 
@@ -153,8 +152,7 @@ def _(parent: ArrayContextPickleGroup) -> MeshElementGroup:
     nodes = parent["nodes"][:]
     unit_nodes = parent["unit_nodes"][:]
 
-    cls = parent.type
-    return cls(order, vertex_indices, nodes,
+    return parent.pycls(order, vertex_indices, nodes,
             unit_nodes=unit_nodes,
             dim=dim)
 
@@ -192,8 +190,7 @@ def _(parent: ArrayContextPickleGroup) -> Mesh:
     # FacialAdjacencyGroup
     # NodalAdjacency
 
-    cls = parent.type
-    return cls(vertices, groups,
+    return parent.pycls(vertices, groups,
             boundary_tags=boundary_tags,
             vertex_id_dtype=vertex_id_dtype,
             element_id_dtype=element_id_dtype,
