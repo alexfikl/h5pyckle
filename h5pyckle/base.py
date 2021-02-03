@@ -40,7 +40,7 @@ except ImportError:
     import pickle
 
 from functools import singledispatch
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Iterable, Optional, Union
 
 import h5py
 import numpy as np
@@ -152,7 +152,7 @@ class PickleGroup(h5py.Group):
 
     # {{{ type handling
 
-    def create_type(self, name: str, obj: Any) -> "PickleGroup":
+    def create_type(self, name: Optional[str], obj: Any) -> "PickleGroup":
         """Creates a new group and adds appropriate type information.
 
         :param name: name of the new group. If *None*, :meth:`append_type` is
@@ -165,12 +165,17 @@ class PickleGroup(h5py.Group):
         grp = self.create_group(name)
         return grp.append_type(obj)
 
-    def append_type(self, obj: Any):
+    def append_type(self, obj: Any, force_cls: Optional[type] = None):
         """Append type information to the current group."""
         if self.has_type:
             raise RuntimeError(f"group '{self.name}' already has a type")
 
-        cls = type(obj)
+        if force_cls is None:
+            cls = type(obj)
+        else:
+            assert isinstance(force_cls, type)
+            cls = force_cls
+
         module = cls.__module__
         name = cls.__qualname__
         if not (module is None or module == str.__module__):
@@ -239,7 +244,7 @@ def dump_to_group(
 
 def load_from_group(
         parent: PickleGroup, *,
-        exclude: Optional[List[str]] = None) -> Union[Any, Dict[str, Any]]:
+        exclude: Optional[Iterable[str]] = None) -> Union[Any, Dict[str, Any]]:
     """
     :param parent: a group in an open :class:`h5py.File`.
     :param exclude: a list of patterns to exclude when loading data.
@@ -247,13 +252,13 @@ def load_from_group(
     if exclude is None:
         exclude = []
 
-    exclude = set(exclude + _H5PYCKLE_RESERVED_ATTRS)
+    unique_exclude = set(list(exclude) + _H5PYCKLE_RESERVED_ATTRS)
 
     parent = PickleGroup.from_h5(parent)
     if parent.has_type:
         return load_from_type(parent)
 
-    return load_group_as_dict(parent, exclude=exclude)
+    return load_group_as_dict(parent, exclude=unique_exclude)
 
 
 def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
@@ -388,14 +393,14 @@ def load_from_attribute(name: str, group: PickleGroup):
 
 def load_group_as_dict(
         parent: PickleGroup,
-        exclude: Optional[List[str]] = None) -> Dict[str, Any]:
+        exclude: Optional[Iterable[str]] = None) -> Dict[str, Any]:
     if exclude is None:
         exclude = []
-    exclude = set(exclude + _H5PYCKLE_RESERVED_ATTRS)
+    unique_exclude = set(list(exclude) + _H5PYCKLE_RESERVED_ATTRS)
 
     groups = {}
     for name in parent:
-        if any(ex in name for ex in exclude):
+        if any(ex in name for ex in unique_exclude):
             continue
 
         obj = parent[name]
@@ -407,7 +412,7 @@ def load_group_as_dict(
             raise TypeError(f"cannot unpickle '{name}'")
 
     for name in parent.attrs:
-        if any(ex in name for ex in exclude):
+        if any(ex in name for ex in unique_exclude):
             continue
 
         groups[name] = load_from_attribute(name, parent)

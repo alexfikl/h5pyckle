@@ -49,8 +49,8 @@ def test_pickling_dict(arg_in):
 # {{{ test_pickling_list_like
 
 @pytest.mark.parametrize("arg_in", [
-    [],
-    [1, 2, 3, 4, 5],
+    # [],
+    # [1, 2, 3, 4, 5],
     [1, int, "string", 2.0],
     ])
 def test_pickling_list_like(arg_in):

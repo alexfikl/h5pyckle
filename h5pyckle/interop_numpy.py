@@ -24,7 +24,8 @@ def _(obj: np.dtype, parent: PickleGroup, *, name: Optional[str] = None):
     if name is None:
         parent.attrs["dtype"] = np.array(obj.str.encode())
     else:
-        grp = parent.create_type(name, obj)
+        grp = parent.create_group(name)
+        grp.append_type(obj, force_cls=np.dtype)
         grp.attrs["dtype"] = np.array(obj.str.encode())
 
 
