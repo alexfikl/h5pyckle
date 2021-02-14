@@ -9,6 +9,9 @@ except ImportError:
 import h5py
 import numpy as np
 
+import pyopencl as cl
+import pyopencl.array   # noqa: F401
+
 from meshmode.dof_array import DOFArray
 from meshmode.mesh import MeshElementGroup, Mesh
 from meshmode.discretization import ElementGroupBase, Discretization
@@ -83,6 +86,29 @@ def load(actx, filename: os.PathLike):
     from h5pyckle.base import load_from_group
     with h5py.File(filename, mode="r") as h5:
         return load_from_group(ArrayContextPickleGroup(actx, h5["/"].id))
+
+# }}}
+
+
+# {{{ pyopencl.Array
+
+@dumper.register(cl.array.Array)
+def _(obj: cl.array.Array,
+        parent: ArrayContextPickleGroup, *,
+        name: Optional[str] = None):
+    group = parent.create_type(name, obj)
+
+    group.attrs["frozen"] = obj.queue is None
+    group.create_dataset("entry", data=_to_numpy(parent.actx, obj))
+
+
+@loader.register(cl.array.Array)
+def _(parent: ArrayContextPickleGroup) -> cl.array.Array:
+    ary = _from_numpy(parent.actx, parent["entry"][:])
+    if not parent.attrs["frozen"]:
+        ary = ary.with_queue(parent.actx.queue)
+
+    return ary
 
 # }}}
 
