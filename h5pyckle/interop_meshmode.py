@@ -163,7 +163,8 @@ def _(obj: MeshElementGroup,
     subgrp.attrs["order"] = obj.order
     subgrp.attrs["dim"] = obj.dim
 
-    subgrp.create_dataset("vertex_indices", data=obj.vertex_indices)
+    if obj.vertex_indices is not None:
+        subgrp.create_dataset("vertex_indices", data=obj.vertex_indices)
     subgrp.create_dataset("nodes", data=obj.nodes)
     subgrp.create_dataset("unit_nodes", data=obj.unit_nodes)
 
@@ -174,7 +175,10 @@ def _(parent: ArrayContextPickleGroup) -> MeshElementGroup:
     order = int(parent.attrs["order"])
     dim = int(parent.attrs["dim"])
 
-    vertex_indices = parent["vertex_indices"][:]
+    if "vertex_indices" in parent:
+        vertex_indices = parent["vertex_indices"][:]
+    else:
+        vertex_indices = None
     nodes = parent["nodes"][:]
     unit_nodes = parent["unit_nodes"][:]
 
@@ -189,9 +193,12 @@ def _(obj: Mesh,
         name: Optional[str] = None):
     parent = parent.create_type(name, obj)
 
-    parent.attrs["is_conforming"] = obj.is_conforming
     parent.attrs["boundary_tags"] = np.void(pickle.dumps(obj.boundary_tags))
-    parent.create_dataset("vertices", data=obj.vertices)
+    if obj.is_conforming is not None:
+        parent.attrs["is_conforming"] = obj.is_conforming
+
+    if obj.vertices is not None:
+        parent.create_dataset("vertices", data=obj.vertices)
 
     dumper(obj.vertex_id_dtype, parent, name="vertex_id_dtype")
     dumper(obj.element_id_dtype, parent, name="element_id_dtype")
@@ -204,9 +211,12 @@ def _(obj: Mesh,
 
 @loader.register(Mesh)
 def _(parent: ArrayContextPickleGroup) -> Mesh:
-    is_conforming = parent.attrs["is_conforming"]
+    is_conforming = parent.attrs.get("is_conforming", None)
     boundary_tags = pickle.loads(parent.attrs["boundary_tags"].tobytes())
-    vertices = parent["vertices"][:]
+    if "vertices" in parent:
+        vertices = parent["vertices"][:]
+    else:
+        vertices = None
 
     vertex_id_dtype = load_from_type(parent["vertex_id_dtype"])
     element_id_dtype = load_from_type(parent["element_id_dtype"])
