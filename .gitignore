@@ -11,6 +11,7 @@ dist
 # generated files
 MANIFEST
 *.h5
+tags
 
 # temporaries
 *~

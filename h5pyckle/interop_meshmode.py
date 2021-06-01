@@ -147,7 +147,7 @@ def _(parent: ArrayContextPickleGroup) -> DOFArray:
         array_context = parent.actx
         from_numpy = parent.actx.from_numpy
 
-    return parent.pycls(array_context, tuple([from_numpy(x) for x in entries]))
+    return parent.pycls(array_context, tuple(from_numpy(x) for x in entries))
 
 # }}}
 
