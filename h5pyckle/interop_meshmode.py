@@ -1,24 +1,3 @@
-"""
-:mod:`meshmode` is a library used to represent and work with high-order
-unstructured meshes. It contains a lot of non-trivial types.
-
-Currently, the following types are supported
-
-* :class:`meshmode.dof_array.DOFArray` of any underlying type,
-* :class:`meshmode.mesh.MeshElementGroup` and its subclasses,
-* :class:`meshmode.mesh.Mesh`,
-* :class:`meshmode.discretization.Discretization`,
-* :class:`meshmode.discretization.connection.DirectDiscretizationConnection`.
-
-The array type in :mod:`meshmode` is handled by an
-:class:`~arraycontext.ArrayContext` and cannot be stored directly
-(as it could be on a GPU device). When pickling objects of the types above,
-wrap the corresponding :func:`~h5pyckle.load` or :func:`~h5pyckle.dump`
-calls with the context manager :func:`array_context_for_pickling`
-
-.. autofunction:: array_context_for_pickling
-"""
-
 try:
     import dill as pickle
 except ImportError:
