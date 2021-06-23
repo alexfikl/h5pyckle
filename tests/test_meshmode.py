@@ -39,7 +39,7 @@ def test_discretization_pickling(ambient_dim: int,
     pytest.importorskip("meshmode")
 
     import pyopencl as cl
-    from meshmode.array_context import PyOpenCLArrayContext
+    from arraycontext import PyOpenCLArrayContext
     ctx = cl.create_some_context()
     queue = cl.CommandQueue(ctx)
     actx = PyOpenCLArrayContext(queue)
