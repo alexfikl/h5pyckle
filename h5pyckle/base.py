@@ -50,7 +50,8 @@ import numpy as np
 
 # {{{ type aliases
 
-PathLike = Union[str, bytes, os.PathLike[Any], io.IOBase]
+# https://github.com/python/mypy/issues/5667
+PathLike = Union[str, bytes, "os.PathLike[Any]", io.IOBase]
 
 # }}}
 
