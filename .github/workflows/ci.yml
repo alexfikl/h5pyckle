@@ -41,15 +41,12 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: mypy-${{ matrix.python-version }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.6, 3.9]
     steps:
     - uses: actions/checkout@v2
     -
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.9
     - name: Main Script
       run: |
         python -m pip install --upgrade pip
