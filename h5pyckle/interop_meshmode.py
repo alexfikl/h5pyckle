@@ -230,7 +230,8 @@ def _(parent: ArrayContextPickleGroup) -> Mesh:
             boundary_tags=boundary_tags,
             vertex_id_dtype=vertex_id_dtype,
             element_id_dtype=element_id_dtype,
-            is_conforming=is_conforming)
+            is_conforming=is_conforming,
+            skip_tests=True)
 
 # }}}
 
