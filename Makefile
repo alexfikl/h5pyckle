@@ -11,6 +11,10 @@ pylint:
 	@echo -e "\e[1;32mpylint clean!\e[0m"
 
 mypy:
+	$(PYTHON) -m mypy h5pyckle tests examples
+	@echo -e "\e[1;32mmypy clean!\e[0m"
+
+mypy-strict:
 	$(PYTHON) -m mypy --strict h5pyckle tests examples
 	@echo -e "\e[1;32mmypy clean!\e[0m"
 
