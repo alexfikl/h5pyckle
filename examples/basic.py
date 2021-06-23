@@ -57,7 +57,7 @@ class CustomClass:
 
     def __eq__(self, other: Any) -> bool:
         return self.name == other.name \
-                and np.array_equal(self.values, other.values)
+                and bool(np.array_equal(self.values, other.values))
 
 
 @dumper.register(CustomClass)
