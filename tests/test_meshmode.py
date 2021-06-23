@@ -1,5 +1,7 @@
 import os
+from dataclasses import dataclass
 from functools import partial
+from typing import Any
 
 import pytest
 import numpy as np
@@ -7,18 +9,19 @@ import numpy as np
 try:
     from pytools import Record
 except ImportError:
-    class Record(dict):
+    # https://github.com/python/mypy/issues/1153
+    class Record(dict):         # type: ignore[no-redef,type-arg]
         pass
 
 
-def norm(actx, x):
+def norm(actx: Any, x: np.ndarray) -> float:
     if isinstance(x, np.ndarray):
         x = actx.np.sqrt(x.dot(x))
 
-    return actx.np.linalg.norm(x)
+    return actx.np.linalg.norm(x)       # type: ignore[no-any-return]
 
 
-def rnorm(actx, x, y):
+def rnorm(actx: Any, x: np.ndarray, y: np.ndarray) -> float:
     norm_y = norm(actx, y)
     if norm_y < 1.0e-15:
         norm_y = 1.0
@@ -29,7 +32,8 @@ def rnorm(actx, x, y):
 # {{{ test_discretization_pickling
 
 @pytest.mark.parametrize("ambient_dim", [2, 3])
-def test_discretization_pickling(ambient_dim, visualize=False, target_order=3):
+def test_discretization_pickling(ambient_dim: int,
+        visualize: bool = False, target_order: int = 3) -> None:
     """Tests that the interop_meshmode types can all be dumped/loaded correctly."""
 
     pytest.importorskip("meshmode")
@@ -135,11 +139,15 @@ def test_discretization_pickling(ambient_dim, visualize=False, target_order=3):
 
 # {{{ test_record_pickling
 
-class TimingRecord(Record):
-    pass
+@dataclass
+class TimingRecord:
+    name: str
+    mean: float
+    std: float
+    history: np.ndarray
 
 
-def test_record_pickling():
+def test_record_pickling() -> None:
     """Tests handling of __getstate__/__setstate__ with a Record."""
 
     pytest.importorskip("meshmode")
@@ -155,7 +163,7 @@ def test_record_pickling():
 
     filename = os.path.join(os.path.dirname(__file__), "pickle_record.h5")
     dump(cr_in, filename)
-    cr_out = load(filename)
+    cr_out: TimingRecord = load(filename)       # type: ignore[assignment]
 
     assert cr_in.name == cr_out.name
     assert np.array_equal(cr_in.history, cr_out.history)

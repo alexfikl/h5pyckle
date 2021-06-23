@@ -38,7 +38,7 @@ source_suffix = ".rst"
 # name of the main (master) document
 master_doc = "index"
 # min sphinx version (needed for `autodoc_type_aliases`)
-needs_sphinx = "3.3"
+needs_sphinx = "4.0"
 # files to ignore
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # highlighting
@@ -73,13 +73,7 @@ autodoc_default_options = {
 }
 
 autodoc_typehints = "description"
-
-# https://github.com/sphinx-doc/sphinx/issues/8127
-nitpick_ignore = [
-    ("py:class", "..")
-]
-
-autodoc_mock_imports = ["h5py", "meshmode"]
+autodoc_mock_imports = ["h5py"]
 
 # }}}
 
@@ -90,7 +84,9 @@ intersphinx_mapping = {
     "https://numpy.org/doc/stable": None,
     "h5py": ("https://docs.h5py.org/en/stable", None),
     "https://api.h5py.org/": None,
+    "https://documen.tician.de/pyopencl/": None,
     "https://documen.tician.de/meshmode/": None,
+    "https://documen.tician.de/arraycontext/": None,
 }
 
 # }}}

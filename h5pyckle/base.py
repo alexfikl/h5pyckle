@@ -39,12 +39,20 @@ except ImportError:
     # https://github.com/python/mypy/issues/1153
     import pickle       # type: ignore[no-redef]
 
+import io
 import os
 from functools import singledispatch
-from typing import Any, Dict, Iterable, Optional, Type, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Type, Union
 
 import h5py
 import numpy as np
+
+
+# {{{ type aliases
+
+PathLike = Union[str, bytes, os.PathLike[Any], io.IOBase]
+
+# }}}
 
 
 # {{{ wrapper for h5py.Group
@@ -52,7 +60,7 @@ import numpy as np
 _H5PYCKLE_RESERVED_ATTRS = ["__type", "__type_name", "__pickle"]
 
 
-class PickleGroup(h5py.Group):
+class PickleGroup(h5py.Group):      # type: ignore[misc]
     """
     .. attribute:: pycls
 
@@ -89,7 +97,7 @@ class PickleGroup(h5py.Group):
         self._type = None
 
     @classmethod
-    def from_h5(cls, h5) -> "PickleGroup":
+    def from_h5(cls, h5: Any) -> "PickleGroup":
         """Constructs a :class:`PickleGroup` from an ``h5py``-like object."""
         if isinstance(h5, cls):
             return h5
@@ -100,7 +108,7 @@ class PickleGroup(h5py.Group):
         else:
             raise TypeError(f"unsupported parent type: {type(h5).__name__}")
 
-    def replace(self, **kwargs):
+    def replace(self, **kwargs: Any) -> "PickleGroup":
         """Makes a copy of the current group."""
 
         kwargs["gid"] = kwargs.get("gid", self.id)
@@ -127,7 +135,10 @@ class PickleGroup(h5py.Group):
         return self.replace(gid=grp.id)
 
     # pylint: disable=arguments-differ
-    def create_dataset(self, name, *, shape=None, dtype=None, data=None):
+    def create_dataset(self, name: str, *,
+            shape: Optional[Tuple[int, ...]] = None,
+            dtype: Optional[Any] = None,
+            data: Optional["np.ndarray"] = None) -> h5py.Dataset:
         """Thin wrapper around :meth:`h5py.Group.create_dataset`. It uses
         the options from :attr:`h5_dset_options` to create the dataset.
         """
@@ -166,7 +177,9 @@ class PickleGroup(h5py.Group):
         grp = self.create_group(name)
         return grp.append_type(obj)
 
-    def append_type(self, obj: Any, force_cls: Optional[type] = None):
+    def append_type(self,
+            obj: Any,
+            force_cls: Optional[type] = None) -> "PickleGroup":
         """Append type information to the current group."""
         if self.has_type:
             raise RuntimeError(f"group '{self.name}' already has a type")
@@ -269,7 +282,7 @@ def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
         and only the first match is returned. It searches through groups,
         datasets, and their attributes.
     """
-    def callback(name, obj):
+    def callback(name: str, obj: Any) -> Optional[str]:
         # TODO: should be easy to make this a regex
         if pattern in name:
             return name
@@ -308,7 +321,7 @@ def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
     return load_from_attribute(found, obj)
 
 
-def dump(obj: Any, filename: Union[str, os.PathLike], *,
+def dump(obj: Any, filename: PathLike, *,
         mode: str = "w",
         h5_file_options: Optional[Dict[str, Any]] = None,
         h5_dset_options: Optional[Dict[str, Any]] = None) -> None:
@@ -335,7 +348,7 @@ def dump(obj: Any, filename: Union[str, os.PathLike], *,
         dump_to_group(obj, root)
 
 
-def load(filename: Union[str, os.PathLike]) -> Dict[str, Any]:
+def load(filename: PathLike) -> Union[Any, Dict[str, Any]]:
     """
     :param filename: file to load pickled data from.
     :returns: a :class:`dict` containing the full contents of the file. If

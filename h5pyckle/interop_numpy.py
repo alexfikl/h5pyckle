@@ -9,7 +9,7 @@ module offers some basic handling of :mod:`numpy` types
 This is very much a work in progress and additional support is encouraged.
 """
 
-from typing import Optional
+from typing import Any, Optional, Sequence
 
 import numpy as np
 
@@ -17,7 +17,7 @@ from h5pyckle.base import dumper, loader
 from h5pyckle.base import PickleGroup, load_from_type
 
 
-def make_obj_array(arrays):
+def make_obj_array(arrays: Sequence[Any]) -> np.ndarray:
     result = np.empty((len(arrays),), dtype=object)
 
     # 'result[:] = res_list' may look tempting, however:
@@ -32,7 +32,7 @@ def make_obj_array(arrays):
 
 @dumper.register(np.dtype)
 def _dump_dtype(
-        obj: np.dtype, parent: PickleGroup, *,
+        obj: np.dtype, parent: PickleGroup, *,      # type: ignore[type-arg]
         name: Optional[str] = None) -> None:
     if name is None:
         parent.attrs["dtype"] = np.array(obj.str.encode())
@@ -43,7 +43,7 @@ def _dump_dtype(
 
 
 @loader.register(np.dtype)
-def _load_dtype(parent: PickleGroup) -> np.dtype:
+def _load_dtype(parent: PickleGroup) -> np.dtype:   # type: ignore[type-arg]
     return np.dtype(parent.attrs["dtype"])
 
 # }}}

@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from typing import Any, Optional
 
 import numpy as np
 
@@ -54,23 +55,25 @@ class CustomClass:
     name: str
     values: np.ndarray
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return self.name == other.name \
                 and np.array_equal(self.values, other.values)
 
 
 @dumper.register(CustomClass)
-def _(obj: CustomClass, parent: PickleGroup, name: str = None):
+def _dump_custom(
+        obj: CustomClass, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     grp = parent.create_type(name, obj)
     grp.attrs["name"] = obj.name
     grp.create_dataset("values", data=obj.values)
 
 
 @loader.register(CustomClass)
-def _(parent: PickleGroup) -> CustomClass:
+def _load_custom(parent: PickleGroup) -> CustomClass:
     name = parent.attrs["name"]
     values = parent["values"][:]
-    return parent.type(name=name, values=values)
+    return parent.pycls(name=name, values=values)       # type: ignore
 
 
 cc_in = CustomClass(name="George", values=np.ones(42))

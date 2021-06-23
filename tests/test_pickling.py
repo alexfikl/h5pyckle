@@ -1,4 +1,5 @@
 import os
+from typing import Any, Dict, List
 
 import pytest
 import numpy as np
@@ -7,13 +8,13 @@ import numpy.linalg as la
 from h5pyckle import dump, load
 
 
-def norm(x):
+def norm(x: np.ndarray) -> float:
     if x.dtype.char == "O":
         x = np.sqrt(x.dot(x))
-    return la.norm(x)
+    return float(la.norm(x))
 
 
-def rnorm(x, y):
+def rnorm(x: np.ndarray, y: np.ndarray) -> float:
     norm_y = norm(y)
     if norm_y < 1.0e-15:
         norm_y = 1.0
@@ -33,7 +34,7 @@ def rnorm(x, y):
         "long_float": 3.14159265358979323846264338327950288419716939937510582097494
         },
     ])
-def test_pickling_dict(arg_in):
+def test_pickling_dict(arg_in: Dict[str, str]) -> None:
     filename = os.path.join(os.path.dirname(__file__), "pickle_dict.h5")
 
     dump(arg_in, filename)
@@ -53,7 +54,7 @@ def test_pickling_dict(arg_in):
     # [1, 2, 3, 4, 5],
     [1, int, "string", 2.0],
     ])
-def test_pickling_list_like(arg_in):
+def test_pickling_list_like(arg_in: List[Any]) -> None:
     filename = os.path.join(os.path.dirname(__file__), "pickle_list_like.h5")
 
     dump({
@@ -76,7 +77,7 @@ def test_pickling_list_like(arg_in):
 
 @pytest.mark.parametrize("arg_in_type", ["scalar", "object"])
 @pytest.mark.parametrize("dtype_in", [np.int32, np.float32, np.float64])
-def test_pickling_numpy(arg_in_type, dtype_in):
+def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
     filename = os.path.join(os.path.dirname(__file__), "pickle_numpy.h5")
 
     if arg_in_type == "scalar":
@@ -112,7 +113,7 @@ def test_pickling_numpy(arg_in_type, dtype_in):
 
 # {{{ test_pickling_numpy_subclass
 
-def test_pickling_numpy_subclass():
+def test_pickling_numpy_subclass() -> None:
     unyt = pytest.importorskip("unyt")
     x_in = unyt.unyt_array([1, 2, 3, 4, 5, 6], units=unyt.K)
 
@@ -129,7 +130,7 @@ def test_pickling_numpy_subclass():
 
 # {{{ test_pickling_bytesio
 
-def test_pickling_bytesio():
+def test_pickling_bytesio() -> None:
     import io
     bio = io.BytesIO()
 

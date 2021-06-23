@@ -13,8 +13,8 @@ Currently, the following types are supported
 The array type in :mod:`meshmode` is handled by an
 :class:`~arraycontext.ArrayContext` and cannot be stored directly
 (as it could be on a GPU device). When pickling objects of the types above,
-wrap the corresponding :func:`load` or :func:`dump` calls with the context
-manager :func:`array_context_for_pickling`
+wrap the corresponding :func:`~h5pyckle.load` or :func:`~h5pyckle.dump`
+calls with the context manager :func:`array_context_for_pickling`
 
 .. autofunction:: array_context_for_pickling
 """
@@ -27,7 +27,7 @@ except ImportError:
 
 import threading
 from contextlib import contextmanager
-from typing import Iterator, Optional
+from typing import Iterator, List, Optional
 
 import numpy as np
 
@@ -77,9 +77,9 @@ def array_context_for_pickling(actx: ArrayContext) -> Iterator[None]:
         _ARRAY_CONTEXT_FOR_PICKLING_TLS.actx = None
 
 
-def get_array_context() -> Optional[ArrayContext]:
+def get_array_context() -> ArrayContext:
     try:
-        actx = _ARRAY_CONTEXT_FOR_PICKLING_TLS.actx
+        actx: Optional[ArrayContext] = _ARRAY_CONTEXT_FOR_PICKLING_TLS.actx
     except AttributeError:
         actx = None
 
@@ -91,16 +91,16 @@ def get_array_context() -> Optional[ArrayContext]:
     return actx
 
 
-def to_numpy(x):
+def to_numpy(x: cl.array.Array) -> np.ndarray:
     actx = get_array_context()
-    return actx.to_numpy(actx.thaw(x))
+    return actx.to_numpy(actx.thaw(x))      # type: ignore
 
 
-def from_numpy(x, freeze=True):
+def from_numpy(x: np.ndarray, freeze: bool = True) -> cl.array.Array:
     actx = get_array_context()
     x = actx.from_numpy(x)
     if freeze:
-        x = actx.freeze(x)
+        x = actx.freeze(x)                  # type: ignore
 
     return x
 
@@ -242,7 +242,7 @@ class _SameElementGroupFactory:
     .. automethod:: __init__
     """
 
-    def __init__(self, groups):
+    def __init__(self, groups: List[ElementGroupBase]) -> None:
         """
         :arg groups: a :class:`list` of
             :class:`~meshmode.discretization.ElementGroupBase`.
@@ -250,7 +250,9 @@ class _SameElementGroupFactory:
 
         self.groups = groups
 
-    def __call__(self, mesh_el_group, index):
+    def __call__(self,
+            mesh_el_group: MeshElementGroup,
+            index: int) -> ElementGroupBase:
         if not 0 <= index < len(self.groups):
             raise ValueError("'group_index' outside known range of groups")
 
