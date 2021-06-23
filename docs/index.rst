@@ -73,7 +73,8 @@ The array type in :mod:`meshmode` is handled by an
 :class:`~arraycontext.ArrayContext` and cannot be stored directly
 (as it could be on a GPU device). When pickling objects of the types above,
 wrap the corresponding :func:`~h5pyckle.load` or :func:`~h5pyckle.dump`
-calls with the context manager :func:`array_context_for_pickling`
+calls with the context manager
+:func:`~h5pyckle.interop_meshmode.array_context_for_pickling`
 
 .. currentmodule:: h5pyckle.interop_meshmode
 .. autofunction:: array_context_for_pickling
