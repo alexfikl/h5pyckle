@@ -22,15 +22,6 @@
     Similar to :func:`dumper`, the loader is based on :func:`functools.singledispatch`.
     Unlike :func:`dumper`, this must register types explicitly with
     ``loader.register(MyFancyType)``.
-
-Canonical Names
-^^^^^^^^^^^^^^^
-
-.. currentmodule:: h5pyckle.base
-
-.. class:: PickleGroup
-
-    See :class:`h5pyckle.PickleGroup`.
 """
 
 try:
