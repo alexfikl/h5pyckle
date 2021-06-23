@@ -72,20 +72,24 @@ def test_discretization_pickling(ambient_dim, visualize=False, target_order=3):
 
     # {{{ pickle
 
-    from h5pyckle.interop_meshmode import dump, load
+    from h5pyckle import dump, load
+    from h5pyckle.interop_meshmode import array_context_for_pickling
 
     from meshmode.dof_array import thaw
     nodes = thaw(actx, discr.nodes())
 
     filename = os.path.join(os.path.dirname(__file__), "pickle_meshmode.h5")
-    dump(actx, {
-        "Field": nodes[0],
-        "Nodes": nodes,
-        "Mesh": mesh,
-        "Discretization": discr,
-        "Connection": conn,
-        }, filename)
-    data = load(actx, filename)
+    with array_context_for_pickling(actx):
+        dump({
+            "Field": nodes[0],
+            "Nodes": nodes,
+            "Mesh": mesh,
+            "Discretization": discr,
+            "Connection": conn,
+            }, filename)
+
+    with array_context_for_pickling(actx):
+        data = load(filename)
 
     x_new = data["Field"]
     nodes_new = data["Nodes"]

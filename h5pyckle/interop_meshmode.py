@@ -1,17 +1,39 @@
-import os
-from typing import Any, Optional, Dict
+"""
+:mod:`meshmode` is a library used to represent and work with high-order
+unstructured meshes. It contains a lot of non-trivial types.
+
+Currently, the following types are supported
+
+* :class:`meshmode.dof_array.DOFArray` of any underlying type,
+* :class:`meshmode.mesh.MeshElementGroup` and its subclasses,
+* :class:`meshmode.mesh.Mesh`,
+* :class:`meshmode.discretization.Discretization`,
+* :class:`meshmode.discretization.connection.DirectDiscretizationConnection`.
+
+The array type in :mod:`meshmode` is handled by an
+:class:`~arraycontext.ArrayContext` and cannot be stored directly
+(as it could be on a GPU device). When pickling objects of the types above,
+wrap the corresponding :func:`load` or :func:`dump` calls with the context
+manager :func:`array_context_for_pickling`
+
+.. autofunction:: array_context_for_pickling
+"""
+
+import threading
+from contextlib import contextmanager
+from typing import Iterator, Optional
 
 try:
     import dill as pickle
 except ImportError:
     import pickle
 
-import h5py
 import numpy as np
 
 import pyopencl as cl
 import pyopencl.array   # noqa: F401
 
+from arraycontext import ArrayContext
 from meshmode.dof_array import DOFArray
 from meshmode.mesh import MeshElementGroup, Mesh
 from meshmode.discretization import ElementGroupBase, Discretization
@@ -25,67 +47,61 @@ from h5pyckle.base import PickleGroup, load_from_type
 import h5pyckle.interop_numpy       # noqa: F401
 
 
-__all__ = ["ArrayContextPickleGroup"]
+__all__ = ["array_context_for_pickling"]
 
 
 # {{{ context manager
 
-class ArrayContextPickleGroup(PickleGroup):
-    """A :class:`~h5pyckle.PickleGroup` with access to an
-    :class:`meshmode.array_context.ArrayContext`.
+_ARRAY_CONTEXT_FOR_PICKLING_TLS = threading.local()
 
-    .. attribute:: actx
+
+@contextmanager
+def array_context_for_pickling(actx: ArrayContext) -> Iterator[None]:
+    """A context manager that can be used to provide an
+    :class:`~arraycontext.ArrayContext` for pickling and unpickling
+    :mod:`meshmode` objects.
     """
+    try:
+        existing_pickle_actx = _ARRAY_CONTEXT_FOR_PICKLING_TLS.actx
+    except AttributeError:
+        existing_pickle_actx = None
 
-    def __init__(self, actx,
-            gid: h5py.h5g.GroupID, *,
-            h5_dset_options: Optional[Dict[str, Any]] = None):
-        super().__init__(gid, h5_dset_options=h5_dset_options)
-        self.actx = actx
+    if existing_pickle_actx is not None:
+        raise RuntimeError("'array_context_for_pickling' can not be nested.")
 
-    def replace(self, **kwargs):
-        kwargs["actx"] = kwargs.get("actx", self.actx)
-        kwargs["gid"] = kwargs.get("gid", self.id)
-        kwargs["h5_dset_options"] = kwargs.get(
-                "h5_dset_options", self.h5_dset_options)
-
-        return type(self)(**kwargs)
-
-
-def dump(actx, obj: Any, filename: os.PathLike, *,
-        mode: str = "w",
-        h5_file_options: Optional[Dict[str, Any]] = None,
-        h5_dset_options: Optional[Dict[str, Any]] = None):
-    """This function should be used when the object hierarchy contains
-    :mod:`meshmode` objects that require an
-    :class:`~meshmode.array_context.ArrayContext`.
-
-    :param actx: :class:`~meshmode.array_context.ArrayContext` used for pickling.
-    """
-    if h5_file_options is None:
-        h5_file_options = {}
-
-    if h5_dset_options is None:
-        h5_dset_options = {}
-
-    from h5pyckle.base import dump_to_group
-    with h5py.File(filename, mode=mode, **h5_file_options) as h5:
-        root = ArrayContextPickleGroup(actx, h5["/"].id,
-                h5_dset_options=h5_dset_options)
-        dump_to_group(obj, root)
+    _ARRAY_CONTEXT_FOR_PICKLING_TLS.actx = actx
+    try:
+        yield
+    finally:
+        _ARRAY_CONTEXT_FOR_PICKLING_TLS.actx = None
 
 
-def load(actx, filename: os.PathLike):
-    """This function should be used when the object hierarchy contains
-    :mod:`meshmode` objects that require an
-    :class:`~meshmode.array_context.ArrayContext`.
+def get_array_context() -> Optional[ArrayContext]:
+    try:
+        actx = _ARRAY_CONTEXT_FOR_PICKLING_TLS.actx
+    except AttributeError:
+        actx = None
 
-    :param actx: :class:`~meshmode.array_context.ArrayContext` used for unpickling.
-    """
+    if actx is None:
+        raise RuntimeError("pickling or unpickling 'meshmode' objects "
+                "requires an 'ArrayContext'. Use the 'array_context_for_pickling' "
+                "context manager to provide one.")
 
-    from h5pyckle.base import load_from_group
-    with h5py.File(filename, mode="r") as h5:
-        return load_from_group(ArrayContextPickleGroup(actx, h5["/"].id))
+    return actx
+
+
+def to_numpy(x):
+    actx = get_array_context()
+    return actx.to_numpy(actx.thaw(x))
+
+
+def from_numpy(x, freeze=True):
+    actx = get_array_context()
+    x = actx.from_numpy(x)
+    if freeze:
+        x = actx.freeze(x)
+
+    return x
 
 # }}}
 
@@ -94,60 +110,41 @@ def load(actx, filename: os.PathLike):
 
 @dumper.register(cl.array.Array)
 def _(obj: cl.array.Array,
-        parent: ArrayContextPickleGroup, *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
     group = parent.create_type(name, obj)
 
     group.attrs["frozen"] = obj.queue is None
-    group.create_dataset("entry", data=_to_numpy(parent.actx, obj))
+    group.create_dataset("entry", data=to_numpy(obj))
 
 
 @loader.register(cl.array.Array)
-def _(parent: ArrayContextPickleGroup) -> cl.array.Array:
-    ary = _from_numpy(parent.actx, parent["entry"][:])
-    if not parent.attrs["frozen"]:
-        ary = ary.with_queue(parent.actx.queue)
-
-    return ary
+def _(parent: PickleGroup) -> cl.array.Array:
+    return from_numpy(parent["entry"][:], parent.attrs["frozen"])
 
 # }}}
 
 
 # {{{ dof arrays
 
-def _to_numpy(actx, x):
-    return actx.to_numpy(actx.thaw(x))
-
-
-def _from_numpy(actx, x):
-    return actx.freeze(actx.from_numpy(x))
-
-
 @dumper.register(DOFArray)
 def _(obj: DOFArray,
-        parent: ArrayContextPickleGroup, *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
     group = parent.create_type(name, obj)
     group.attrs["frozen"] = obj.array_context is None
 
-    dumper([
-        _to_numpy(parent.actx, x) for x in obj
-        ], group, name="entries")
+    dumper([to_numpy(x) for x in obj], group, name="entries")
 
 
 @loader.register(DOFArray)
-def _(parent: ArrayContextPickleGroup) -> DOFArray:
+def _(parent: PickleGroup) -> DOFArray:
     entries = load_from_type(parent["entries"])
 
-    if parent.attrs["frozen"]:
-        from functools import partial
-        array_context = None
-        from_numpy = partial(_from_numpy, parent.actx)
-    else:
-        array_context = parent.actx
-        from_numpy = parent.actx.from_numpy
-
-    return parent.pycls(array_context, tuple(from_numpy(x) for x in entries))
+    array_context = None if parent.attrs["frozen"] else get_array_context()
+    return parent.pycls(array_context, tuple([  # pylint: disable=R1728
+        from_numpy(x, parent.attrs["frozen"]) for x in entries
+        ]))
 
 # }}}
 
@@ -156,7 +153,7 @@ def _(parent: ArrayContextPickleGroup) -> DOFArray:
 
 @dumper.register(MeshElementGroup)
 def _(obj: MeshElementGroup,
-        parent: ArrayContextPickleGroup, *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
     subgrp = parent.create_type(name, obj)
 
@@ -170,7 +167,7 @@ def _(obj: MeshElementGroup,
 
 
 @loader.register(MeshElementGroup)
-def _(parent: ArrayContextPickleGroup) -> MeshElementGroup:
+def _(parent: PickleGroup) -> MeshElementGroup:
     # NOTE: h5py extracts these as np.intp
     order = int(parent.attrs["order"])
     dim = int(parent.attrs["dim"])
@@ -189,7 +186,7 @@ def _(parent: ArrayContextPickleGroup) -> MeshElementGroup:
 
 @dumper.register(Mesh)
 def _(obj: Mesh,
-        parent: ArrayContextPickleGroup, *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
     parent = parent.create_type(name, obj)
 
@@ -210,7 +207,7 @@ def _(obj: Mesh,
 
 
 @loader.register(Mesh)
-def _(parent: ArrayContextPickleGroup) -> Mesh:
+def _(parent: PickleGroup) -> Mesh:
     is_conforming = parent.attrs.get("is_conforming", None)
     boundary_tags = pickle.loads(parent.attrs["boundary_tags"].tobytes())
     if "vertices" in parent:
@@ -270,7 +267,7 @@ class _SameElementGroupFactory:
 
 @dumper.register(ElementGroupBase)
 def _(obj: ElementGroupBase,
-        parent: ArrayContextPickleGroup, *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
     # NOTE: these are dumped only for use in Discretization at the moment.
     # There we don't really need to dump mesh_el_group again
@@ -281,7 +278,7 @@ def _(obj: ElementGroupBase,
 
 
 @loader.register(ElementGroupBase)
-def _(parent: ArrayContextPickleGroup) -> ElementGroupBase:
+def _(parent: PickleGroup) -> ElementGroupBase:
     # NOTE: the real mesh_el_group is set by the group factory
     from collections import namedtuple
     ElementGroup = namedtuple("ElementGroup", ["dim"])
@@ -294,7 +291,7 @@ def _(parent: ArrayContextPickleGroup) -> ElementGroupBase:
 
 @dumper.register(Discretization)
 def _(obj: Discretization,
-        parent: ArrayContextPickleGroup, *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
     group = parent.create_type(name, obj)
 
@@ -304,13 +301,12 @@ def _(obj: Discretization,
 
 
 @loader.register(Discretization)
-def _(parent: ArrayContextPickleGroup) -> Discretization:
-    actx = parent.actx
-
+def _(parent: PickleGroup) -> Discretization:
     mesh = load_from_type(parent["mesh"])
     real_dtype = load_from_type(parent["real_dtype"])
     groups = load_from_type(parent["groups"])
 
+    actx = get_array_context()
     return parent.pycls(actx, mesh,
             group_factory=_SameElementGroupFactory(groups),
             real_dtype=real_dtype)
@@ -322,9 +318,8 @@ def _(parent: ArrayContextPickleGroup) -> Discretization:
 
 @dumper.register(InterpolationBatch)
 def _(obj: InterpolationBatch,
-        parent: ArrayContextPickleGroup, *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
-    actx = parent.actx
     grp = parent.create_type(name, obj)
 
     grp.attrs["from_group_index"] = obj.from_group_index
@@ -332,16 +327,14 @@ def _(obj: InterpolationBatch,
         grp.attrs["to_element_face"] = obj.to_element_face
 
     grp.create_dataset("from_element_indices",
-            data=_to_numpy(actx, obj.from_element_indices))
+            data=to_numpy(obj.from_element_indices))
     grp.create_dataset("to_element_indices",
-            data=_to_numpy(actx, obj.to_element_indices))
+            data=to_numpy(obj.to_element_indices))
     grp.create_dataset("result_unit_nodes", data=obj.result_unit_nodes)
 
 
 @loader.register(InterpolationBatch)
-def _(parent: ArrayContextPickleGroup) -> InterpolationBatch:
-    actx = parent.actx
-
+def _(parent: PickleGroup) -> InterpolationBatch:
     from_group_index = parent.attrs["from_group_index"]
     to_element_face = parent.attrs.get("to_element_face", None)
 
@@ -350,8 +343,8 @@ def _(parent: ArrayContextPickleGroup) -> InterpolationBatch:
     result_unit_nodes = parent["result_unit_nodes"][:]
 
     return parent.pycls(from_group_index,
-            from_element_indices=_from_numpy(actx, from_element_indices),
-            to_element_indices=_from_numpy(actx, to_element_indices),
+            from_element_indices=from_numpy(from_element_indices),
+            to_element_indices=from_numpy(to_element_indices),
             result_unit_nodes=result_unit_nodes,
             to_element_face=to_element_face,
             )
@@ -359,14 +352,14 @@ def _(parent: ArrayContextPickleGroup) -> InterpolationBatch:
 
 @dumper.register(DiscretizationConnectionElementGroup)
 def _(obj: DiscretizationConnectionElementGroup,
-        parent: ArrayContextPickleGroup, *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
     group = parent.create_type(name, obj)
     dumper(obj.batches, group, name="batches")
 
 
 @loader.register(DiscretizationConnectionElementGroup)
-def _(parent: ArrayContextPickleGroup) -> DiscretizationConnectionElementGroup:
+def _(parent: PickleGroup) -> DiscretizationConnectionElementGroup:
     batches = load_from_type(parent["batches"])
 
     return parent.pycls(batches)
@@ -374,7 +367,7 @@ def _(parent: ArrayContextPickleGroup) -> DiscretizationConnectionElementGroup:
 
 @dumper.register(DirectDiscretizationConnection)
 def _(obj: DirectDiscretizationConnection,
-        parent: ArrayContextPickleGroup, *,
+        parent: PickleGroup, *,
         name: Optional[str] = None):
     group = parent.create_type(name, obj)
 
@@ -385,7 +378,7 @@ def _(obj: DirectDiscretizationConnection,
 
 
 @loader.register(DirectDiscretizationConnection)
-def _(parent: ArrayContextPickleGroup) -> DirectDiscretizationConnection:
+def _(parent: PickleGroup) -> DirectDiscretizationConnection:
     is_surjective = parent.attrs["is_surjective"]
     from_discr = load_from_type(parent["from_discr"])
     to_discr = load_from_type(parent["to_discr"])
