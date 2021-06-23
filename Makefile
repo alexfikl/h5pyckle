@@ -1,6 +1,6 @@
 PYTHON?=python
 
-all: flake8 pylint mypy
+all: flake8 pylint mypy-strict
 
 flake8:
 	$(PYTHON) -m flake8 h5pyckle tests examples docs

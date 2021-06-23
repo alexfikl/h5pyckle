@@ -73,7 +73,7 @@ autodoc_default_options = {
 }
 
 autodoc_typehints = "description"
-autodoc_mock_imports = ["h5py"]
+autodoc_mock_imports = ["h5py", "pyopencl", "meshmode"]
 
 # }}}
 
