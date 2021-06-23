@@ -31,7 +31,9 @@ def make_obj_array(arrays):
 # {{{ dtype
 
 @dumper.register(np.dtype)
-def _(obj: np.dtype, parent: PickleGroup, *, name: Optional[str] = None):
+def _dump_dtype(
+        obj: np.dtype, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     if name is None:
         parent.attrs["dtype"] = np.array(obj.str.encode())
     else:
@@ -41,7 +43,7 @@ def _(obj: np.dtype, parent: PickleGroup, *, name: Optional[str] = None):
 
 
 @loader.register(np.dtype)
-def _(parent: PickleGroup) -> np.dtype:
+def _load_dtype(parent: PickleGroup) -> np.dtype:
     return np.dtype(parent.attrs["dtype"])
 
 # }}}
@@ -50,7 +52,9 @@ def _(parent: PickleGroup) -> np.dtype:
 # {{{ ndarray
 
 @dumper.register(np.ndarray)
-def _(obj: np.ndarray, parent: PickleGroup, *, name: Optional[str] = None):
+def _dump_ndarray(
+        obj: np.ndarray, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     grp = parent.create_type(name, obj)
 
     dumper(obj.dtype, grp)
@@ -65,7 +69,7 @@ def _(obj: np.ndarray, parent: PickleGroup, *, name: Optional[str] = None):
 
 
 @loader.register(np.ndarray)
-def _(parent: PickleGroup) -> np.ndarray:
+def _load_ndarray(parent: PickleGroup) -> np.ndarray:
     dtype = load_from_type(parent, cls=np.dtype)
 
     if dtype.char == "O":

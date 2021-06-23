@@ -19,14 +19,15 @@ manager :func:`array_context_for_pickling`
 .. autofunction:: array_context_for_pickling
 """
 
-import threading
-from contextlib import contextmanager
-from typing import Iterator, Optional
-
 try:
     import dill as pickle
 except ImportError:
-    import pickle
+    # https://github.com/python/mypy/issues/1153
+    import pickle       # type: ignore[no-redef]
+
+import threading
+from contextlib import contextmanager
+from typing import Iterator, Optional
 
 import numpy as np
 
@@ -109,9 +110,9 @@ def from_numpy(x, freeze=True):
 # {{{ pyopencl.Array
 
 @dumper.register(cl.array.Array)
-def _(obj: cl.array.Array,
+def _dump_cl_array(obj: cl.array.Array,
         parent: PickleGroup, *,
-        name: Optional[str] = None):
+        name: Optional[str] = None) -> None:
     group = parent.create_type(name, obj)
 
     group.attrs["frozen"] = obj.queue is None
@@ -119,7 +120,7 @@ def _(obj: cl.array.Array,
 
 
 @loader.register(cl.array.Array)
-def _(parent: PickleGroup) -> cl.array.Array:
+def _load_cl_array(parent: PickleGroup) -> cl.array.Array:
     return from_numpy(parent["entry"][:], parent.attrs["frozen"])
 
 # }}}
@@ -128,9 +129,9 @@ def _(parent: PickleGroup) -> cl.array.Array:
 # {{{ dof arrays
 
 @dumper.register(DOFArray)
-def _(obj: DOFArray,
-        parent: PickleGroup, *,
-        name: Optional[str] = None):
+def _dump_dof_array(
+        obj: DOFArray, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     group = parent.create_type(name, obj)
     group.attrs["frozen"] = obj.array_context is None
 
@@ -138,7 +139,7 @@ def _(obj: DOFArray,
 
 
 @loader.register(DOFArray)
-def _(parent: PickleGroup) -> DOFArray:
+def _load_dof_array(parent: PickleGroup) -> DOFArray:
     entries = load_from_type(parent["entries"])
 
     array_context = None if parent.attrs["frozen"] else get_array_context()
@@ -152,9 +153,9 @@ def _(parent: PickleGroup) -> DOFArray:
 # {{{ mesh
 
 @dumper.register(MeshElementGroup)
-def _(obj: MeshElementGroup,
-        parent: PickleGroup, *,
-        name: Optional[str] = None):
+def _dump_mesh_element_grouo(
+        obj: MeshElementGroup, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     subgrp = parent.create_type(name, obj)
 
     subgrp.attrs["order"] = obj.order
@@ -167,7 +168,7 @@ def _(obj: MeshElementGroup,
 
 
 @loader.register(MeshElementGroup)
-def _(parent: PickleGroup) -> MeshElementGroup:
+def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
     # NOTE: h5py extracts these as np.intp
     order = int(parent.attrs["order"])
     dim = int(parent.attrs["dim"])
@@ -185,9 +186,9 @@ def _(parent: PickleGroup) -> MeshElementGroup:
 
 
 @dumper.register(Mesh)
-def _(obj: Mesh,
-        parent: PickleGroup, *,
-        name: Optional[str] = None):
+def _dump_mesh(
+        obj: Mesh, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     parent = parent.create_type(name, obj)
 
     parent.attrs["boundary_tags"] = np.void(pickle.dumps(obj.boundary_tags))
@@ -207,7 +208,7 @@ def _(obj: Mesh,
 
 
 @loader.register(Mesh)
-def _(parent: PickleGroup) -> Mesh:
+def _load_mesh(parent: PickleGroup) -> Mesh:
     is_conforming = parent.attrs.get("is_conforming", None)
     boundary_tags = pickle.loads(parent.attrs["boundary_tags"].tobytes())
     if "vertices" in parent:
@@ -266,9 +267,9 @@ class _SameElementGroupFactory:
 
 
 @dumper.register(ElementGroupBase)
-def _(obj: ElementGroupBase,
-        parent: PickleGroup, *,
-        name: Optional[str] = None):
+def _dump_element_group(
+        obj: ElementGroupBase, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     # NOTE: these are dumped only for use in Discretization at the moment.
     # There we don't really need to dump mesh_el_group again
     group = parent.create_type(name, obj)
@@ -278,7 +279,7 @@ def _(obj: ElementGroupBase,
 
 
 @loader.register(ElementGroupBase)
-def _(parent: PickleGroup) -> ElementGroupBase:
+def _load_element_group(parent: PickleGroup) -> ElementGroupBase:
     # NOTE: the real mesh_el_group is set by the group factory
     from collections import namedtuple
     ElementGroup = namedtuple("ElementGroup", ["dim"])
@@ -290,9 +291,9 @@ def _(parent: PickleGroup) -> ElementGroupBase:
 
 
 @dumper.register(Discretization)
-def _(obj: Discretization,
-        parent: PickleGroup, *,
-        name: Optional[str] = None):
+def _dump_discretization(
+        obj: Discretization, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     group = parent.create_type(name, obj)
 
     dumper(obj.mesh, group, name="mesh")
@@ -301,7 +302,7 @@ def _(obj: Discretization,
 
 
 @loader.register(Discretization)
-def _(parent: PickleGroup) -> Discretization:
+def _load_discretization(parent: PickleGroup) -> Discretization:
     mesh = load_from_type(parent["mesh"])
     real_dtype = load_from_type(parent["real_dtype"])
     groups = load_from_type(parent["groups"])
@@ -317,9 +318,9 @@ def _(parent: PickleGroup) -> Discretization:
 # {{{ direct connection
 
 @dumper.register(InterpolationBatch)
-def _(obj: InterpolationBatch,
-        parent: PickleGroup, *,
-        name: Optional[str] = None):
+def _dump_interpolation_batch(
+        obj: InterpolationBatch, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     grp = parent.create_type(name, obj)
 
     grp.attrs["from_group_index"] = obj.from_group_index
@@ -334,7 +335,7 @@ def _(obj: InterpolationBatch,
 
 
 @loader.register(InterpolationBatch)
-def _(parent: PickleGroup) -> InterpolationBatch:
+def _load_interpolation_batch(parent: PickleGroup) -> InterpolationBatch:
     from_group_index = parent.attrs["from_group_index"]
     to_element_face = parent.attrs.get("to_element_face", None)
 
@@ -351,24 +352,25 @@ def _(parent: PickleGroup) -> InterpolationBatch:
 
 
 @dumper.register(DiscretizationConnectionElementGroup)
-def _(obj: DiscretizationConnectionElementGroup,
-        parent: PickleGroup, *,
-        name: Optional[str] = None):
+def _dump_connection_element_group(
+        obj: DiscretizationConnectionElementGroup, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     group = parent.create_type(name, obj)
     dumper(obj.batches, group, name="batches")
 
 
 @loader.register(DiscretizationConnectionElementGroup)
-def _(parent: PickleGroup) -> DiscretizationConnectionElementGroup:
+def _load_connection_element_group(
+        parent: PickleGroup) -> DiscretizationConnectionElementGroup:
     batches = load_from_type(parent["batches"])
 
     return parent.pycls(batches)
 
 
 @dumper.register(DirectDiscretizationConnection)
-def _(obj: DirectDiscretizationConnection,
-        parent: PickleGroup, *,
-        name: Optional[str] = None):
+def _dump_direct_connection(
+        obj: DirectDiscretizationConnection, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     group = parent.create_type(name, obj)
 
     group.attrs["is_surjective"] = obj.is_surjective
@@ -378,7 +380,7 @@ def _(obj: DirectDiscretizationConnection,
 
 
 @loader.register(DirectDiscretizationConnection)
-def _(parent: PickleGroup) -> DirectDiscretizationConnection:
+def _load_direct_connection(parent: PickleGroup) -> DirectDiscretizationConnection:
     is_surjective = parent.attrs["is_surjective"]
     from_discr = load_from_type(parent["from_discr"])
     to_discr = load_from_type(parent["to_discr"])

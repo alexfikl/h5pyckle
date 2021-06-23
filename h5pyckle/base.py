@@ -33,14 +33,15 @@ Canonical Names
     See :class:`h5pyckle.PickleGroup`.
 """
 
-import os
 try:
     import dill as pickle
 except ImportError:
-    import pickle
+    # https://github.com/python/mypy/issues/1153
+    import pickle       # type: ignore[no-redef]
 
+import os
 from functools import singledispatch
-from typing import Any, Dict, Iterable, Optional, Union
+from typing import Any, Dict, Iterable, Optional, Type, Union
 
 import h5py
 import numpy as np
@@ -79,7 +80,7 @@ class PickleGroup(h5py.Group):
 
     def __init__(self,
             gid: h5py.h5g.GroupID, *,
-            h5_dset_options: Optional[Dict[str, Any]] = None):
+            h5_dset_options: Optional[Dict[str, Any]] = None) -> None:
         if h5_dset_options is None:
             h5_dset_options = {}
 
@@ -89,7 +90,7 @@ class PickleGroup(h5py.Group):
 
     @classmethod
     def from_h5(cls, h5) -> "PickleGroup":
-        """Constructs a :class:`PickleGroup` from an ``h5py`` object."""
+        """Constructs a :class:`PickleGroup` from an ``h5py``-like object."""
         if isinstance(h5, cls):
             return h5
         elif isinstance(h5, h5py.File):
@@ -187,7 +188,7 @@ class PickleGroup(h5py.Group):
         return self
 
     @property
-    def pycls(self) -> type:
+    def pycls(self) -> Type[Any]:
         if not self.has_type:
             raise AttributeError(f"group '{self.name}' has no known type")
 
@@ -202,7 +203,7 @@ class PickleGroup(h5py.Group):
             except AttributeError:
                 self._type = cls
 
-        return self._type
+        return self._type       # type: ignore[return-value]
 
     @property
     def has_type(self) -> bool:
@@ -216,7 +217,7 @@ class PickleGroup(h5py.Group):
 # {{{ type registering
 
 @singledispatch
-def dumper(obj: Any, parent: PickleGroup, *, name: Optional[str] = None):
+def dumper(obj: Any, parent: PickleGroup, *, name: Optional[str] = None) -> None:
     raise NotImplementedError(f"pickling of '{type(obj).__name__}'")
 
 
@@ -232,7 +233,7 @@ def loader(parent: PickleGroup) -> Any:
 def dump_to_group(
         obj: Any,
         parent: PickleGroup, *,
-        name: Optional[str] = None):
+        name: Optional[str] = None) -> None:
     """Stores pickled data in a specific HDF5 subgroup.
 
     :param parent: a group in an open :class:`h5py.File`.
@@ -307,10 +308,10 @@ def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
     return load_from_attribute(found, obj)
 
 
-def dump(obj: Any, filename: os.PathLike, *,
+def dump(obj: Any, filename: Union[str, os.PathLike], *,
         mode: str = "w",
         h5_file_options: Optional[Dict[str, Any]] = None,
-        h5_dset_options: Optional[Dict[str, Any]] = None):
+        h5_dset_options: Optional[Dict[str, Any]] = None) -> None:
     """
     :param obj: object to pickle.
     :param filename: name of the file used for storage of pickled data.
@@ -334,7 +335,7 @@ def dump(obj: Any, filename: os.PathLike, *,
         dump_to_group(obj, root)
 
 
-def load(filename: os.PathLike) -> Dict[str, Any]:
+def load(filename: Union[str, os.PathLike]) -> Dict[str, Any]:
     """
     :param filename: file to load pickled data from.
     :returns: a :class:`dict` containing the full contents of the file. If
@@ -349,7 +350,9 @@ def load(filename: os.PathLike) -> Dict[str, Any]:
 
 # {{{ dump helpers
 
-def dump_iterable_to_group(obj, parent: PickleGroup, *, name: Optional[str] = None):
+def dump_iterable_to_group(
+        obj: Iterable[Any],
+        parent: PickleGroup, *, name: Optional[str] = None) -> None:
     grp = parent.create_type(name, obj)
     obj = list(obj)
 
@@ -367,7 +370,9 @@ def dump_iterable_to_group(obj, parent: PickleGroup, *, name: Optional[str] = No
 
 # {{{ load helpers
 
-def load_from_type(group: PickleGroup, *, cls=None):
+def load_from_type(
+        group: PickleGroup, *,
+        cls: Optional[Type[Any]] = None) -> Any:
     if cls is None:
         if not group.has_type:
             raise ValueError(f"cannot find type information in group '{group.name}'")
@@ -377,7 +382,7 @@ def load_from_type(group: PickleGroup, *, cls=None):
     return loader.dispatch(cls)(group)
 
 
-def load_from_attribute(name: str, group: PickleGroup):
+def load_from_attribute(name: str, group: PickleGroup) -> Any:
     attr = group.attrs[name]
     if isinstance(attr, np.void):
         attr = attr.tobytes()

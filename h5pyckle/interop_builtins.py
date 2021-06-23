@@ -1,10 +1,11 @@
 try:
     import dill as pickle
 except ImportError:
-    import pickle
-from pickle import UnpicklingError
+    # https://github.com/python/mypy/issues/1153
+    import pickle       # type: ignore[no-redef]
 
 from numbers import Number
+from pickle import UnpicklingError
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import h5py
@@ -20,7 +21,9 @@ _MAX_ATTRIBUTE_SIZE = 2**13
 # {{{ object
 
 @dumper.register(object)
-def _(obj: object, parent: PickleGroup, *, name: Optional[str] = None):
+def _dump_object(
+        obj: object, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     # NOTE: if we got here, it means no other (more specific) dumping method
     # was found and we should fall back to the generic pickle
     group = parent.create_type(name, obj)
@@ -28,7 +31,7 @@ def _(obj: object, parent: PickleGroup, *, name: Optional[str] = None):
     if hasattr(obj, "__getstate__"):
         group.attrs["__pickle"] = "getstate"
 
-        state = obj.__getstate__()
+        state = obj.__getstate__()      # type: ignore[attr-defined]
         dumper(state, group, name="state")
     else:
         group.attrs["__pickle"] = "pickle"
@@ -41,7 +44,7 @@ def _(obj: object, parent: PickleGroup, *, name: Optional[str] = None):
 
 
 @loader.register(object)
-def _(parent: PickleGroup) -> object:
+def _load_object(parent: PickleGroup) -> Any:
     method = parent.attrs.get("__pickle")
 
     if method == "getstate":
@@ -64,18 +67,24 @@ def _(parent: PickleGroup) -> object:
 # {{{ scalar
 
 @dumper.register(Number)
-def _(obj: Number, parent: PickleGroup, *, name: Optional[str] = None):
+def _dump_number(
+        obj: Number, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     parent.attrs[name] = obj
 
 
 @dumper.register(str)
 @dumper.register(bytes)
-def _(obj: Union[str, bytes], parent: PickleGroup, *, name: Optional[str] = None):
+def _dump_string(
+        obj: Union[str, bytes], parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     parent.attrs[name] = obj
 
 
 @dumper.register(int)
-def _(obj: Number, parent: PickleGroup, *, name: Optional[str] = None):
+def _dump_int(
+        obj: Number, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     try:
         parent.attrs[name] = obj
     except TypeError:
@@ -85,7 +94,7 @@ def _(obj: Number, parent: PickleGroup, *, name: Optional[str] = None):
 
 
 @loader.register(int)
-def _(parent: PickleGroup) -> int:
+def _load_int(parent: PickleGroup) -> int:
     from h5pyckle.base import load_from_attribute
     return parent.pycls(load_from_attribute("value", parent))
 
@@ -95,7 +104,9 @@ def _(parent: PickleGroup) -> int:
 # {{{ dict
 
 @dumper.register(dict)
-def _(obj: Dict[str, Any], parent: PickleGroup, *, name: Optional[str] = None):
+def _dump_dict(
+        obj: Dict[str, Any], parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     if name is None:
         group = parent.append_type(obj)
     else:
@@ -106,7 +117,7 @@ def _(obj: Dict[str, Any], parent: PickleGroup, *, name: Optional[str] = None):
 
 
 @loader.register(dict)
-def _(parent: PickleGroup) -> Dict[str, Any]:
+def _load_dict(parent: PickleGroup) -> Dict[str, Any]:
     from h5pyckle.base import load_group_as_dict
     return parent.pycls(load_group_as_dict(parent))
 
@@ -118,13 +129,15 @@ def _(parent: PickleGroup) -> Dict[str, Any]:
 @dumper.register(set)
 @dumper.register(list)
 @dumper.register(tuple)
-def _(obj: Union[List, Set, Tuple], parent: PickleGroup, *, name: Optional[str] = None):
+def _dump_iterable(
+        obj: Union[List, Set, Tuple], parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
     from h5pyckle.base import dump_iterable_to_group
     dump_iterable_to_group(obj, parent, name=name)
 
 
 @loader.register(list)
-def _(parent: PickleGroup) -> List:
+def _load_list(parent: PickleGroup) -> List[Any]:
     from h5pyckle.base import load_group_as_dict
 
     if "entry" in parent:
@@ -135,18 +148,18 @@ def _(parent: PickleGroup) -> List:
 
     # NOTE: entries are all named "entry_XXXX", so we sort them by the index
     keys = sorted(entries, key=lambda el: int(el[6:]))
-    entries = [entries[k] for k in keys]
+    values = [entries[k] for k in keys]
 
-    return parent.pycls(entries)
+    return parent.pycls(values)
 
 
 @loader.register(tuple)
-def _(parent: PickleGroup) -> Tuple:
+def _load_tuple(parent: PickleGroup) -> Tuple[Any, ...]:
     return parent.pycls(load_from_type(parent, cls=list))
 
 
 @loader.register(set)
-def _(parent: PickleGroup) -> Set:
+def _load_set(parent: PickleGroup) -> Set[Any]:
     return parent.pycls(load_from_type(parent, cls=list))
 
 # }}}
