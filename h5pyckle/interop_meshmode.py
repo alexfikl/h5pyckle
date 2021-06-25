@@ -70,12 +70,20 @@ def get_array_context() -> ArrayContext:
     return actx
 
 
-def to_numpy(x: cl.array.Array) -> np.ndarray:
+def to_numpy(x: Optional[cl.array.Array]) -> Optional[np.ndarray]:
+    if x is None:
+        return x
+
     actx = get_array_context()
     return actx.to_numpy(actx.thaw(x))      # type: ignore
 
 
-def from_numpy(x: np.ndarray, freeze: bool = True) -> cl.array.Array:
+def from_numpy(
+        x: Optional[np.ndarray],
+        freeze: bool = True) -> Optional[cl.array.Array]:
+    if x is None:
+        return x
+
     actx = get_array_context()
     x = actx.from_numpy(x)
     if freeze:
