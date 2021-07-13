@@ -17,6 +17,7 @@ from arraycontext import ArrayContext
 from meshmode.dof_array import DOFArray
 from meshmode.mesh import MeshElementGroup, Mesh
 from meshmode.discretization import ElementGroupBase, Discretization
+from meshmode.discretization.poly_element import PolynomialRecursiveNodesElementGroup
 from meshmode.discretization.connection import \
         InterpolationBatch, \
         DiscretizationConnectionElementGroup, \
@@ -108,7 +109,8 @@ def _dump_cl_array(obj: cl.array.Array,
 
 @loader.register(cl.array.Array)
 def _load_cl_array(parent: PickleGroup) -> cl.array.Array:
-    return from_numpy(parent["entry"][:], parent.attrs["frozen"])
+    from h5pyckle.interop_numpy import load_numpy_dataset
+    return from_numpy(load_numpy_dataset(parent, "entry"), parent.attrs["frozen"])
 
 # }}}
 
@@ -245,10 +247,6 @@ class _SameElementGroupFactory:
 
         grp = self.groups[index]
 
-        from meshmode.discretization.poly_element import (
-            PolynomialRecursiveNodesElementGroup,
-        )
-
         if isinstance(grp, PolynomialRecursiveNodesElementGroup):
             return type(grp)(mesh_el_group, grp.order, grp.family, index)
 
@@ -276,6 +274,31 @@ def _load_element_group(parent: PickleGroup) -> ElementGroupBase:
     return parent.pycls(
             ElementGroup(dim=int(parent.attrs["dim"])),
             int(parent.attrs["order"]),
+            int(parent.attrs["index"]))
+
+
+@dumper.register(PolynomialRecursiveNodesElementGroup)
+def _dump_recursivenodes_element_group(
+        obj: PolynomialRecursiveNodesElementGroup, parent: PickleGroup, *,
+        name: Optional[str] = None) -> None:
+    group = parent.create_type(name, obj)
+    group.attrs["order"] = obj.order
+    group.attrs["index"] = obj.index
+    group.attrs["dim"] = obj.dim
+    group.attrs["family"] = obj.family
+
+
+@loader.register(PolynomialRecursiveNodesElementGroup)
+def _load_recursivenodes_element_group(
+        parent: PickleGroup) -> PolynomialRecursiveNodesElementGroup:
+    # NOTE: the real mesh_el_group is set by the group factory
+    from collections import namedtuple
+    ElementGroup = namedtuple("ElementGroup", ["dim"])
+
+    return parent.pycls(
+            ElementGroup(dim=int(parent.attrs["dim"])),
+            int(parent.attrs["order"]),
+            str(parent.attrs["family"]),
             int(parent.attrs["index"]))
 
 

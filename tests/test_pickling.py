@@ -150,6 +150,23 @@ def test_pickling_bytesio() -> None:
 # }}}
 
 
+# {{{ test_pickling_numpy_scalar
+
+def test_pickling_numpy_scalar() -> None:
+    x = np.array(42)
+    arg_in = {"x": x}
+
+    filename = os.path.join(os.path.dirname(__file__), "pickle_np_scalar.h5")
+    dump(arg_in, filename)
+    arg_out = load(filename)
+
+    print("expected: ", arg_in)
+    print("got:      ", arg_out)
+    assert arg_in == arg_out
+
+# }}}
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:

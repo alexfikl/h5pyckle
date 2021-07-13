@@ -26,7 +26,7 @@ def rnorm(actx: Any, x: np.ndarray, y: np.ndarray) -> float:
     if norm_y < 1.0e-15:
         norm_y = 1.0
 
-    return norm(actx, x - y) / norm_y
+    return actx.to_numpy(norm(actx, x - y) / norm_y)
 
 
 # {{{ test_discretization_pickling
@@ -39,10 +39,11 @@ def test_discretization_pickling(ambient_dim: int,
     pytest.importorskip("meshmode")
 
     import pyopencl as cl
-    from arraycontext import PyOpenCLArrayContext
+    from meshmode.array_context import PyOpenCLArrayContext
+
     ctx = cl.create_some_context()
     queue = cl.CommandQueue(ctx)
-    actx = PyOpenCLArrayContext(queue)
+    actx = PyOpenCLArrayContext(queue, force_device_scalars=True)
 
     # {{{ geometry
 
@@ -62,12 +63,12 @@ def test_discretization_pickling(ambient_dim: int,
         raise ValueError(f"unsupported dimension: {ambient_dim}")
 
     from meshmode.discretization import Discretization
-    from meshmode.discretization.poly_element import \
-            PolynomialWarpAndBlendGroupFactory
+    from meshmode.discretization.poly_element import default_simplex_group_factory
+
     discr = Discretization(actx, mesh,
-            PolynomialWarpAndBlendGroupFactory(target_order))
+            default_simplex_group_factory(ambient_dim, target_order))
     fine_discr = Discretization(actx, mesh,
-            PolynomialWarpAndBlendGroupFactory(target_order + 3))
+            default_simplex_group_factory(ambient_dim, target_order + 3))
 
     from meshmode.discretization.connection import make_same_mesh_connection
     conn = make_same_mesh_connection(actx, discr, fine_discr)
@@ -167,6 +168,39 @@ def test_record_pickling() -> None:
 
     assert cr_in.name == cr_out.name
     assert np.array_equal(cr_in.history, cr_out.history)
+
+# }}}
+
+
+# {{{ test_pickling_cl_scalar
+
+def test_pickling_cl_scalar() -> None:
+    pytest.importorskip("meshmode")
+
+    import pyopencl as cl
+    from meshmode.array_context import PyOpenCLArrayContext
+    ctx = cl.create_some_context()
+    queue = cl.CommandQueue(ctx)
+    actx = PyOpenCLArrayContext(queue, force_device_scalars=True)
+
+    # {{{
+
+    x = cl.array.to_device(queue, np.array(42))
+    arg_in = {"x": x}
+
+    from h5pyckle import dump, load
+    from h5pyckle.interop_meshmode import array_context_for_pickling
+
+    filename = os.path.join(os.path.dirname(__file__), "pickle_cl_scalar.h5")
+    with array_context_for_pickling(actx):
+        dump(arg_in, filename)
+        arg_out = load(filename)
+
+    print("expected: ", arg_in)
+    print("got:      ", arg_out)
+    assert arg_in == arg_out
+
+    # }}}
 
 # }}}
 

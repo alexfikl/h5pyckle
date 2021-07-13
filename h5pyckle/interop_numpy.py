@@ -17,6 +17,19 @@ def make_obj_array(arrays: Sequence[Any]) -> np.ndarray:
     return result
 
 
+def load_numpy_dataset(parent, name):
+    ds = parent[name]
+    if ds.shape == ():
+        ds = np.array(ds[()])
+    else:
+        ds = ds[:]
+
+    if issubclass(parent.pycls, np.ndarray):
+        ds = ds.view(parent.pycls)
+
+    return ds
+
+
 # {{{ dtype
 
 @dumper.register(np.dtype)
@@ -66,11 +79,7 @@ def _load_ndarray(parent: PickleGroup) -> np.ndarray:
             load_from_type(parent[name]) for name in sorted(parent)
             ])
     else:
-        entry = parent["entry"]
-        if entry.shape == ():
-            obj = entry[()]
-        else:
-            obj = entry[:].view(parent.pycls)
+        obj = load_numpy_dataset(parent, "entry")
 
     if "__dict__" in parent:
         fields = load_from_type(parent["__dict__"])
