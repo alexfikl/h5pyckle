@@ -66,7 +66,11 @@ def _load_ndarray(parent: PickleGroup) -> np.ndarray:
             load_from_type(parent[name]) for name in sorted(parent)
             ])
     else:
-        obj = parent["entry"][:].view(parent.pycls)
+        entry = parent["entry"]
+        if entry.shape == ():
+            obj = entry[()]
+        else:
+            obj = entry[:].view(parent.pycls)
 
     if "__dict__" in parent:
         fields = load_from_type(parent["__dict__"])
