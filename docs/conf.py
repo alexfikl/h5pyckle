@@ -15,7 +15,7 @@ sys.H5PYCKLE_BUILDING_SPHINX_DOCS = True
 m = metadata.metadata("h5pyckle")
 project = m["Name"]
 author = m["Author"]
-copyright = "2021 {}".format(author)
+copyright = f"2021 {author}"
 version = m["Version"]
 release = version
 

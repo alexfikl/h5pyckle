@@ -147,9 +147,9 @@ def _load_dof_array(parent: PickleGroup) -> DOFArray:
     entries = load_from_type(parent["entries"])
 
     array_context = None if parent.attrs["frozen"] else get_array_context()
-    return parent.pycls(array_context, tuple([  # pylint: disable=R1728
+    return parent.pycls(array_context, tuple(
         from_numpy(x, parent.attrs["frozen"]) for x in entries
-        ]))
+        ))
 
 # }}}
 

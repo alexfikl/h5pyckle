@@ -101,7 +101,7 @@ def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
     arg_out = load(filename)["array"]
 
     error = rnorm(arg_out, arg_in)
-    print("error[{}, {}]: {}".format(arg_in_type, dtype_in, error))
+    print(f"error[{arg_in_type}, {dtype_in}]: {error}")
     assert error < 1.0e-15
 
     assert arg_out.dtype == arg_in.dtype
