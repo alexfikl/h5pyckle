@@ -42,8 +42,8 @@ if getattr(sys, "H5PYCKLE_BUILDING_SPHINX_DOCS", False):
 
         return wrapper
 
-    dumper.register = register
-    loader.register = register
+    dumper.register = register      # type: ignore[assignment]
+    loader.register = register      # type: ignore[assignment]
 
 
 # {{{ context manager
