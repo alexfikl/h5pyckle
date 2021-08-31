@@ -6,6 +6,10 @@ try:
 except ImportError:
     import importlib_metadata as metadata
 
+# NOTE: hack required in h5pyckle.interop_meshmode
+import sys
+sys.H5PYCKLE_BUILDING_SPHINX_DOCS = True
+
 # {{{ project information
 
 m = metadata.metadata("h5pyckle")

@@ -4,6 +4,7 @@ except ImportError:
     # https://github.com/python/mypy/issues/1153
     import pickle       # type: ignore[no-redef]
 
+import sys
 import threading
 from contextlib import contextmanager
 from typing import Iterator, List, Optional
@@ -29,6 +30,20 @@ import h5pyckle.interop_numpy       # noqa: F401
 
 
 __all__ = ["array_context_for_pickling"]
+
+if getattr(sys, "H5PYCKLE_BUILDING_SPHINX_DOCS", False):
+    # FIXME: without this mocking pyopencl or meshmode classes would result
+    # in some sort of infinite loop trying to unwrap the registered class,
+    # which had a `__wrapped__` attribute for some reason.
+
+    def register(cls):
+        def wrapper(func):
+            return func
+
+        return wrapper
+
+    dumper.register = register
+    loader.register = register
 
 
 # {{{ context manager
