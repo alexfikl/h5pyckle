@@ -156,25 +156,39 @@ def _load_dof_array(parent: PickleGroup) -> DOFArray:
 
 # {{{ mesh
 
+def _dump_order(parent: PickleGroup, order) -> None:
+    if isinstance(order, tuple):
+        dumper(order, parent, name="order")
+    else:
+        parent.attrs["order"] = order
+
+
+def _load_order(parent: PickleGroup):
+    if "order" in parent.attrs:
+        return int(parent.attrs["order"])
+
+    return load_from_type(parent["order"])
+
+
 @dumper.register(MeshElementGroup)
 def _dump_mesh_element_grouo(
         obj: MeshElementGroup, parent: PickleGroup, *,
         name: Optional[str] = None) -> None:
-    subgrp = parent.create_type(name, obj)
+    parent = parent.create_type(name, obj)
 
-    subgrp.attrs["order"] = obj.order
-    subgrp.attrs["dim"] = obj.dim
+    _dump_order(parent, obj.order)
+    parent.attrs["dim"] = obj.dim
 
     if obj.vertex_indices is not None:
-        subgrp.create_dataset("vertex_indices", data=obj.vertex_indices)
-    subgrp.create_dataset("nodes", data=obj.nodes)
-    subgrp.create_dataset("unit_nodes", data=obj.unit_nodes)
+        parent.create_dataset("vertex_indices", data=obj.vertex_indices)
+    parent.create_dataset("nodes", data=obj.nodes)
+    parent.create_dataset("unit_nodes", data=obj.unit_nodes)
 
 
 @loader.register(MeshElementGroup)
 def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
     # NOTE: h5py extracts these as np.intp
-    order = int(parent.attrs["order"])
+    order = _load_order(parent)
     dim = int(parent.attrs["dim"])
 
     if "vertex_indices" in parent:
@@ -275,7 +289,7 @@ def _dump_element_group(
     # NOTE: these are dumped only for use in Discretization at the moment.
     # There we don't really need to dump mesh_el_group again
     group = parent.create_type(name, obj)
-    group.attrs["order"] = obj.order
+    _dump_order(group, obj.order)
     group.attrs["index"] = obj.index
     group.attrs["dim"] = obj.dim
 
@@ -288,7 +302,7 @@ def _load_element_group(parent: PickleGroup) -> ElementGroupBase:
 
     return parent.pycls(
             ElementGroup(dim=int(parent.attrs["dim"])),
-            int(parent.attrs["order"]),
+            _load_order(parent),
             int(parent.attrs["index"]))
 
 
@@ -297,7 +311,7 @@ def _dump_recursivenodes_element_group(
         obj: PolynomialRecursiveNodesElementGroup, parent: PickleGroup, *,
         name: Optional[str] = None) -> None:
     group = parent.create_type(name, obj)
-    group.attrs["order"] = obj.order
+    _dump_order(group, obj.order)
     group.attrs["index"] = obj.index
     group.attrs["dim"] = obj.dim
     group.attrs["family"] = obj.family
@@ -312,7 +326,7 @@ def _load_recursivenodes_element_group(
 
     return parent.pycls(
             ElementGroup(dim=int(parent.attrs["dim"])),
-            int(parent.attrs["order"]),
+            _load_order(parent),
             str(parent.attrs["family"]),
             int(parent.attrs["index"]))
 
