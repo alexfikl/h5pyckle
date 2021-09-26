@@ -209,7 +209,9 @@ def _dump_mesh(
         name: Optional[str] = None) -> None:
     parent = parent.create_type(name, obj)
 
-    parent.attrs["boundary_tags"] = np.void(pickle.dumps(obj.boundary_tags))
+    if hasattr(obj, "boundary_tags"):
+        parent.attrs["boundary_tags"] = np.void(pickle.dumps(obj.boundary_tags))
+
     if obj.is_conforming is not None:
         parent.attrs["is_conforming"] = obj.is_conforming
 
@@ -227,13 +229,18 @@ def _dump_mesh(
 
 @loader.register(Mesh)
 def _load_mesh(parent: PickleGroup) -> Mesh:
-    is_conforming = parent.attrs.get("is_conforming", None)
-    boundary_tags = pickle.loads(parent.attrs["boundary_tags"].tobytes())
+    kwargs = {}
+
+    if "boundary_tags" in parent.attrs:
+        boundary_tags = pickle.loads(parent.attrs["boundary_tags"].tobytes())
+        kwargs["boundary_tags"] = boundary_tags
+
     if "vertices" in parent:
         vertices = parent["vertices"][:]
     else:
         vertices = None
 
+    is_conforming = parent.attrs.get("is_conforming", None)
     vertex_id_dtype = load_from_type(parent["vertex_id_dtype"])
     element_id_dtype = load_from_type(parent["element_id_dtype"])
     groups = load_from_type(parent["groups"])
@@ -243,11 +250,10 @@ def _load_mesh(parent: PickleGroup) -> Mesh:
     # NodalAdjacency
 
     return parent.pycls(vertices, groups,
-            boundary_tags=boundary_tags,
             vertex_id_dtype=vertex_id_dtype,
             element_id_dtype=element_id_dtype,
             is_conforming=is_conforming,
-            skip_tests=True)
+            skip_tests=True, **kwargs)
 
 # }}}
 
