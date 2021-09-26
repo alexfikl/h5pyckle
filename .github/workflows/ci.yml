@@ -5,8 +5,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-    schedule:
-      - cron: '30 12 * * 0'
+  schedule:
+    - cron: '30 12 * * 0'
 
 jobs:
   flake8:
