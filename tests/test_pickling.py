@@ -7,6 +7,9 @@ import numpy.linalg as la
 
 from h5pyckle import dump, load
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def norm(x: np.ndarray) -> float:
     if x.dtype.char == "O":
@@ -40,8 +43,8 @@ def test_pickling_dict(arg_in: Dict[str, str]) -> None:
     dump(arg_in, filename)
     arg_out = load(filename)
 
-    print("expected: ", arg_in)
-    print("got:      ", arg_out)
+    logger.info("expected: %s", arg_in)
+    logger.info("got:      %s", arg_out)
     assert arg_in == arg_out
 
 # }}}
@@ -64,8 +67,8 @@ def test_pickling_list_like(arg_in: List[Any]) -> None:
         }, filename)
     out = load(filename)
 
-    print("expected: ", arg_in)
-    print("got:      ", out["list"], out["tuple"], out["set"])
+    logger.info("expected: %s", arg_in)
+    logger.info("got:      %s %s %s", out["list"], out["tuple"], out["set"])
     assert arg_in == out["list"]
     assert tuple(arg_in) == out["tuple"]
     assert set(arg_in) == out["set"]
@@ -101,7 +104,7 @@ def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
     arg_out = load(filename)["array"]
 
     error = rnorm(arg_out, arg_in)
-    print(f"error[{arg_in_type}, {dtype_in}]: {error}")
+    logger.info("error[%s, %s]: %.5e", arg_in_type, dtype_in, error)
     assert error < 1.0e-15
 
     assert arg_out.dtype == arg_in.dtype
@@ -121,8 +124,8 @@ def test_pickling_numpy_subclass() -> None:
     dump(x_in, filename)
     x_out = load(filename)
 
-    print("expected: ", x_in)
-    print("got:      ", x_out)
+    logger.info("expected: %s", x_in)
+    logger.info("got:      %s", x_out)
     assert (x_in == x_out).all()
 
 # }}}
@@ -143,8 +146,8 @@ def test_pickling_bytesio() -> None:
     dump(arg_in, bio)
     arg_out = load(bio)
 
-    print("expected: ", arg_in)
-    print("got:      ", arg_out)
+    logger.info("expected: %s", arg_in)
+    logger.info("got:      %s", arg_out)
     assert arg_in == arg_out
 
 # }}}
@@ -160,8 +163,8 @@ def test_pickling_numpy_scalar() -> None:
     dump(arg_in, filename)
     arg_out = load(filename)
 
-    print("expected: ", arg_in)
-    print("got:      ", arg_out)
+    logger.info("expected: %s", arg_in)
+    logger.info("got:      %s", arg_out)
     assert arg_in == arg_out
 
 # }}}
@@ -169,6 +172,8 @@ def test_pickling_numpy_scalar() -> None:
 
 if __name__ == "__main__":
     import sys
+    logging.basicConfig(level=logging.INFO)
+
     if len(sys.argv) > 1:
         exec(sys.argv[1])
     else:

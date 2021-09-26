@@ -6,6 +6,9 @@ from typing import Any
 import pytest
 import numpy as np
 
+import logging
+logger = logging.getLogger(__name__)
+
 try:
     from pytools import Record
 except ImportError:
@@ -108,7 +111,7 @@ def test_discretization_pickling(ambient_dim: int,
 
     # check stored field is the same
     error = rnorm(actx, x_new, nodes[0])
-    print("error[scalar]: %.5e" % error)
+    logger.info("error[scalar]: %.5e", error)
     assert error < 1.0e-15
 
     # check stored mesh is the same
@@ -117,20 +120,20 @@ def test_discretization_pickling(ambient_dim: int,
 
     # check object array is the same
     error = rnorm(actx, nodes_new, nodes)
-    print("error[vector]: %.5e" % error)
+    logger.info("error[vector]: %.5e", error)
     assert error < 1.0e-15
 
     # check discretization nodes are the same
     nodes_new = thaw(actx, discr_new.nodes())
     error = rnorm(actx, nodes_new, nodes)
-    print("error[discr]:  %.5e" % error)
+    logger.info("error[discr]:  %.5e", error)
     assert error < 1.0e-15
 
     # check connection is the same
     nodes = thaw(actx, conn.from_discr.nodes())
     nodes_new = thaw(actx, conn_new.from_discr.nodes())
     error = rnorm(actx, nodes_new, nodes)
-    print("error[conns]:  %.5e" % error)
+    logger.info("error[conns]:  %.5e", error)
     assert error < 1.0e-15
 
     # }}}
@@ -196,8 +199,8 @@ def test_pickling_cl_scalar() -> None:
         dump(arg_in, filename)
         arg_out = load(filename)
 
-    print("expected: ", arg_in)
-    print("got:      ", arg_out)
+    logger.info("expected: %s", arg_in)
+    logger.info("got:      %s", arg_out)
     assert arg_in == arg_out
 
     # }}}
@@ -207,6 +210,8 @@ def test_pickling_cl_scalar() -> None:
 
 if __name__ == "__main__":
     import sys
+    logging.basicConfig(level=logging.INFO)
+
     if len(sys.argv) > 1:
         exec(sys.argv[1])
     else:
