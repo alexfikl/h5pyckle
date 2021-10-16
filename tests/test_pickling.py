@@ -170,6 +170,24 @@ def test_pickling_numpy_scalar() -> None:
 # }}}
 
 
+# {{{ test_pickling_scalar
+
+def test_pickling_scalar() -> None:
+    filename = os.path.join(os.path.dirname(__file__), "pickle_scalar.h5")
+
+    arg_in = {"int": 1, "float": 3.14}
+    dump(arg_in, filename)
+    arg_out = load(filename)
+
+    # pylint: disable-next=unidiomatic-typecheck
+    assert type(arg_in["int"]) == type(arg_out["int"])          # noqa: E721
+
+    # pylint: disable-next=unidiomatic-typecheck
+    assert type(arg_in["float"]) == type(arg_out["float"])      # noqa: E721
+
+# }}}
+
+
 if __name__ == "__main__":
     import sys
     logging.basicConfig(level=logging.INFO)

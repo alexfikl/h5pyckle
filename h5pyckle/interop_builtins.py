@@ -82,18 +82,17 @@ def _dump_string(
 
 
 @dumper.register(int)
+@dumper.register(float)
 def _dump_int(
         obj: Number, parent: PickleGroup, *,
         name: Optional[str] = None) -> None:
-    try:
-        parent.attrs[name] = obj
-    except TypeError:
-        # NOTE: managed to hit an arbitrary precision int
-        grp = parent.create_type(name, obj)
-        grp.attrs["value"] = repr(obj).encode()
+    # NOTE: managed to hit an arbitrary precision int
+    grp = parent.create_type(name, obj)
+    grp.attrs["value"] = repr(obj).encode()
 
 
 @loader.register(int)
+@loader.register(float)
 def _load_int(parent: PickleGroup) -> int:
     from h5pyckle.base import load_from_attribute
     return parent.pycls(load_from_attribute("value", parent))   # type: ignore
