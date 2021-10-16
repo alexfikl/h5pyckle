@@ -22,6 +22,13 @@
     Similar to :func:`dumper`, the loader is based on :func:`functools.singledispatch`.
     Unlike :func:`dumper`, this must register types explicitly with
     ``loader.register(MyFancyType)``.
+
+
+.. autofunction:: dump_sequence_to_group
+.. autofunction:: dump_to_attribute
+.. autofunction:: load_from_type
+.. autofunction:: load_from_attribute
+.. autofunction:: load_from_as_dict
 """
 
 try:
@@ -33,7 +40,7 @@ except ImportError:
 import io
 import os
 from functools import singledispatch
-from typing import Any, Dict, Iterable, Optional, Tuple, Type, Union
+from typing import Any, Dict, Optional, Sequence, Set, Tuple, Type, Union
 
 import h5py
 import numpy as np
@@ -117,8 +124,8 @@ class PickleGroup(h5py.Group):      # type: ignore[misc]
             track_order: Optional[bool] = True) -> "PickleGroup":
         """Thin wrapper around :meth:`h5py.Group.create_group`.
 
-        :param name: name of the new group.
-        :param track_order: If *True*, creation order in the group is preserved.
+        :arg name: name of the new group.
+        :arg track_order: If *True*, creation order in the group is preserved.
             This is the default to match the default :class:`dict` behavior.
         """
         grp = super().create_group(name, track_order=track_order)
@@ -142,7 +149,7 @@ class PickleGroup(h5py.Group):      # type: ignore[misc]
     def __getitem__(self, name: str) -> Any:
         """Retrieves an object in the group.
 
-        :param name: a relative or absolute path in the group.
+        :arg name: a relative or absolute path in the group.
         """
         item = super().__getitem__(name)
         if isinstance(item, h5py.Group):
@@ -157,9 +164,9 @@ class PickleGroup(h5py.Group):      # type: ignore[misc]
     def create_type(self, name: Optional[str], obj: Any) -> "PickleGroup":
         """Creates a new group and adds appropriate type information.
 
-        :param name: name of the new group. If *None*, :meth:`append_type` is
+        :arg name: name of the new group. If *None*, :meth:`append_type` is
             called instead.
-        :param obj: object that will be pickled in the new group.
+        :arg obj: object that will be pickled in the new group.
         """
         if name is None:
             return self.append_type(obj)
@@ -240,8 +247,8 @@ def dump_to_group(
         name: Optional[str] = None) -> None:
     """Stores pickled data in a specific HDF5 subgroup.
 
-    :param parent: a group in an open :class:`h5py.File`.
-    :param name: if provided, a new subgroup is created for this object.
+    :arg parent: a group in an open :class:`h5py.File`.
+    :arg name: if provided, a new subgroup is created for this object.
     """
     parent = PickleGroup.from_h5(parent)
     dumper(obj, parent, name=name)
@@ -249,10 +256,11 @@ def dump_to_group(
 
 def load_from_group(
         parent: PickleGroup, *,
-        exclude: Optional[Iterable[str]] = None) -> Union[Any, Dict[str, Any]]:
+        exclude: Optional[Union[Set[str], Sequence[str]]] = None,
+        ) -> Union[Any, Dict[str, Any]]:
     """
-    :param parent: a group in an open :class:`h5py.File`.
-    :param exclude: a list of patterns to exclude when loading data.
+    :arg parent: a group in an open :class:`h5py.File`.
+    :arg exclude: a list of patterns to exclude when loading data.
     """
     if exclude is None:
         exclude = []
@@ -268,8 +276,8 @@ def load_from_group(
 
 def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
     """
-    :param parent: a group in an open :class:`h5py.File`.
-    :param pattern: the pattern is searched for using :meth:`h5py.Group.visit`
+    :arg parent: a group in an open :class:`h5py.File`.
+    :arg pattern: the pattern is searched for using :meth:`h5py.Group.visit`
         and only the first match is returned. It searches through groups,
         datasets, and their attributes.
     """
@@ -317,13 +325,13 @@ def dump(obj: Any, filename: PathLike, *,
         h5_file_options: Optional[Dict[str, Any]] = None,
         h5_dset_options: Optional[Dict[str, Any]] = None) -> None:
     """
-    :param obj: object to pickle.
-    :param filename: name of the file used for storage of pickled data.
-    :param mode: see :attr:`h5py.File.mode` and the
+    :arg obj: object to pickle.
+    :arg filename: name of the file used for storage of pickled data.
+    :arg mode: see :attr:`h5py.File.mode` and the
         :ref:`h5py docs <h5py:file_open>`.
-    :param h5_file_options: additional options passed directly to the
+    :arg h5_file_options: additional options passed directly to the
         :class:`h5py.File` constructor.
-    :param h5_dset_options: additional options used when creating datasets.
+    :arg h5_dset_options: additional options used when creating datasets.
         This is used when calling :meth:`PickleGroup.create_dataset`. See
         the :ref:`h5py docs <h5py:dataset>` for additional information
         about supported values.
@@ -341,7 +349,7 @@ def dump(obj: Any, filename: PathLike, *,
 
 def load(filename: PathLike) -> Union[Any, Dict[str, Any]]:
     """
-    :param filename: file to load pickled data from.
+    :arg filename: file to load pickled data from.
     :returns: a :class:`dict` containing the full contents of the file. If
         only a subset of the file containts pickled data, use
         :func:`load_from_group` or :class:`load_by_pattern` instead.
@@ -354,9 +362,16 @@ def load(filename: PathLike) -> Union[Any, Dict[str, Any]]:
 
 # {{{ dump helpers
 
-def dump_iterable_to_group(
-        obj: Iterable[Any],
+def dump_sequence_to_group(
+        obj: Union[Set[Any], Sequence[Any]],
         parent: PickleGroup, *, name: Optional[str] = None) -> None:
+    """Dump the sequence *obj* into the group *parent* with the given *name*.
+
+    If the sequence only contains :class:`numbers.Number`, then it is stored
+    as a dataset instead of individual entries.
+
+    :arg obj: a class sastisfying the :class:`collections.abc.Sequence` protocol.
+    """
     grp = parent.create_type(name, obj)
     obj = list(obj)
 
@@ -398,6 +413,13 @@ def dump_to_attribute(
 def load_from_type(
         group: PickleGroup, *,
         cls: Optional[Type[Any]] = None) -> Any:
+    """Load an object by using the dispatch of :func:`loader`.
+
+    :arg cls: if provided is used to determine the dispatch, otherwise
+        :attr:`PickleGroup.pycls` is used.
+    :returns: an instance of *cls* or :attr:`PickleGroup.pycls`, as appropriate.
+    """
+
     if cls is None:
         if not group.has_type:
             raise ValueError(f"cannot find type information in group '{group.name}'")
@@ -407,7 +429,17 @@ def load_from_type(
     return loader.dispatch(cls)(group)
 
 
-def load_from_attribute(name: str, group: PickleGroup) -> Any:
+def load_from_attribute(name: str, group: PickleGroup) -> Optional[Any]:
+    """Loads an attribute from the group *group*.
+
+    This function also attempts to unpickle the attribute in case it was stored
+    using :func:`pickle.dumps`.
+
+    :arg name: name of the attribute from *group*.
+    """
+    if name not in group.attrs:
+        return None
+
     attr = group.attrs[name]
     if isinstance(attr, np.void):
         attr = attr.tobytes()
@@ -423,7 +455,12 @@ def load_from_attribute(name: str, group: PickleGroup) -> Any:
 
 def load_group_as_dict(
         parent: PickleGroup,
-        exclude: Optional[Iterable[str]] = None) -> Dict[str, Any]:
+        exclude: Optional[Union[Set[str], Sequence[str]]] = None,
+        ) -> Dict[str, Any]:
+    """Loads all the datasets and attributes of *parent* into a dictionary.
+
+    :arg exclude: a list of datasets or attributes to exclude when loading.
+    """
     if exclude is None:
         exclude = []
     unique_exclude = set(list(exclude) + _H5PYCKLE_RESERVED_ATTRS)

@@ -129,11 +129,11 @@ def _load_dict(parent: PickleGroup) -> Dict[str, Any]:
 @dumper.register(set)
 @dumper.register(list)
 @dumper.register(tuple)
-def _dump_iterable(
+def _dump_sequence(
         obj: Union[List[Any], Set[Any], Tuple[Any, ...]], parent: PickleGroup, *,
         name: Optional[str] = None) -> None:
-    from h5pyckle.base import dump_iterable_to_group
-    dump_iterable_to_group(obj, parent, name=name)
+    from h5pyckle.base import dump_sequence_to_group
+    dump_sequence_to_group(obj, parent, name=name)
 
 
 @loader.register(list)
