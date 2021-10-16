@@ -369,6 +369,27 @@ def dump_iterable_to_group(
         for i, el in enumerate(obj):
             dumper(el, grp, name=f"entry_{i}")
 
+
+def dump_to_attribute(
+        obj: Optional[Any],
+        parent: PickleGroup, *, name: Optional[str] = None) -> None:
+    """Dumps the object into :attr:`h5py.Group.attrs`.
+
+    If the object is not a basic type, such as a number or a string, then it
+    is pickled first. See :func:`load_from_attribute` for the equivalent
+    loading functionality.
+
+    :arg obj: an object to dump into the attributes of *parent*.
+    """
+    if obj is None:
+        return
+
+    from numbers import Number
+    if isinstance(obj, (Number, str, bytes)):
+        parent.attrs[name] = obj
+    else:
+        parent.attrs[name] = pickle.dumps(obj)
+
 # }}}
 
 
