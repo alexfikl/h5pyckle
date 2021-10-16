@@ -121,9 +121,6 @@ class PickleGroup(h5py.Group):      # type: ignore[misc]
         :param track_order: If *True*, creation order in the group is preserved.
             This is the default to match the default :class:`dict` behavior.
         """
-        if "/" in name:
-            raise ValueError(f"group names cannot contain a '/': '{name}'")
-
         grp = super().create_group(name, track_order=track_order)
         return self.replace(gid=grp.id)
 
