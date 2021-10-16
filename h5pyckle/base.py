@@ -50,6 +50,7 @@ PathLike = Union[str, bytes, "os.PathLike[Any]", io.IOBase]
 # {{{ wrapper for h5py.Group
 
 _H5PYCKLE_RESERVED_ATTRS = ["__type", "__type_name", "__pickle"]
+_H5PYCKLE_VERSION = 1
 
 
 class PickleGroup(h5py.Group):      # type: ignore[misc]
@@ -189,6 +190,7 @@ class PickleGroup(h5py.Group):      # type: ignore[misc]
 
         self.attrs["__type"] = np.void(pickle.dumps(cls))
         self.attrs["__type_name"] = name.encode()
+        self.attrs["__version"] = _H5PYCKLE_VERSION
 
         return self
 
