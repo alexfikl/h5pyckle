@@ -92,13 +92,13 @@ jobs:
     - name: Main Script
       run: |
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends \
-          ocl-icd-opencl-dev libpocl-dev opencl-headers
-        python -m pip install --upgrade pip wheel
-        python -m pip install --upgrade mako pybind11 numpy pytools appdirs
-        python -m pip install --upgrade pyopencl
-        python -m pip install -e .[dev]
-        python -m pip install -r .ci/requirements-meshmode.txt
+        curl -L -O https://tiker.net/ci-support-v0
+        . ./ci-support-v0
+
+        export CONDA_ENVIRONMENT=".ci/environment-meshmode.yml"
+        export REQUIREMENTS_TXT=".ci/requirements-meshmode.txt"
+        build_py_project_in_conda_env
+
         python -m pytest tests/test_meshmode.py
 
 # vim: set ts=2 sw=2 et:

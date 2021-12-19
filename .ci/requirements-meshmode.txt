@@ -1,7 +1,5 @@
 recursivenodes
 pytools
-islpy
-pyopencl
 
 git+https://github.com/inducer/cgen.git#egg=cgen
 git+https://github.com/inducer/genpy.git#egg=genpy
