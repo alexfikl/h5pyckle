@@ -15,7 +15,8 @@
     Function to implement for pickling various non-standard types. It is based
     on :func:`functools.singledispatch`, so new types can be registered
     with ``dumper.register(MyFancyType)`` or using optional typing in newer
-    Python versions.
+    Python versions. The object metadata and attributes are stored as a
+    subgroup of the given parent group.
 
 .. function:: loader(group: PickleGroup)
 
@@ -229,12 +230,33 @@ class PickleGroup(h5py.Group):      # type: ignore[misc]
 
 @singledispatch
 def dumper(obj: Any, parent: PickleGroup, *, name: Optional[str] = None) -> None:
+    """
+    :arg obj: object to dump to the given group.
+    :arg parent: :class:`PicklerGroup` into which to dump the object.
+    :arg name: name of the newly created group. This is required for most
+        cases, but can be omitted for some containers, e.g. a dictionary can
+        be stored as separate groups based on its keys.
+    """
     raise NotImplementedError(f"pickling of '{type(obj).__name__}'")
 
 
 @singledispatch
-def loader(parent: PickleGroup) -> Any:
-    raise NotImplementedError
+def loader(parent: Any) -> Any:
+    """
+    :arg parent: an instance of :class:`PickleGroup` from which to load an
+        object.
+    :returns: an object based on the type information stored in *parent*.
+    """
+
+    assert isinstance(parent, PickleGroup)
+
+    if parent.has_type:
+        raise NotImplementedError(
+                f"group '{parent.name}' cannot be loaded: unsupported type"
+                f"{parent.pycls.__name__}")
+    else:
+        raise NotImplementedError(
+                f"group '{parent.name}' cannot be loaded: has no type information")
 
 # }}}
 
