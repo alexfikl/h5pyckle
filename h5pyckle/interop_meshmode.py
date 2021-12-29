@@ -91,7 +91,7 @@ def to_numpy(x: Optional[cl.array.Array]) -> Optional[np.ndarray]:
         return x
 
     actx = get_array_context()
-    return actx.to_numpy(actx.thaw(x))      # type: ignore
+    return actx.to_numpy(actx.thaw(x))
 
 
 def from_numpy(
@@ -103,7 +103,7 @@ def from_numpy(
     actx = get_array_context()
     x = actx.from_numpy(x)
     if freeze:
-        x = actx.freeze(x)                  # type: ignore
+        x = actx.freeze(x)
 
     return x
 

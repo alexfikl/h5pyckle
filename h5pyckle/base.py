@@ -61,7 +61,7 @@ _H5PYCKLE_RESERVED_ATTRS = ["__type", "__type_name", "__pickle", "__version"]
 _H5PYCKLE_VERSION = 1
 
 
-class PickleGroup(h5py.Group):      # type: ignore[misc]
+class PickleGroup(h5py.Group):
     """
     .. attribute:: pycls
 

@@ -13,7 +13,7 @@ try:
     from pytools import Record
 except ImportError:
     # https://github.com/python/mypy/issues/1153
-    class Record(dict):         # type: ignore[no-redef,type-arg]
+    class Record(dict):         # type: ignore[no-redef]
         pass
 
 
@@ -21,7 +21,7 @@ def norm(actx: Any, x: np.ndarray) -> float:
     if isinstance(x, np.ndarray):
         x = actx.np.sqrt(x.dot(x))
 
-    return actx.np.linalg.norm(x)       # type: ignore[no-any-return]
+    return actx.np.linalg.norm(x)
 
 
 def rnorm(actx: Any, x: np.ndarray, y: np.ndarray) -> float:

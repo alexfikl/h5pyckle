@@ -95,7 +95,7 @@ def _dump_int(
 @loader.register(float)
 def _load_int(parent: PickleGroup) -> int:
     from h5pyckle.base import load_from_attribute
-    return parent.pycls(load_from_attribute("value", parent))   # type: ignore
+    return parent.pycls(load_from_attribute("value", parent))
 
 # }}}
 
@@ -118,7 +118,7 @@ def _dump_dict(
 @loader.register(dict)
 def _load_dict(parent: PickleGroup) -> Dict[str, Any]:
     from h5pyckle.base import load_group_as_dict
-    return parent.pycls(load_group_as_dict(parent))             # type: ignore
+    return parent.pycls(load_group_as_dict(parent))
 
 # }}}
 
@@ -149,16 +149,16 @@ def _load_list(parent: PickleGroup) -> List[Any]:
     keys = sorted(entries, key=lambda el: int(el[6:]))
     values = [entries[k] for k in keys]
 
-    return parent.pycls(values)                                 # type: ignore
+    return parent.pycls(values)
 
 
 @loader.register(tuple)
 def _load_tuple(parent: PickleGroup) -> Tuple[Any, ...]:
-    return parent.pycls(load_from_type(parent, cls=list))       # type: ignore
+    return parent.pycls(load_from_type(parent, cls=list))
 
 
 @loader.register(set)
 def _load_set(parent: PickleGroup) -> Set[Any]:
-    return parent.pycls(load_from_type(parent, cls=list))       # type: ignore
+    return parent.pycls(load_from_type(parent, cls=list))
 
 # }}}

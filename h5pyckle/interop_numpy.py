@@ -34,7 +34,7 @@ def load_numpy_dataset(parent, name):
 
 @dumper.register(np.dtype)
 def _dump_dtype(
-        obj: np.dtype, parent: PickleGroup, *,      # type: ignore[type-arg]
+        obj: np.dtype, parent: PickleGroup, *,
         name: Optional[str] = None) -> None:
     if name is None:
         parent.attrs["dtype"] = np.array(obj.str.encode())
@@ -45,7 +45,7 @@ def _dump_dtype(
 
 
 @loader.register(np.dtype)
-def _load_dtype(parent: PickleGroup) -> np.dtype:   # type: ignore[type-arg]
+def _load_dtype(parent: PickleGroup) -> np.dtype:
     return np.dtype(parent.attrs["dtype"])
 
 # }}}

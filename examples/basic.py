@@ -73,7 +73,7 @@ def _dump_custom(
 def _load_custom(parent: PickleGroup) -> CustomClass:
     name = parent.attrs["name"]
     values = parent["values"][:]
-    return parent.pycls(name=name, values=values)       # type: ignore
+    return parent.pycls(name=name, values=values)
 
 
 cc_in = CustomClass(name="George", values=np.ones(42))
