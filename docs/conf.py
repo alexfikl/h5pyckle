@@ -77,6 +77,8 @@ autodoc_default_options = {
 }
 
 autodoc_typehints = "description"
+autodoc_typehints_description_target = "documented"
+
 autodoc_mock_imports = ["h5py", "pyopencl", "arraycontext", "meshmode"]
 
 # }}}

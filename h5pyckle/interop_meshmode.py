@@ -268,7 +268,7 @@ class _SameElementGroupFactory:
 
     def __init__(self, groups: List[ElementGroupBase]) -> None:
         """
-        :arg groups: a :class:`list` of
+        :param groups: a :class:`list` of
             :class:`~meshmode.discretization.ElementGroupBase`.
         """
 
