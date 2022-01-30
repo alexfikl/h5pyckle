@@ -7,13 +7,14 @@ import pytest
 import numpy as np
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 try:
     from pytools import Record
 except ImportError:
     # https://github.com/python/mypy/issues/1153
-    class Record(dict):         # type: ignore[no-redef]
+    class Record(dict):  # type: ignore[no-redef]
         pass
 
 
@@ -34,9 +35,11 @@ def rnorm(actx: Any, x: np.ndarray, y: np.ndarray) -> float:
 
 # {{{ test_discretization_pickling
 
+
 @pytest.mark.parametrize("ambient_dim", [2, 3])
-def test_discretization_pickling(ambient_dim: int,
-        visualize: bool = False, target_order: int = 3) -> None:
+def test_discretization_pickling(
+    ambient_dim: int, visualize: bool = False, target_order: int = 3
+) -> None:
     """Tests that the interop_meshmode types can all be dumped/loaded correctly."""
 
     pytest.importorskip("meshmode")
@@ -51,29 +54,33 @@ def test_discretization_pickling(ambient_dim: int,
     # {{{ geometry
 
     import meshmode.mesh.generation as mmg
+
     if ambient_dim == 2:
         nelements = 32
         mesh = mmg.make_curve_mesh(
-                partial(mmg.ellipse, 1.0),
-                np.linspace(0.0, 1.0, nelements + 1),
-                order=target_order)
+            partial(mmg.ellipse, 1.0),
+            np.linspace(0.0, 1.0, nelements + 1),
+            order=target_order,
+        )
     elif ambient_dim == 3:
         mesh = mmg.generate_icosphere(
-                r=1.0,
-                order=target_order,
-                uniform_refinement_rounds=1)
+            r=1.0, order=target_order, uniform_refinement_rounds=1
+        )
     else:
         raise ValueError(f"unsupported dimension: {ambient_dim}")
 
     from meshmode.discretization import Discretization
     from meshmode.discretization.poly_element import default_simplex_group_factory
 
-    discr = Discretization(actx, mesh,
-            default_simplex_group_factory(ambient_dim, target_order))
-    fine_discr = Discretization(actx, mesh,
-            default_simplex_group_factory(ambient_dim, target_order + 3))
+    discr = Discretization(
+        actx, mesh, default_simplex_group_factory(ambient_dim, target_order)
+    )
+    fine_discr = Discretization(
+        actx, mesh, default_simplex_group_factory(ambient_dim, target_order + 3)
+    )
 
     from meshmode.discretization.connection import make_same_mesh_connection
+
     conn = make_same_mesh_connection(actx, discr, fine_discr)
 
     # }}}
@@ -84,17 +91,21 @@ def test_discretization_pickling(ambient_dim: int,
     from h5pyckle.interop_meshmode import array_context_for_pickling
 
     from meshmode.dof_array import thaw
+
     nodes = thaw(actx, discr.nodes())
 
     filename = os.path.join(os.path.dirname(__file__), "pickle_meshmode.h5")
     with array_context_for_pickling(actx):
-        dump({
-            "Field": nodes[0],
-            "Nodes": nodes,
-            "Mesh": mesh,
-            "Discretization": discr,
-            "Connection": conn,
-            }, filename)
+        dump(
+            {
+                "Field": nodes[0],
+                "Nodes": nodes,
+                "Mesh": mesh,
+                "Discretization": discr,
+                "Connection": conn,
+            },
+            filename,
+        )
 
     with array_context_for_pickling(actx):
         data = load(filename)
@@ -138,10 +149,12 @@ def test_discretization_pickling(ambient_dim: int,
 
     # }}}
 
+
 # }}}
 
 
 # {{{ test_record_pickling
+
 
 @dataclass
 class TimingRecord:
@@ -157,31 +170,34 @@ def test_record_pickling() -> None:
     pytest.importorskip("meshmode")
 
     cr_in = TimingRecord(
-            name="run_12857",
-            mean=1.0,
-            std=0.2,
-            history=np.random.rand(256),
-            )
+        name="run_12857",
+        mean=1.0,
+        std=0.2,
+        history=np.random.rand(256),
+    )
 
     from h5pyckle import dump, load
 
     filename = os.path.join(os.path.dirname(__file__), "pickle_record.h5")
     dump(cr_in, filename)
-    cr_out: TimingRecord = load(filename)       # type: ignore[assignment]
+    cr_out: TimingRecord = load(filename)  # type: ignore[assignment]
 
     assert cr_in.name == cr_out.name
     assert np.array_equal(cr_in.history, cr_out.history)
+
 
 # }}}
 
 
 # {{{ test_pickling_cl_scalar
 
+
 def test_pickling_cl_scalar() -> None:
     pytest.importorskip("meshmode")
 
     import pyopencl as cl
     from meshmode.array_context import PyOpenCLArrayContext
+
     ctx = cl.create_some_context()
     queue = cl.CommandQueue(ctx)
     actx = PyOpenCLArrayContext(queue, force_device_scalars=True)
@@ -205,11 +221,13 @@ def test_pickling_cl_scalar() -> None:
 
     # }}}
 
+
 # }}}
 
 
 if __name__ == "__main__":
     import sys
+
     logging.basicConfig(level=logging.INFO)
 
     if len(sys.argv) > 1:

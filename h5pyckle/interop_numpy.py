@@ -32,10 +32,11 @@ def load_numpy_dataset(parent, name):
 
 # {{{ dtype
 
+
 @dumper.register(np.dtype)
 def _dump_dtype(
-        obj: np.dtype, parent: PickleGroup, *,
-        name: Optional[str] = None) -> None:
+    obj: np.dtype, parent: PickleGroup, *, name: Optional[str] = None
+) -> None:
     if name is None:
         parent.attrs["dtype"] = np.array(obj.str.encode())
     else:
@@ -48,15 +49,17 @@ def _dump_dtype(
 def _load_dtype(parent: PickleGroup) -> np.dtype:
     return np.dtype(parent.attrs["dtype"])
 
+
 # }}}
 
 
 # {{{ ndarray
 
+
 @dumper.register(np.ndarray)
 def _dump_ndarray(
-        obj: np.ndarray, parent: PickleGroup, *,
-        name: Optional[str] = None) -> None:
+    obj: np.ndarray, parent: PickleGroup, *, name: Optional[str] = None
+) -> None:
     grp = parent.create_type(name, obj)
 
     dumper(obj.dtype, grp)
@@ -75,9 +78,9 @@ def _load_ndarray(parent: PickleGroup) -> np.ndarray:
     dtype = load_from_type(parent, cls=np.dtype)
 
     if dtype.char == "O":
-        obj = make_obj_array([
-            load_from_type(parent[name]) for name in sorted(parent)
-            ])
+        obj = make_obj_array(
+            [load_from_type(parent[name]) for name in sorted(parent)]
+        )
     else:
         obj = load_numpy_dataset(parent, "entry")
 
@@ -89,5 +92,6 @@ def _load_ndarray(parent: PickleGroup) -> np.ndarray:
         obj.__dict__.update(fields)
 
     return obj
+
 
 # }}}

@@ -56,14 +56,15 @@ class CustomClass:
     values: np.ndarray
 
     def __eq__(self, other: Any) -> bool:
-        return self.name == other.name \
-                and bool(np.array_equal(self.values, other.values))
+        return self.name == other.name and bool(
+            np.array_equal(self.values, other.values)
+        )
 
 
 @dumper.register(CustomClass)
 def _dump_custom(
-        obj: CustomClass, parent: PickleGroup, *,
-        name: Optional[str] = None) -> None:
+    obj: CustomClass, parent: PickleGroup, *, name: Optional[str] = None
+) -> None:
     grp = parent.create_type(name, obj)
     grp.attrs["name"] = obj.name
     grp.create_dataset("values", data=obj.values)

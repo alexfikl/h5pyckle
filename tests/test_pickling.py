@@ -8,6 +8,7 @@ import numpy.linalg as la
 from h5pyckle import dump, load
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,16 +28,28 @@ def rnorm(x: np.ndarray, y: np.ndarray) -> float:
 
 # {{{ test_pickling_dict
 
-@pytest.mark.parametrize("arg_in", [
-    {},
-    {"key": 1, "value": "dict"},
-    {"author": {"name": "John", "family": "Smith", "affiliations": [
-        "University 1", "Universtity 2",
-        ]}},
-    {"long_int": 123456789101112131415,
-        "long_float": 3.14159265358979323846264338327950288419716939937510582097494
+
+@pytest.mark.parametrize(
+    "arg_in",
+    [
+        {},
+        {"key": 1, "value": "dict"},
+        {
+            "author": {
+                "name": "John",
+                "family": "Smith",
+                "affiliations": [
+                    "University 1",
+                    "Universtity 2",
+                ],
+            }
         },
-    ])
+        {
+            "long_int": 123456789101112131415,
+            "long_float": 3.14159265358979323846264338327950288419716939937510582097494,
+        },
+    ],
+)
 def test_pickling_dict(arg_in: Dict[str, str]) -> None:
     filename = os.path.join(os.path.dirname(__file__), "pickle_dict.h5")
 
@@ -47,24 +60,32 @@ def test_pickling_dict(arg_in: Dict[str, str]) -> None:
     logger.info("got:      %s", arg_out)
     assert arg_in == arg_out
 
+
 # }}}
 
 
 # {{{ test_pickling_list_like
 
-@pytest.mark.parametrize("arg_in", [
-    # [],
-    # [1, 2, 3, 4, 5],
-    [1, int, "string", 2.0],
-    ])
+
+@pytest.mark.parametrize(
+    "arg_in",
+    [
+        # [],
+        # [1, 2, 3, 4, 5],
+        [1, int, "string", 2.0],
+    ],
+)
 def test_pickling_list_like(arg_in: List[Any]) -> None:
     filename = os.path.join(os.path.dirname(__file__), "pickle_list_like.h5")
 
-    dump({
-        "list": arg_in,
-        "tuple": tuple(arg_in),
-        "set": set(arg_in),
-        }, filename)
+    dump(
+        {
+            "list": arg_in,
+            "tuple": tuple(arg_in),
+            "set": set(arg_in),
+        },
+        filename,
+    )
     out = load(filename)
 
     logger.info("expected: %s", arg_in)
@@ -73,10 +94,12 @@ def test_pickling_list_like(arg_in: List[Any]) -> None:
     assert tuple(arg_in) == out["tuple"]
     assert set(arg_in) == out["set"]
 
+
 # }}}
 
 
 # {{{ test_pickling_numpy
+
 
 @pytest.mark.parametrize("arg_in_type", ["scalar", "object"])
 @pytest.mark.parametrize("dtype_in", [np.int32, np.float32, np.float64])
@@ -91,14 +114,15 @@ def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
 
     elif arg_in_type == "object":
         from h5pyckle.interop_numpy import make_obj_array
+
         if dtype_in == np.int32:
-            arg_in = make_obj_array([
-                np.random.randint(42, size=42, dtype=dtype_in) for _ in range(3)
-                ])
+            arg_in = make_obj_array(
+                [np.random.randint(42, size=42, dtype=dtype_in) for _ in range(3)]
+            )
         else:
-            arg_in = make_obj_array([
-                np.random.rand(42).astype(dtype_in) for _ in range(3)
-                ])
+            arg_in = make_obj_array(
+                [np.random.rand(42).astype(dtype_in) for _ in range(3)]
+            )
 
     dump({"array": arg_in}, filename)
     arg_out = load(filename)["array"]
@@ -111,10 +135,12 @@ def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
     if arg_in.dtype.char == "O":
         assert arg_out[0].dtype == arg_in[0].dtype
 
+
 # }}}
 
 
 # {{{ test_pickling_numpy_subclass
+
 
 def test_pickling_numpy_subclass() -> None:
     unyt = pytest.importorskip("unyt")
@@ -128,20 +154,19 @@ def test_pickling_numpy_subclass() -> None:
     logger.info("got:      %s", x_out)
     assert (x_in == x_out).all()
 
+
 # }}}
 
 
 # {{{ test_pickling_bytesio
 
+
 def test_pickling_bytesio() -> None:
     import io
+
     bio = io.BytesIO()
 
-    arg_in = {
-            "name": "BytesIO",
-            "values": (1, 2, 3),
-            "nested": {"key": 42}
-            }
+    arg_in = {"name": "BytesIO", "values": (1, 2, 3), "nested": {"key": 42}}
 
     dump(arg_in, bio)
     arg_out = load(bio)
@@ -150,10 +175,12 @@ def test_pickling_bytesio() -> None:
     logger.info("got:      %s", arg_out)
     assert arg_in == arg_out
 
+
 # }}}
 
 
 # {{{ test_pickling_numpy_scalar
+
 
 def test_pickling_numpy_scalar() -> None:
     x = np.array(42)
@@ -167,10 +194,12 @@ def test_pickling_numpy_scalar() -> None:
     logger.info("got:      %s", arg_out)
     assert arg_in == arg_out
 
+
 # }}}
 
 
 # {{{ test_pickling_scalar
+
 
 def test_pickling_scalar() -> None:
     filename = os.path.join(os.path.dirname(__file__), "pickle_scalar.h5")
@@ -180,16 +209,18 @@ def test_pickling_scalar() -> None:
     arg_out = load(filename)
 
     # pylint: disable-next=unidiomatic-typecheck
-    assert type(arg_in["int"]) == type(arg_out["int"])          # noqa: E721
+    assert type(arg_in["int"]) == type(arg_out["int"])  # noqa: E721
 
     # pylint: disable-next=unidiomatic-typecheck
-    assert type(arg_in["float"]) == type(arg_out["float"])      # noqa: E721
+    assert type(arg_in["float"]) == type(arg_out["float"])  # noqa: E721
+
 
 # }}}
 
 
 if __name__ == "__main__":
     import sys
+
     logging.basicConfig(level=logging.INFO)
 
     if len(sys.argv) > 1:

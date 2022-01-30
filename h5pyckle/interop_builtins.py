@@ -2,7 +2,7 @@ try:
     import dill as pickle
 except ImportError:
     # https://github.com/python/mypy/issues/1153
-    import pickle       # type: ignore[no-redef]
+    import pickle  # type: ignore[no-redef]
 
 from numbers import Number
 from pickle import UnpicklingError
@@ -20,10 +20,11 @@ _MAX_ATTRIBUTE_SIZE = 2**13
 
 # {{{ object
 
+
 @dumper.register(object)
 def _dump_object(
-        obj: object, parent: PickleGroup, *,
-        name: Optional[str] = None) -> None:
+    obj: object, parent: PickleGroup, *, name: Optional[str] = None
+) -> None:
     # NOTE: if we got here, it means no other (more specific) dumping method
     # was found and we should fall back to the generic pickle
     group = parent.create_type(name, obj)
@@ -31,7 +32,7 @@ def _dump_object(
     if hasattr(obj, "__getstate__"):
         group.attrs["__pickle"] = "getstate"
 
-        state = obj.__getstate__()      # type: ignore[attr-defined]
+        state = obj.__getstate__()  # type: ignore[attr-defined]
         dumper(state, group, name="state")
     else:
         group.attrs["__pickle"] = "pickle"
@@ -61,31 +62,33 @@ def _load_object(parent: PickleGroup) -> Any:
     else:
         raise UnpicklingError
 
+
 # }}}
 
 
 # {{{ scalar
 
+
 @dumper.register(Number)
 def _dump_number(
-        obj: Number, parent: PickleGroup, *,
-        name: Optional[str] = None) -> None:
+    obj: Number, parent: PickleGroup, *, name: Optional[str] = None
+) -> None:
     parent.attrs[name] = obj
 
 
 @dumper.register(str)
 @dumper.register(bytes)
 def _dump_string(
-        obj: Union[str, bytes], parent: PickleGroup, *,
-        name: Optional[str] = None) -> None:
+    obj: Union[str, bytes], parent: PickleGroup, *, name: Optional[str] = None
+) -> None:
     parent.attrs[name] = obj
 
 
 @dumper.register(int)
 @dumper.register(float)
 def _dump_int(
-        obj: Number, parent: PickleGroup, *,
-        name: Optional[str] = None) -> None:
+    obj: Number, parent: PickleGroup, *, name: Optional[str] = None
+) -> None:
     # NOTE: managed to hit an arbitrary precision int
     grp = parent.create_type(name, obj)
     grp.attrs["value"] = repr(obj).encode()
@@ -95,17 +98,20 @@ def _dump_int(
 @loader.register(float)
 def _load_int(parent: PickleGroup) -> int:
     from h5pyckle.base import load_from_attribute
+
     return parent.pycls(load_from_attribute("value", parent))
+
 
 # }}}
 
 
 # {{{ dict
 
+
 @dumper.register(dict)
 def _dump_dict(
-        obj: Dict[str, Any], parent: PickleGroup, *,
-        name: Optional[str] = None) -> None:
+    obj: Dict[str, Any], parent: PickleGroup, *, name: Optional[str] = None
+) -> None:
     if name is None:
         group = parent.append_type(obj)
     else:
@@ -118,20 +124,27 @@ def _dump_dict(
 @loader.register(dict)
 def _load_dict(parent: PickleGroup) -> Dict[str, Any]:
     from h5pyckle.base import load_group_as_dict
+
     return parent.pycls(load_group_as_dict(parent))
+
 
 # }}}
 
 
 # {{{ list / tuple / set
 
+
 @dumper.register(set)
 @dumper.register(list)
 @dumper.register(tuple)
 def _dump_sequence(
-        obj: Union[List[Any], Set[Any], Tuple[Any, ...]], parent: PickleGroup, *,
-        name: Optional[str] = None) -> None:
+    obj: Union[List[Any], Set[Any], Tuple[Any, ...]],
+    parent: PickleGroup,
+    *,
+    name: Optional[str] = None,
+) -> None:
     from h5pyckle.base import dump_sequence_to_group
+
     dump_sequence_to_group(obj, parent, name=name)
 
 
@@ -160,5 +173,6 @@ def _load_tuple(parent: PickleGroup) -> Tuple[Any, ...]:
 @loader.register(set)
 def _load_set(parent: PickleGroup) -> Set[Any]:
     return parent.pycls(load_from_type(parent, cls=list))
+
 
 # }}}
