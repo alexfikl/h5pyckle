@@ -50,7 +50,7 @@ assert first_name == arg_in["Author"]["FirstName"]
 from h5pyckle import PickleGroup, dumper, loader
 
 
-@dataclass
+@dataclass(frozen=True)
 class CustomClass:
     name: str
     values: np.ndarray

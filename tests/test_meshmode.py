@@ -156,7 +156,7 @@ def test_discretization_pickling(
 # {{{ test_record_pickling
 
 
-@dataclass
+@dataclass(frozen=True)
 class TimingRecord:
     name: str
     mean: float
