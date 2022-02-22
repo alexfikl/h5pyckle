@@ -14,6 +14,14 @@ import numpy as np
 import pyopencl as cl
 import pyopencl.array  # noqa: F401
 
+try:
+    from arraycontext import TaggableCLArray, to_tagged_cl_array
+except ImportError:
+    from arraycontext.impl.pyopencl.taggable_cl_array import (
+        TaggableCLArray,
+        to_tagged_cl_array,
+    )
+
 from arraycontext import ArrayContext
 from meshmode.dof_array import DOFArray
 from meshmode.mesh import MeshElementGroup, Mesh
@@ -124,7 +132,10 @@ def _dump_cl_array(
     group = parent.create_type(name, obj)
 
     group.attrs["frozen"] = obj.queue is None
-    group.create_dataset("entry", data=to_numpy(obj))
+    group.create_dataset(
+        "entry",
+        data=to_numpy(to_tagged_cl_array(obj, axes=None, tags=frozenset())),
+    )
 
 
 @loader.register(cl.array.Array)
@@ -132,6 +143,30 @@ def _load_cl_array(parent: PickleGroup) -> cl.array.Array:
     from h5pyckle.interop_numpy import load_numpy_dataset
 
     return from_numpy(load_numpy_dataset(parent, "entry"), parent.attrs["frozen"])
+
+
+@dumper.register(TaggableCLArray)
+def _dump_taggable_cl_array(
+    obj: TaggableCLArray, parent: PickleGroup, *, name: Optional[str] = None
+) -> None:
+    group = parent.create_type(name, obj)
+
+    group.attrs["frozen"] = obj.queue is None
+    dumper(obj.axes, group, name="axes")
+    dumper(obj.tags, group, name="tags")
+
+    group.create_dataset("entry", data=to_numpy(obj))
+
+
+@loader.register(TaggableCLArray)
+def _load_taggable_cl_array(parent: PickleGroup) -> TaggableCLArray:
+    from h5pyckle.interop_numpy import load_numpy_dataset
+
+    ary = from_numpy(load_numpy_dataset(parent, "entry"), parent.attrs["frozen"])
+    axes = load_from_type(parent["axes"])
+    tags = load_from_type(parent["tags"])
+
+    return to_tagged_cl_array(ary, axes=axes, tags=tags)
 
 
 # }}}
@@ -208,7 +243,9 @@ def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
     nodes = parent["nodes"][:]
     unit_nodes = parent["unit_nodes"][:]
 
-    return parent.pycls(order, vertex_indices, nodes, unit_nodes=unit_nodes, dim=dim)
+    return parent.pycls.make_group(
+        order, vertex_indices, nodes, unit_nodes=unit_nodes, dim=dim
+    )
 
 
 @dumper.register(Mesh)
