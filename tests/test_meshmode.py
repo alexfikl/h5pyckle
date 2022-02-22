@@ -22,7 +22,9 @@ def norm(actx: Any, x: np.ndarray) -> float:
     if isinstance(x, np.ndarray):
         x = actx.np.sqrt(x.dot(x))
 
-    return actx.np.linalg.norm(x)
+    from meshmode.dof_array import flat_norm
+
+    return flat_norm(x)
 
 
 def rnorm(actx: Any, x: np.ndarray, y: np.ndarray) -> float:
@@ -63,7 +65,7 @@ def test_discretization_pickling(
             order=target_order,
         )
     elif ambient_dim == 3:
-        mesh = mmg.generate_icosphere(
+        mesh = mmg.generate_sphere(
             r=1.0, order=target_order, uniform_refinement_rounds=1
         )
     else:
@@ -90,9 +92,9 @@ def test_discretization_pickling(
     from h5pyckle import dump, load
     from h5pyckle.interop_meshmode import array_context_for_pickling
 
-    from meshmode.dof_array import thaw
+    from arraycontext import thaw
 
-    nodes = thaw(actx, discr.nodes())
+    nodes = thaw(discr.nodes(), actx)
 
     filename = os.path.join(os.path.dirname(__file__), "pickle_meshmode.h5")
     with array_context_for_pickling(actx):
@@ -135,14 +137,14 @@ def test_discretization_pickling(
     assert error < 1.0e-15
 
     # check discretization nodes are the same
-    nodes_new = thaw(actx, discr_new.nodes())
+    nodes_new = thaw(discr_new.nodes(), actx)
     error = rnorm(actx, nodes_new, nodes)
     logger.info("error[discr]:  %.5e", error)
     assert error < 1.0e-15
 
     # check connection is the same
-    nodes = thaw(actx, conn.from_discr.nodes())
-    nodes_new = thaw(actx, conn_new.from_discr.nodes())
+    nodes = thaw(conn.from_discr.nodes(), actx)
+    nodes_new = thaw(conn_new.from_discr.nodes(), actx)
     error = rnorm(actx, nodes_new, nodes)
     logger.info("error[conns]:  %.5e", error)
     assert error < 1.0e-15
