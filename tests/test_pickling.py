@@ -1,4 +1,4 @@
-import os
+import pathlib
 from typing import Any, Dict, List
 
 import pytest
@@ -10,6 +10,7 @@ from h5pyckle import dump, load
 import logging
 
 logger = logging.getLogger(__name__)
+dirname = pathlib.Path(__file__).parent
 
 
 def norm(x: np.ndarray) -> float:
@@ -51,7 +52,7 @@ def rnorm(x: np.ndarray, y: np.ndarray) -> float:
     ],
 )
 def test_pickling_dict(arg_in: Dict[str, str]) -> None:
-    filename = os.path.join(os.path.dirname(__file__), "pickle_dict.h5")
+    filename = dirname / "pickle_dict.h5"
 
     dump(arg_in, filename)
     arg_out = load(filename)
@@ -76,7 +77,7 @@ def test_pickling_dict(arg_in: Dict[str, str]) -> None:
     ],
 )
 def test_pickling_list_like(arg_in: List[Any]) -> None:
-    filename = os.path.join(os.path.dirname(__file__), "pickle_list_like.h5")
+    filename = dirname / "pickle_list_like.h5"
 
     dump(
         {
@@ -104,7 +105,7 @@ def test_pickling_list_like(arg_in: List[Any]) -> None:
 @pytest.mark.parametrize("arg_in_type", ["scalar", "object"])
 @pytest.mark.parametrize("dtype_in", [np.int32, np.float32, np.float64])
 def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
-    filename = os.path.join(os.path.dirname(__file__), "pickle_numpy.h5")
+    filename = dirname / "pickle_numpy.h5"
 
     if arg_in_type == "scalar":
         if dtype_in == np.int32:
@@ -146,7 +147,7 @@ def test_pickling_numpy_subclass() -> None:
     unyt = pytest.importorskip("unyt")
     x_in = unyt.unyt_array([1, 2, 3, 4, 5, 6], units=unyt.K)
 
-    filename = os.path.join(os.path.dirname(__file__), "pickle_unyt.h5")
+    filename = dirname / "pickle_unyt.h5"
     dump(x_in, filename)
     x_out = load(filename)
 
@@ -186,7 +187,7 @@ def test_pickling_numpy_scalar() -> None:
     x = np.array(42)
     arg_in = {"x": x}
 
-    filename = os.path.join(os.path.dirname(__file__), "pickle_np_scalar.h5")
+    filename = dirname / "pickle_np_scalar.h5"
     dump(arg_in, filename)
     arg_out = load(filename)
 
@@ -202,7 +203,7 @@ def test_pickling_numpy_scalar() -> None:
 
 
 def test_pickling_scalar() -> None:
-    filename = os.path.join(os.path.dirname(__file__), "pickle_scalar.h5")
+    filename = dirname / "pickle_scalar.h5"
 
     arg_in = {"int": 1, "float": 3.14}
     dump(arg_in, filename)

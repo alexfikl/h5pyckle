@@ -1,6 +1,6 @@
-import os
 from dataclasses import dataclass
 from functools import partial
+import pathlib
 from typing import Any
 
 import pytest
@@ -9,6 +9,7 @@ import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
+dirname = pathlib.Path(__file__).parent
 
 try:
     from pytools import Record
@@ -96,7 +97,7 @@ def test_discretization_pickling(
 
     nodes = thaw(discr.nodes(), actx)
 
-    filename = os.path.join(os.path.dirname(__file__), "pickle_meshmode.h5")
+    filename = dirname / "pickle_meshmode.h5"
     with array_context_for_pickling(actx):
         dump(
             {
@@ -180,7 +181,7 @@ def test_record_pickling() -> None:
 
     from h5pyckle import dump, load
 
-    filename = os.path.join(os.path.dirname(__file__), "pickle_record.h5")
+    filename = dirname / "pickle_record.h5"
     dump(cr_in, filename)
     cr_out: TimingRecord = load(filename)  # type: ignore[assignment]
 
@@ -212,7 +213,7 @@ def test_pickling_cl_scalar() -> None:
     from h5pyckle import dump, load
     from h5pyckle.interop_meshmode import array_context_for_pickling
 
-    filename = os.path.join(os.path.dirname(__file__), "pickle_cl_scalar.h5")
+    filename = dirname / "pickle_cl_scalar.h5"
     with array_context_for_pickling(actx):
         dump(arg_in, filename)
         arg_out = load(filename)

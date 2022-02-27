@@ -1,9 +1,10 @@
-import os
+import pathlib
 from dataclasses import dataclass
 from typing import Any, Optional
 
 import numpy as np
 
+filename = pathlib.Path("pickled_nested.h5")
 
 # {{{ nested dictionary
 
@@ -17,25 +18,26 @@ arg_in = {
     }
 }
 
-dump(arg_in, "pickled_nested.h5")
-arg_out = load("pickled_nested.h5")
+dump(arg_in, filename)
+arg_out = load(filename)
 assert arg_in == arg_out
 
 # }}}
 
-if os.path.exists("pickled_subgroup.h5"):
-    os.remove("pickled_subgroup.h5")
+filename = pathlib.Path("pickled_subgroup.h5")
+if filename.exists():
+    filename.unlink()
 
 # {{{ subgroup
 
 import h5py
 from h5pyckle import dump_to_group, load_from_group, load_by_pattern
 
-with h5py.File("pickled_subgroup.h5", mode="a") as h5:
+with h5py.File(filename, mode="a") as h5:
     subgroup = h5.require_group("pickling")
     dump_to_group(arg_in, subgroup)
 
-with h5py.File("pickled_subgroup.h5", mode="r") as h5:
+with h5py.File(filename, mode="r") as h5:
     subgroup = h5["pickling"]
     arg_out = load_from_group(subgroup)
     first_name = load_by_pattern(subgroup, pattern="FirstName")
@@ -44,6 +46,8 @@ assert arg_in == arg_out
 assert first_name == arg_in["Author"]["FirstName"]
 
 # }}}
+
+filename = pathlib.Path("pickled_custom.h5")
 
 # {{{ custom type
 
@@ -79,8 +83,8 @@ def _load_custom(parent: PickleGroup) -> CustomClass:
 
 cc_in = CustomClass(name="George", values=np.ones(42))
 
-dump(cc_in, "pickled_custom.h5")
-cc_out = load("pickled_custom.h5")
+dump(cc_in, filename)
+cc_out = load(filename)
 
 print(cc_in)
 print(cc_out)
