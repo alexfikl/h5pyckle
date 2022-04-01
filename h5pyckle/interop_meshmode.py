@@ -14,13 +14,10 @@ import numpy as np
 import pyopencl as cl
 import pyopencl.array  # noqa: F401
 
-try:
-    from arraycontext import TaggableCLArray, to_tagged_cl_array
-except ImportError:
-    from arraycontext.impl.pyopencl.taggable_cl_array import (
-        TaggableCLArray,
-        to_tagged_cl_array,
-    )
+from arraycontext.impl.pyopencl.taggable_cl_array import (
+    TaggableCLArray,
+    to_tagged_cl_array,
+)
 
 from arraycontext import ArrayContext
 from meshmode.dof_array import DOFArray
@@ -243,7 +240,8 @@ def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
     nodes = parent["nodes"][:]
     unit_nodes = parent["unit_nodes"][:]
 
-    return parent.pycls.make_group(
+    from typing import cast
+    return cast(MeshElementGroup, parent.pycls).make_group(
         order, vertex_indices, nodes, unit_nodes=unit_nodes, dim=dim
     )
 

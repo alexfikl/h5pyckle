@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from functools import partial
 import pathlib
-from typing import Any
+from typing import Any, cast
 
 import pytest
 import numpy as np
@@ -19,16 +19,16 @@ except ImportError:
         pass
 
 
-def norm(actx: Any, x: np.ndarray) -> float:
+def norm(actx: Any, x: "np.ndarray[Any, Any]") -> float:
     if isinstance(x, np.ndarray):
-        x = actx.np.sqrt(x.dot(x))
+        x = actx.np.sqrt(x @ x)
 
     from meshmode.dof_array import flat_norm
 
     return flat_norm(x)
 
 
-def rnorm(actx: Any, x: np.ndarray, y: np.ndarray) -> float:
+def rnorm(actx: Any, x: "np.ndarray[Any, Any]", y: "np.ndarray[Any, Any]") -> float:
     norm_y = norm(actx, y)
     if norm_y < 1.0e-15:
         norm_y = 1.0
@@ -95,7 +95,7 @@ def test_discretization_pickling(
 
     from arraycontext import thaw
 
-    nodes = thaw(discr.nodes(), actx)
+    nodes = cast(np.ndarray, thaw(discr.nodes(), actx))
 
     filename = dirname / "pickle_meshmode.h5"
     with array_context_for_pickling(actx):

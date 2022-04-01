@@ -79,7 +79,7 @@ def _load_ndarray(parent: PickleGroup) -> np.ndarray:
 
     if dtype.char == "O":
         obj = make_obj_array(
-            [load_from_type(parent[name]) for name in sorted(parent)]
+            [load_from_type(parent[name]) for name in sorted(parent.keys())]
         )
     else:
         obj = load_numpy_dataset(parent, "entry")
