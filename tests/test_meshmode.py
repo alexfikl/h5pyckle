@@ -97,10 +97,14 @@ def test_discretization_pickling(
 
     nodes = cast(np.ndarray, thaw(discr.nodes(), actx))
 
+    from arraycontext import FirstAxisIsElementsTag
+    ary = nodes[0][0].tagged(FirstAxisIsElementsTag())
+
     filename = dirname / "pickle_meshmode.h5"
     with array_context_for_pickling(actx):
         dump(
             {
+                "TaggableCLArray": ary,
                 "Field": nodes[0],
                 "Nodes": nodes,
                 "Mesh": mesh,
@@ -113,6 +117,7 @@ def test_discretization_pickling(
     with array_context_for_pickling(actx):
         data = load(filename)
 
+    ary_new = data["TaggableCLArray"]
     x_new = data["Field"]
     nodes_new = data["Nodes"]
     mesh_new = data["Mesh"]
@@ -122,6 +127,10 @@ def test_discretization_pickling(
     # }}}
 
     # {{{ check
+
+    # check tagged array
+    assert ary.tags == ary_new.tags
+    assert ary.axes == ary_new.axes
 
     # check stored field is the same
     error = rnorm(actx, x_new, nodes[0])
