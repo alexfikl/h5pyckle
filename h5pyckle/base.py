@@ -33,10 +33,13 @@
 """
 
 try:
-    import dill as pickle
+    import cloudpickle as pickle
 except ImportError:
-    # https://github.com/python/mypy/issues/1153
-    import pickle  # type: ignore[no-redef]
+    try:
+        import dill as pickle
+    except ImportError:
+        # https://github.com/python/mypy/issues/1153
+        import pickle  # type: ignore[no-redef]
 
 import io
 import os
