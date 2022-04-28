@@ -102,7 +102,10 @@ def to_numpy(x: Optional[cl.array.Array]) -> Optional[np.ndarray]:
         return x
 
     actx = get_array_context()
-    return actx.to_numpy(actx.thaw(x))
+    result = actx.to_numpy(actx.thaw(x))
+    assert isinstance(result, np.ndarray)
+
+    return result
 
 
 def from_numpy(
@@ -112,11 +115,11 @@ def from_numpy(
         return x
 
     actx = get_array_context()
-    x = actx.from_numpy(x)
+    result = actx.from_numpy(x)
     if freeze:
-        x = actx.freeze(x)
+        result = actx.freeze(result)
 
-    return x
+    return result
 
 
 # }}}
