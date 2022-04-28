@@ -348,7 +348,7 @@ def _dump_element_group(
     # There we don't really need to dump mesh_el_group again
     group = parent.create_type(name, obj)
     _dump_order(group, obj.order)
-    group.attrs["index"] = obj.index
+    group.attrs["index"] = getattr(obj, "_index", None)
     group.attrs["dim"] = obj.dim
 
 
@@ -375,7 +375,7 @@ def _dump_recursivenodes_element_group(
 ) -> None:
     group = parent.create_type(name, obj)
     _dump_order(group, obj.order)
-    group.attrs["index"] = obj.index
+    group.attrs["index"] = getattr(obj, "_index", None)
     group.attrs["dim"] = obj.dim
     group.attrs["family"] = obj.family
 

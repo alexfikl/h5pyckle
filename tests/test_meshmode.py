@@ -97,7 +97,7 @@ def test_discretization_pickling(
 
     nodes = cast(np.ndarray, thaw(discr.nodes(), actx))
 
-    from arraycontext import FirstAxisIsElementsTag
+    from meshmode.transform_metadata import FirstAxisIsElementsTag
     ary = nodes[0][0].tagged(FirstAxisIsElementsTag())
 
     filename = dirname / "pickle_meshmode.h5"
