@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020-2022 Alexandru Fikl <alexfikl@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
 from h5pyckle.base import PickleGroup
 from h5pyckle.base import dump, load, dump_to_group, load_from_group, load_by_pattern
 from h5pyckle.base import dumper, loader
