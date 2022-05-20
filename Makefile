@@ -24,4 +24,4 @@ mypy-strict:
 tags:
 	ctags -R
 
-.PHONY: all flake8 pylint mypy
+.PHONY: all flake8 pylint mypy tags
