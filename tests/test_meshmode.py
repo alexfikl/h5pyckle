@@ -97,9 +97,7 @@ def test_discretization_pickling(
     from h5pyckle import dump, load
     from h5pyckle.interop_meshmode import array_context_for_pickling
 
-    from arraycontext import thaw
-
-    nodes = cast(np.ndarray, thaw(discr.nodes(), actx))
+    nodes = cast(np.ndarray, actx.thaw(discr.nodes()))
 
     from meshmode.transform_metadata import FirstAxisIsElementsTag
     ary = nodes[0][0].tagged(FirstAxisIsElementsTag())
@@ -151,14 +149,14 @@ def test_discretization_pickling(
     assert error < 1.0e-15
 
     # check discretization nodes are the same
-    nodes_new = thaw(discr_new.nodes(), actx)
+    nodes_new = actx.thaw(discr_new.nodes())
     error = rnorm(actx, nodes_new, nodes)
     logger.info("error[discr]:  %.5e", error)
     assert error < 1.0e-15
 
     # check connection is the same
-    nodes = thaw(conn.from_discr.nodes(), actx)
-    nodes_new = thaw(conn_new.from_discr.nodes(), actx)
+    nodes = actx.thaw(conn.from_discr.nodes())
+    nodes_new = actx.thaw(conn_new.from_discr.nodes())
     error = rnorm(actx, nodes_new, nodes)
     logger.info("error[conns]:  %.5e", error)
     assert error < 1.0e-15
