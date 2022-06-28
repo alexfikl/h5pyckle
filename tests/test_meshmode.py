@@ -182,12 +182,13 @@ def test_record_pickling() -> None:
     """Tests handling of __getstate__/__setstate__ with a Record."""
 
     pytest.importorskip("meshmode")
+    rng = np.random.default_rng(seed=42)
 
     cr_in = TimingRecord(
         name="run_12857",
         mean=1.0,
         std=0.2,
-        history=np.random.rand(256),
+        history=rng.random(256),
     )
 
     from h5pyckle import dump, load

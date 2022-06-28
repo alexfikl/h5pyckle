@@ -110,6 +110,7 @@ def test_pickling_list_like(arg_in: List[Any]) -> None:
 @pytest.mark.parametrize("dtype_in", [np.int32, np.float32, np.float64])
 def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
     filename = dirname / "pickle_numpy.h5"
+    rng = np.random.default_rng(seed=42)
 
     if arg_in_type == "scalar":
         if dtype_in == np.int32:
@@ -122,11 +123,11 @@ def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
 
         if dtype_in == np.int32:
             arg_in = make_obj_array(
-                [np.random.randint(42, size=42, dtype=dtype_in) for _ in range(3)]
+                [rng.integers(42, size=42, dtype=dtype_in) for _ in range(3)]
             )
         else:
             arg_in = make_obj_array(
-                [np.random.rand(42).astype(dtype_in) for _ in range(3)]
+                [rng.random(size=42, dtype=dtype_in) for _ in range(3)]
             )
 
     dump({"array": arg_in}, filename)
