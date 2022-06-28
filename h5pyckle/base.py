@@ -551,6 +551,7 @@ def load_group_as_dict(
         exclude = []
     unique_exclude = set(list(exclude) + _H5PYCKLE_RESERVED_ATTRS)
 
+    from h5py import Dataset
     groups = {}
     for name in parent:
         if any(ex in name for ex in unique_exclude):
@@ -559,7 +560,7 @@ def load_group_as_dict(
         obj = parent[name]
         if obj.has_type:
             groups[name] = load_from_type(obj)
-        elif isinstance(obj, h5py.Dataset):
+        elif isinstance(obj, Dataset):
             groups[name] = obj[:]
         else:
             raise TypeError(f"cannot unpickle '{name}'")

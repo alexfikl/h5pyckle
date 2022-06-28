@@ -42,7 +42,7 @@ from h5pyckle.base import PickleGroup, load_from_type
 import h5pyckle.interop_numpy  # noqa: F401
 
 
-__all__ = ["array_context_for_pickling"]
+__all__ = ("array_context_for_pickling",)
 
 if getattr(sys, "H5PYCKLE_BUILDING_SPHINX_DOCS", False):
     # FIXME: without this mocking pyopencl or meshmode classes would result
