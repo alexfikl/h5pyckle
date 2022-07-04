@@ -18,15 +18,11 @@ from typing import Iterator, List, Optional
 
 import numpy as np
 
-import pyopencl as cl
-import pyopencl.array  # noqa: F401
+import pyopencl.array as cla
 
-from arraycontext.impl.pyopencl.taggable_cl_array import (
-    TaggableCLArray,
-    to_tagged_cl_array,
-)
+import arraycontext.impl.pyopencl.taggable_cl_array as tga
 
-from arraycontext import ArrayContext
+from arraycontext import ArrayContext, Array
 from meshmode.dof_array import DOFArray
 from meshmode.mesh import MeshElementGroup, Mesh
 from meshmode.discretization import ElementGroupBase, Discretization
@@ -101,7 +97,7 @@ def get_array_context() -> ArrayContext:
     return actx
 
 
-def to_numpy(x: Optional[cl.array.Array]) -> Optional[np.ndarray]:
+def to_numpy(x: Optional[Array]) -> Optional[np.ndarray]:
     if x is None:
         return x
 
@@ -112,16 +108,14 @@ def to_numpy(x: Optional[cl.array.Array]) -> Optional[np.ndarray]:
     return result
 
 
-def from_numpy(
-    x: Optional[np.ndarray], freeze: bool = True
-) -> Optional[cl.array.Array]:
+def from_numpy(x: Optional[np.ndarray], freeze: bool = True) -> Optional[Array]:
     if x is None:
-        return x
-
-    actx = get_array_context()
-    result = actx.from_numpy(x)
-    if freeze:
-        result = actx.freeze(result)
+        result = None
+    else:
+        actx = get_array_context()
+        result = actx.from_numpy(x)
+        if freeze:
+            result = actx.freeze(result)
 
     return result
 
@@ -129,32 +123,32 @@ def from_numpy(
 # }}}
 
 
-# {{{ pyopencl.Array
+# {{{ cla.Array
 
 
-@dumper.register(cl.array.Array)
+@dumper.register(cla.Array)
 def _dump_cl_array(
-    obj: cl.array.Array, parent: PickleGroup, *, name: Optional[str] = None
+    obj: cla.Array, parent: PickleGroup, *, name: Optional[str] = None
 ) -> None:
     group = parent.create_type(name, obj)
 
     group.attrs["frozen"] = obj.queue is None
     group.create_dataset(
         "entry",
-        data=to_numpy(to_tagged_cl_array(obj, axes=None, tags=frozenset())),
+        data=to_numpy(tga.to_tagged_cl_array(obj)),
     )
 
 
-@loader.register(cl.array.Array)
-def _load_cl_array(parent: PickleGroup) -> cl.array.Array:
+@loader.register(cla.Array)
+def _load_cl_array(parent: PickleGroup) -> cla.Array:
     from h5pyckle.interop_numpy import load_numpy_dataset
 
     return from_numpy(load_numpy_dataset(parent, "entry"), parent.attrs["frozen"])
 
 
-@dumper.register(TaggableCLArray)
+@dumper.register(tga.TaggableCLArray)
 def _dump_taggable_cl_array(
-    obj: TaggableCLArray, parent: PickleGroup, *, name: Optional[str] = None
+    obj: tga.TaggableCLArray, parent: PickleGroup, *, name: Optional[str] = None
 ) -> None:
     group = parent.create_type(name, obj)
 
@@ -165,15 +159,15 @@ def _dump_taggable_cl_array(
     group.create_dataset("entry", data=to_numpy(obj))
 
 
-@loader.register(TaggableCLArray)
-def _load_taggable_cl_array(parent: PickleGroup) -> TaggableCLArray:
+@loader.register(tga.TaggableCLArray)
+def _load_taggable_cl_array(parent: PickleGroup) -> tga.TaggableCLArray:
     from h5pyckle.interop_numpy import load_numpy_dataset
 
     ary = from_numpy(load_numpy_dataset(parent, "entry"), parent.attrs["frozen"])
     axes = load_from_type(parent["axes"])
     tags = load_from_type(parent["tags"])
 
-    return to_tagged_cl_array(ary, axes=axes, tags=tags)
+    return tga.to_tagged_cl_array(ary, axes=axes, tags=tags)
 
 
 # }}}
@@ -251,6 +245,7 @@ def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
     unit_nodes = parent["unit_nodes"][:]
 
     from typing import cast
+
     return cast(MeshElementGroup, parent.pycls).make_group(
         order, vertex_indices, nodes, unit_nodes=unit_nodes, dim=dim
     )

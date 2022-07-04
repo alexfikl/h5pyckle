@@ -552,6 +552,7 @@ def load_group_as_dict(
     unique_exclude = set(list(exclude) + _H5PYCKLE_RESERVED_ATTRS)
 
     from h5py import Dataset
+
     groups = {}
     for name in parent:
         if any(ex in name for ex in unique_exclude):
