@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 85
-target-version = ["py36"]
+target-version = ["py38"]
 
 [tool.pyright]
-pythonVersion = "3.6"
+pythonVersion = "3.8"

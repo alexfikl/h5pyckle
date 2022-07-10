@@ -1,10 +1,6 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
-try:
-    # python >=3.8 only
-    from importlib import metadata
-except ImportError:
-    import importlib_metadata as metadata
+from importlib import metadata
 
 # NOTE: hack required in h5pyckle.interop_meshmode
 import sys
