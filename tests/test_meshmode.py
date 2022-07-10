@@ -15,13 +15,6 @@ import logging
 logger = logging.getLogger(__name__)
 dirname = pathlib.Path(__file__).parent
 
-try:
-    from pytools import Record
-except ImportError:
-    # https://github.com/python/mypy/issues/1153
-    class Record(dict):  # type: ignore[no-redef]
-        pass
-
 
 def norm(actx: Any, x: "np.ndarray[Any, Any]") -> float:
     if isinstance(x, np.ndarray):
@@ -181,8 +174,8 @@ class TimingRecord:
 
 
 @pytest.mark.meshmode
-def test_record_pickling() -> None:
-    """Tests handling of __getstate__/__setstate__ with a Record."""
+def test_dataclass_pickling() -> None:
+    """Tests handling of __getstate__/__setstate__ with a dataclass."""
 
     pytest.importorskip("meshmode")
     rng = np.random.default_rng(seed=42)
