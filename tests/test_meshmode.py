@@ -43,6 +43,7 @@ def rnorm(actx: Any, x: "np.ndarray[Any, Any]", y: "np.ndarray[Any, Any]") -> fl
 # {{{ test_discretization_pickling
 
 
+@pytest.mark.meshmode
 @pytest.mark.parametrize("ambient_dim", [2, 3])
 def test_discretization_pickling(
     ambient_dim: int, visualize: bool = False, target_order: int = 3
@@ -179,6 +180,7 @@ class TimingRecord:
     history: np.ndarray
 
 
+@pytest.mark.meshmode
 def test_record_pickling() -> None:
     """Tests handling of __getstate__/__setstate__ with a Record."""
 
@@ -208,6 +210,7 @@ def test_record_pickling() -> None:
 # {{{ test_pickling_cl_scalar
 
 
+@pytest.mark.meshmode
 def test_pickling_cl_scalar() -> None:
     pytest.importorskip("meshmode")
 
