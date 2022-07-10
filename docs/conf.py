@@ -8,7 +8,7 @@ except ImportError:
 
 # NOTE: hack required in h5pyckle.interop_meshmode
 import sys
-sys.H5PYCKLE_BUILDING_SPHINX_DOCS = True
+sys._BUILDING_SPHINX_DOCS = True
 
 # {{{ project information
 
