@@ -4,7 +4,7 @@ PYTEST_ADDOPTS?=
 all: flake8 pylint mypy-strict
 
 black:
-	$(PYTHON) -m black h5pyckle tests examples
+	$(PYTHON) -m black --safe --target-version py38 h5pyckle tests examples
 
 flake8:
 	$(PYTHON) -m flake8 h5pyckle tests examples docs
