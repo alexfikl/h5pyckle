@@ -44,6 +44,13 @@ pip-install:
 test:
 	$(PYTHON) -m pytest -rswx --durations=25 -v -s $(PYTEST_ADDOPTS)
 
+test-examples:
+	@for ex in $$(find examples -name "*.py"); do \
+		echo -e "\x1b[1;32m===> \x1b[97mRunning $${ex}\x1b[0m"; \
+		$(PYTHON) "$${ex}"; \
+		sleep 1; \
+	done
+
 # }}}
 
 tags:
