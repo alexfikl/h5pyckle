@@ -3,6 +3,8 @@ PYTEST_ADDOPTS?=
 
 all: flake8 pylint mypy-strict
 
+# {{{ linting
+
 black:
 	$(PYTHON) -m black --safe --target-version py38 h5pyckle tests examples
 
@@ -22,8 +24,13 @@ mypy-strict:
 	$(PYTHON) -m mypy --strict --show-error-codes h5pyckle tests examples
 	@echo -e "\e[1;32mmypy clean!\e[0m"
 
-test:
-	$(PYTHON) -m pytest -rswx --durations=25 -v -s $(PYTEST_ADDOPTS)
+reuse:
+	@reuse lint
+	@echo -e "\e[1;32mREUSE compliant!\e[0m"
+
+# }}}
+
+# {{{ testing
 
 pin:
 	$(PYTHON) -m piptools compile \
@@ -34,7 +41,12 @@ pip-install:
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install -r requirements.txt -e .
 
+test:
+	$(PYTHON) -m pytest -rswx --durations=25 -v -s $(PYTEST_ADDOPTS)
+
+# }}}
+
 tags:
 	ctags -R
 
-.PHONY: all black flake8 mypy pip-install pylint test
+.PHONY: all black flake8 pylint mypy mypy-strict pin pip-install test
