@@ -25,9 +25,14 @@ mypy-strict:
 test:
 	$(PYTHON) -m pytest -rswx --durations=25 -v -s $(PYTEST_ADDOPTS)
 
+pin:
+	$(PYTHON) -m piptools compile \
+		--extra dev --extra fancy --upgrade --resolver legacy \
+		-o requirements.txt setup.cfg
+
 pip-install:
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -e '.[dev,unittest]'
+	$(PYTHON) -m pip install -r requirements.txt -e .
 
 tags:
 	ctags -R
