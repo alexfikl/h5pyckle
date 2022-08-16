@@ -69,7 +69,7 @@ jobs:
         make pip-install
         make PYTEST_ADDOPTS='-m "not meshmode"' test
 
-  pytest-examples:
+  examples:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
@@ -81,7 +81,7 @@ jobs:
     - name: Main Script
       run: |
         make pip-install
-        make test-examples
+        make run-examples
 
   pytest-meshmode:
     if: "!contains(github.event.head_commit.message, 'skip ci')"

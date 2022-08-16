@@ -44,7 +44,7 @@ pip-install:
 test:
 	$(PYTHON) -m pytest -rswx --durations=25 -v -s $(PYTEST_ADDOPTS)
 
-test-examples:
+run-examples:
 	@for ex in $$(find examples -name "*.py"); do \
 		echo -e "\x1b[1;32m===> \x1b[97mRunning $${ex}\x1b[0m"; \
 		$(PYTHON) "$${ex}"; \
@@ -53,7 +53,12 @@ test-examples:
 
 # }}}
 
-tags:
-	ctags -R
+ctags:
+	ctags --recurse=yes \
+		--tag-relative=yes \
+		--exclude=.git \
+		--exclude=docs \
+		--python-kinds=-i \
+		--language-force=python
 
 .PHONY: all black flake8 pylint mypy mypy-strict pin pip-install test
