@@ -48,6 +48,7 @@ except ImportError:
 import io
 import os
 from functools import singledispatch
+from contextlib import suppress
 from pickle import UnpicklingError
 from typing import Any, Dict, Optional, Sequence, Set, Tuple, Type, Union
 
@@ -532,10 +533,8 @@ def load_from_attribute(name: str, group: PickleGroup) -> Optional[Any]:
         attr = attr.tobytes()
 
     if isinstance(attr, bytes):
-        try:
+        with suppress(UnpicklingError):
             attr = pickle.loads(attr)
-        except UnpicklingError:
-            pass
 
     return attr
 
