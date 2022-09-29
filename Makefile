@@ -34,7 +34,7 @@ reuse:
 
 pin:
 	$(PYTHON) -m piptools compile \
-		--extra dev --extra fancy --upgrade --resolver legacy \
+		--extra dev --extra fancy --upgrade \
 		-o requirements.txt setup.cfg
 
 pip-install:
