@@ -6,6 +6,10 @@
     :alt: Documentation
     :target: https://h5pyckle.readthedocs.io/en/latest/?badge=latest
 
+.. image:: https://api.reuse.software/badge/github.com/alexfikl/h5pyckle
+    :alt: REUSE
+    :target: https://api.reuse.software/info/github.com/alexfikl/h5pyckle
+
 h5pyckle
 ========
 
