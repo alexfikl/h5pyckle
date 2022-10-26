@@ -129,6 +129,8 @@ def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
             arg_in = make_obj_array(
                 [rng.random(size=42, dtype=dtype_in) for _ in range(3)]
             )
+    else:
+        raise ValueError(f"unknown type: '{arg_in_type}'")
 
     dump({"array": arg_in}, filename)
     arg_out = load(filename)["array"]

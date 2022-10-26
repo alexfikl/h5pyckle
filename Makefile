@@ -24,6 +24,9 @@ mypy-strict:
 	$(PYTHON) -m mypy --strict --show-error-codes h5pyckle tests examples
 	@echo -e "\e[1;32mmypy clean!\e[0m"
 
+pyright:
+	pyright --stats h5pyckle tests examples
+
 reuse:
 	@reuse lint
 	@echo -e "\e[1;32mREUSE compliant!\e[0m"
@@ -61,4 +64,4 @@ ctags:
 		--python-kinds=-i \
 		--language-force=python
 
-.PHONY: all black flake8 pylint mypy mypy-strict pin pip-install test
+.PHONY: black flake8 pylint mypy mypy-strict pyright reuse pin pip-install test run-examples ctags
