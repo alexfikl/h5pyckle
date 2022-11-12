@@ -1,4 +1,4 @@
-PYTHON?=python
+PYTHON?=python -X dev
 PYTEST_ADDOPTS?=
 
 all: flake8 pylint mypy-strict
