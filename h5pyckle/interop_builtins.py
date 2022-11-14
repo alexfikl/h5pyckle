@@ -39,7 +39,7 @@ def _dump_object(
     if hasattr(obj, "__getstate__"):
         group.attrs["__pickle"] = "getstate"
 
-        state = obj.__getstate__()  # type: ignore[attr-defined]
+        state = obj.__getstate__()
         dumper(state, group, name="state")
     else:
         group.attrs["__pickle"] = "pickle"

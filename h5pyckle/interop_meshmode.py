@@ -14,7 +14,7 @@ except ImportError:
 import sys
 import threading
 from contextlib import contextmanager
-from typing import Iterator, List, Optional
+from typing import Iterator, List, Optional, cast
 
 import numpy as np
 
@@ -117,7 +117,9 @@ def from_numpy(x: Optional[np.ndarray], freeze: bool = True) -> Optional[Array]:
         if freeze:
             result = actx.freeze(result)
 
-    return result
+    # NOTE: arraycontext annotations aren't smart enough to realize this is
+    # not an array container, but just an array (depends on dtype)
+    return cast(Array, result)
 
 
 # }}}
