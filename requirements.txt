@@ -18,7 +18,7 @@ cloudpickle==2.2.0
     # via h5pyckle (setup.cfg)
 dill==0.3.6
     # via pylint
-exceptiongroup==1.0.1
+exceptiongroup==1.0.2
     # via pytest
 flake8==5.0.4
     # via
@@ -45,7 +45,7 @@ mccabe==0.7.0
     # via
     #   flake8
     #   pylint
-mypy==0.982
+mypy==0.990
     # via h5pyckle (setup.cfg)
 mypy-extensions==0.4.3
     # via mypy
@@ -61,9 +61,9 @@ pep517==0.13.0
     # via build
 pep8-naming==0.13.2
     # via h5pyckle (setup.cfg)
-pip-tools==6.9.0
+pip-tools==6.10.0
     # via h5pyckle (setup.cfg)
-platformdirs==2.5.2
+platformdirs==2.5.4
     # via pylint
 pluggy==1.0.0
     # via pytest
@@ -89,7 +89,7 @@ types-dataclasses==0.6.6
     # via h5pyckle (setup.cfg)
 typing-extensions==4.4.0
     # via mypy
-wheel==0.38.2
+wheel==0.38.4
     # via pip-tools
 wrapt==1.14.1
     # via astroid
