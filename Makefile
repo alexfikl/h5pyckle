@@ -27,6 +27,12 @@ mypy-strict:
 pyright:
 	pyright --stats h5pyckle tests examples
 
+codespell:
+	@codespell --summary \
+		--skip _build \
+		--ignore-words .codespell-ignore \
+		h5pyckle tests examples docs
+
 reuse:
 	@reuse lint
 	@echo -e "\e[1;32mREUSE compliant!\e[0m"

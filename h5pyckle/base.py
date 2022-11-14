@@ -432,7 +432,7 @@ def load(filename: PathLike) -> Union[Any, Dict[str, Any]]:
     """
     :param filename: file to load pickled data from.
     :returns: a :class:`dict` containing the full contents of the file. If
-        only a subset of the file containts pickled data, use
+        only a subset of the file contains pickled data, use
         :func:`load_from_group` or :class:`load_by_pattern` instead.
     """
     with h5py.File(filename, mode="r") as h5:
