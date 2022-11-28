@@ -43,6 +43,7 @@ reuse:
 
 pin:
 	$(PYTHON) -m piptools compile \
+		--resolver=backtracking \
 		--extra dev --extra fancy --upgrade \
 		-o requirements.txt setup.cfg
 
