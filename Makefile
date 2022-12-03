@@ -26,6 +26,18 @@ mypy-strict:
 
 pyright:
 	pyright --stats h5pyckle tests examples
+	@echo -e "\e[1;32mpyright clean!\e[0m"
+
+ruff:
+	ruff h5pyckle tests examples
+	@echo -e "\e[1;32mruff clean!\e[0m"
+
+pytype:
+	$(PYTHON) -m pytype \
+		--strict-parameter-checks \
+		--strict-primitive-comparisons \
+		h5pyckle tests examples
+	@echo -e "\e[1;32mpytype clean!\e[0m"
 
 codespell:
 	@codespell --summary \
