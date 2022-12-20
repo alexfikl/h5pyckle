@@ -50,7 +50,7 @@ reuse:
 	@echo -e "\e[1;32mREUSE compliant!\e[0m"
 
 manifest:
-	@check-manifest --ignore '*.yml,*.yaml,.reuse/*,.ci/*,.ctags.d/*,.codespell-ignore'
+	@check-manifest
 	@echo -e "\e[1;32mMANIFEST.in is up to date!\e[0m"
 
 # }}}
