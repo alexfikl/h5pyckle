@@ -3,7 +3,7 @@ Upstream-Name: h5pyckle
 Upstream-Contact: Alexandru Fikl <alexfikl@gmail.com>
 Source: https://github.com/alexfikl/h5pyckle
 
-Files: docs/* *.md *.rst *.cfg *.txt *Makefile
+Files: docs/* *.md *.rst *.cfg *.txt *Makefile MANIFEST.in
 Copyright: 2022 Alexandru Fikl <alexfikl@gmail.com>
 License: CC0-1.0
 
