@@ -64,7 +64,7 @@ pin:
 		-o requirements.txt setup.cfg
 
 pip-install:
-	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PYTHON) -m pip install -r requirements.txt -e .
 
 test:
