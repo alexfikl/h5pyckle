@@ -147,7 +147,9 @@ def _dump_cl_array(
 def _load_cl_array(parent: PickleGroup) -> cla.Array:
     from h5pyckle.interop_numpy import load_numpy_dataset
 
-    return from_numpy(load_numpy_dataset(parent, "entry"), parent.attrs["frozen"])
+    return from_numpy(
+        load_numpy_dataset(parent, "entry"), frozen=parent.attrs["frozen"]
+    )
 
 
 @dumper.register(tga.TaggableCLArray)
@@ -167,7 +169,7 @@ def _dump_taggable_cl_array(
 def _load_taggable_cl_array(parent: PickleGroup) -> tga.TaggableCLArray:
     from h5pyckle.interop_numpy import load_numpy_dataset
 
-    ary = from_numpy(load_numpy_dataset(parent, "entry"), parent.attrs["frozen"])
+    ary = from_numpy(load_numpy_dataset(parent, "entry"), frozen=parent.attrs["frozen"])
     axes = load_from_type(parent["axes"])
     tags = load_from_type(parent["tags"])
 
@@ -196,7 +198,8 @@ def _load_dof_array(parent: PickleGroup) -> DOFArray:
 
     array_context = None if parent.attrs["frozen"] else get_array_context()
     return parent.pycls(
-        array_context, tuple(from_numpy(x, parent.attrs["frozen"]) for x in entries)
+        array_context,
+        tuple(from_numpy(x, frozen=parent.attrs["frozen"]) for x in entries),
     )
 
 
