@@ -256,9 +256,7 @@ def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
 
 
 @dumper.register(Mesh)
-def _dump_mesh(
-    obj: Mesh, parent: PickleGroup, *, name: Optional[str] = None
-) -> None:
+def _dump_mesh(obj: Mesh, parent: PickleGroup, *, name: Optional[str] = None) -> None:
     parent = parent.create_type(name, obj)
 
     if hasattr(obj, "boundary_tags"):
@@ -332,9 +330,7 @@ class _SameElementGroupFactory:
 
         self.groups = groups
 
-    def __call__(
-        self, mesh_el_group: MeshElementGroup, index: int
-    ) -> ElementGroupBase:
+    def __call__(self, mesh_el_group: MeshElementGroup, index: int) -> ElementGroupBase:
         if not 0 <= index < len(self.groups):
             raise ValueError("'group_index' outside known range of groups")
 
@@ -445,9 +441,7 @@ def _dump_interpolation_batch(
     if obj.to_element_face is not None:
         grp.attrs["to_element_face"] = obj.to_element_face
 
-    grp.create_dataset(
-        "from_element_indices", data=to_numpy(obj.from_element_indices)
-    )
+    grp.create_dataset("from_element_indices", data=to_numpy(obj.from_element_indices))
     grp.create_dataset("to_element_indices", data=to_numpy(obj.to_element_indices))
     grp.create_dataset("result_unit_nodes", data=obj.result_unit_nodes)
 

@@ -217,9 +217,7 @@ class PickleGroup(h5py.Group):
         grp = self.create_group(name)
         return grp.append_type(obj)
 
-    def append_type(
-        self, obj: Any, force_cls: Optional[type] = None
-    ) -> "PickleGroup":
+    def append_type(self, obj: Any, force_cls: Optional[type] = None) -> "PickleGroup":
         """Append type information to the current group.
 
         :param obj: object whose type information will be appended.
@@ -317,9 +315,7 @@ def loader(parent: Any) -> Any:
 # {{{ io
 
 
-def dump_to_group(
-    obj: Any, parent: PickleGroup, *, name: Optional[str] = None
-) -> None:
+def dump_to_group(obj: Any, parent: PickleGroup, *, name: Optional[str] = None) -> None:
     """Stores pickled data in a specific HDF5 subgroup.
 
     :param parent: a group in an open :class:`h5py.File`.

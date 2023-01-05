@@ -93,9 +93,7 @@ def _dump_string(
 
 @dumper.register(int)
 @dumper.register(float)
-def _dump_int(
-    obj: Number, parent: PickleGroup, *, name: Optional[str] = None
-) -> None:
+def _dump_int(obj: Number, parent: PickleGroup, *, name: Optional[str] = None) -> None:
     # NOTE: managed to hit an arbitrary precision int
     grp = parent.create_type(name, obj)
     grp.attrs["value"] = repr(obj).encode()
