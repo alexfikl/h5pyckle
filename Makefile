@@ -39,6 +39,9 @@ pytype:
 		h5pyckle tests examples
 	@echo -e "\e[1;32mpytype clean!\e[0m"
 
+doc8:
+	$(PYTHON) -m doc8 docs h5pyckle
+
 codespell:
 	@codespell --summary \
 		--skip _build \
