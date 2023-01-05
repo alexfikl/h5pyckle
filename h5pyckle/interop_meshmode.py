@@ -108,13 +108,13 @@ def to_numpy(x: Optional[Array]) -> Optional[np.ndarray]:
     return result
 
 
-def from_numpy(x: Optional[np.ndarray], *, freeze: bool = True) -> Optional[Array]:
+def from_numpy(x: Optional[np.ndarray], *, frozen: bool = True) -> Optional[Array]:
     if x is None:
         result = None
     else:
         actx = get_array_context()
         result = actx.from_numpy(x)
-        if freeze:
+        if frozen:
             result = actx.freeze(result)
 
     from typing import cast
