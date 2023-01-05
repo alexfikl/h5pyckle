@@ -17,10 +17,12 @@ typeCheckingMode = "basic"
 [tool.ruff]
 target-version = "py38"
 line-length = 88
-select = ["B", "E", "F", "I", "N", "Q", "UP", "W"]
+select = ["A", "B", "C4", "E", "F", "FBT", "I", "ISC", "N", "Q", "S", "UP", "W"]
 ignore = [
     # Module level import not at top of file
     "E402",
     # Import block is un-sorted or un-formatted
     "I001",
+    # Use of assert detected
+    "S101", "S102",
     ]

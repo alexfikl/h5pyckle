@@ -108,7 +108,7 @@ def to_numpy(x: Optional[Array]) -> Optional[np.ndarray]:
     return result
 
 
-def from_numpy(x: Optional[np.ndarray], freeze: bool = True) -> Optional[Array]:
+def from_numpy(x: Optional[np.ndarray], *, freeze: bool = True) -> Optional[Array]:
     if x is None:
         result = None
     else:
