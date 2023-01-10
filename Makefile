@@ -6,6 +6,8 @@ all: flake8 pylint mypy-strict
 # {{{ linting
 
 black:
+	$(PYTHON) -m setup_cfg_fmt --include-version-classifiers setup.cfg
+	$(PYTHON) -m pyproject_fmt --indent 4 pyproject.toml
 	$(PYTHON) -m isort h5pyckle tests examples docs
 	$(PYTHON) -m black --safe --target-version py38 h5pyckle tests examples docs
 
