@@ -6,8 +6,7 @@ from typing import Any, Optional, Sequence
 
 import numpy as np
 
-from h5pyckle.base import dumper, loader
-from h5pyckle.base import PickleGroup, load_from_type
+from h5pyckle.base import PickleGroup, dumper, load_from_type, loader
 
 
 def make_obj_array(arrays: Sequence[Any]) -> np.ndarray:

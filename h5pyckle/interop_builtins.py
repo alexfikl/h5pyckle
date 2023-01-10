@@ -18,8 +18,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 import h5py
 import numpy as np
 
-from h5pyckle.base import dumper, loader
-from h5pyckle.base import PickleGroup, load_from_type
+from h5pyckle.base import PickleGroup, dumper, load_from_type, loader
 
 # https://docs.h5py.org/en/stable/high/attr.html#attributes
 _MAX_ATTRIBUTE_SIZE = 2**13

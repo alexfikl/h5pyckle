@@ -16,27 +16,22 @@ import threading
 from contextlib import contextmanager
 from typing import Iterator, List, Optional
 
-import numpy as np
-
-import pyopencl.array as cla
-
 import arraycontext.impl.pyopencl.taggable_cl_array as tga
-
-from arraycontext import ArrayContext, Array
-from meshmode.dof_array import DOFArray
-from meshmode.mesh import MeshElementGroup, Mesh
-from meshmode.discretization import ElementGroupBase, Discretization
-from meshmode.discretization.poly_element import PolynomialRecursiveNodesElementGroup
+import numpy as np
+import pyopencl.array as cla
+from arraycontext import Array, ArrayContext
+from meshmode.discretization import Discretization, ElementGroupBase
 from meshmode.discretization.connection import (
-    InterpolationBatch,
-    DiscretizationConnectionElementGroup,
     DirectDiscretizationConnection,
+    DiscretizationConnectionElementGroup,
+    InterpolationBatch,
 )
+from meshmode.discretization.poly_element import PolynomialRecursiveNodesElementGroup
+from meshmode.dof_array import DOFArray
+from meshmode.mesh import Mesh, MeshElementGroup
 
-from h5pyckle.base import dumper, loader
-from h5pyckle.base import PickleGroup, load_from_type
 import h5pyckle.interop_numpy  # noqa: F401
-
+from h5pyckle.base import PickleGroup, dumper, load_from_type, loader
 
 __all__ = ("array_context_for_pickling",)
 

@@ -35,7 +35,8 @@ if filename.exists():
 # {{{ subgroup
 
 import h5py
-from h5pyckle import dump_to_group, load_from_group, load_by_pattern
+
+from h5pyckle import dump_to_group, load_by_pattern, load_from_group
 
 with h5py.File(filename, mode="a") as h5:
     subgroup = h5.require_group("pickling")

@@ -1,9 +1,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
-from importlib import metadata
-
 # NOTE: hack required in h5pyckle.interop_meshmode
 import sys
+from importlib import metadata
+
 sys._BUILDING_SPHINX_DOCS = True
 
 # {{{ project information
@@ -28,7 +28,8 @@ extensions = [
 ]
 
 try:
-    import sphinxcontrib.spelling       # noqa: F401
+    import sphinxcontrib.spelling  # noqa: F401
+
     extensions.append("sphinxcontrib.spelling")
 except ImportError:
     pass

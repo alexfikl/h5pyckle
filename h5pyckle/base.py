@@ -47,14 +47,13 @@ except ImportError:
 
 import io
 import os
-from functools import singledispatch
 from contextlib import suppress
+from functools import singledispatch
 from pickle import UnpicklingError
 from typing import Any, Dict, Optional, Sequence, Set, Tuple, Type, Union
 
 import h5py
 import numpy as np
-
 
 # {{{ type aliases
 

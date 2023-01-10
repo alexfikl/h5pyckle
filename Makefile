@@ -6,7 +6,8 @@ all: flake8 pylint mypy-strict
 # {{{ linting
 
 black:
-	$(PYTHON) -m black --safe --target-version py38 h5pyckle tests examples
+	$(PYTHON) -m isort h5pyckle tests examples docs
+	$(PYTHON) -m black --safe --target-version py38 h5pyckle tests examples docs
 
 flake8:
 	$(PYTHON) -m flake8 h5pyckle tests examples docs

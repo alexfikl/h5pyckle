@@ -2,15 +2,14 @@
 #
 # SPDX-License-Identifier: MIT
 
+import logging
+import pathlib
 from dataclasses import dataclass
 from functools import partial
-import pathlib
 from typing import Any, cast
 
-import pytest
 import numpy as np
-
-import logging
+import pytest
 
 logger = logging.getLogger(__name__)
 dirname = pathlib.Path(__file__).parent

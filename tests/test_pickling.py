@@ -2,16 +2,15 @@
 #
 # SPDX-License-Identifier: MIT
 
+import logging
 import pathlib
 from typing import Any, Dict, List
 
-import pytest
 import numpy as np
 import numpy.linalg as la
+import pytest
 
 from h5pyckle import dump, load
-
-import logging
 
 logger = logging.getLogger(__name__)
 dirname = pathlib.Path(__file__).parent
