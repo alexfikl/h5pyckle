@@ -8,8 +8,7 @@ except ImportError:
     try:
         import dill as pickle
     except ImportError:
-        # https://github.com/python/mypy/issues/1153
-        import pickle  # type: ignore[no-redef]
+        import pickle
 
 import sys
 import threading
