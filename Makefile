@@ -1,10 +1,11 @@
 PYTHON?=python -X dev
 PYTEST_ADDOPTS?=
+MYPY_ADDOPTS?=
 
 all: help
 
 help: 			## Show this help
-	@echo -e "\nSpecify a command. The choices are:\n"
+	@echo -e "Specify a command. The choices are:\n"
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[0;36m%-12s\033[m %s\n", $$1, $$2}'
 	@echo ""
 .PHONY: help
@@ -18,7 +19,9 @@ fmt: black		## Run all formatting scripts
 .PHONY: fmt
 
 black:			## Run black over the source code
-	$(PYTHON) -m black --safe --target-version py38 h5pyckle tests examples docs
+	$(PYTHON) -m black \
+		--safe --target-version py38 \
+		h5pyckle tests examples docs setup.py
 .PHONY: black
 
 flake8:			## Run flake8 checks over the source code
@@ -32,14 +35,11 @@ pylint:			## Run pylint checks over the source code
 .PHONY: pylint
 
 mypy:			## Run mypy checks over the source code
-	$(PYTHON) -m mypy --show-error-codes h5pyckle tests examples
+	$(PYTHON) -m mypy \
+		--show-error-codes $(MYPY_ADDOPTS) \
+		h5pyckle tests examples
 	@echo -e "\e[1;32mmypy clean!\e[0m"
 .PHONY: mypy
-
-mypy-strict:	## Run mypy checks over the source code (strict mode)
-	$(PYTHON) -m mypy --strict --show-error-codes h5pyckle tests examples
-	@echo -e "\e[1;32mmypy clean!\e[0m"
-.PHONY: mypy-strict
 
 pyright:		## Run pyright checks over the source code
 	pyright --stats h5pyckle tests examples
