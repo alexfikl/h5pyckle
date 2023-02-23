@@ -91,7 +91,7 @@ REQUIREMENTS=\
 requirements-dev.txt: setup.cfg
 	$(PYTHON) -m piptools compile \
 		--resolver=backtracking --upgrade \
-		--extra dev --extra unittest \
+		--extra dev --extra unittest --extra fancy \
 		-o $@ $<
 
 requirements.txt: setup.cfg

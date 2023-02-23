@@ -236,6 +236,7 @@ class PickleGroup(h5py.Group):
         if not (module is None or module == str.__module__):
             name = f"{module}.{name}"
 
+        breakpoint()
         self.attrs["__type"] = np.void(pickle.dumps(cls))
         self.attrs["__type_name"] = name.encode()
         self.attrs["__version"] = _H5PYCKLE_VERSION
