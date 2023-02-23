@@ -84,11 +84,22 @@ manifest:		## Update MANIFEST.in file
 
 # {{{ testing
 
-pin:			## Pin dependency versions to requirements.txt
+REQUIREMENTS=\
+	requirements-dev.txt \
+	requirements.txt
+
+requirements-dev.txt: setup.cfg
 	$(PYTHON) -m piptools compile \
-		--resolver=backtracking \
-		--extra dev --extra fancy --upgrade \
-		-o requirements.txt setup.cfg
+		--resolver=backtracking --upgrade \
+		--extra dev --extra unittest --extra fancy \
+		-o $@ $<
+
+requirements.txt: setup.cfg
+	$(PYTHON) -m piptools compile \
+		--resolver=backtracking --upgrade \
+		-o $@ $<
+
+pin: $(REQUIREMENTS)	## Pin dependency versions to requirements.txt
 .PHONY: pin
 
 pip-install:	## Install pinned dependencies from requirements.txt
