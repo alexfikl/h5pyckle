@@ -104,7 +104,7 @@ pin: $(REQUIREMENTS)	## Pin dependency versions to requirements.txt
 
 pip-install:	## Install pinned dependencies from requirements.txt
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
-	$(PYTHON) -m pip install -r requirements.txt -e .
+	$(PYTHON) -m pip install -r requirements-dev.txt -e .
 .PHONY: pip-install
 
 test:			## Run pytest tests
