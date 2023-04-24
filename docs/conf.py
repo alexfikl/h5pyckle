@@ -83,13 +83,13 @@ autodoc_mock_imports = ["h5py", "pyopencl", "arraycontext", "meshmode"]
 # {{{ links
 
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None),
-    "numpy": ("https://numpy.org/doc/stable", None),
+    "arraycontext": ("https://documen.tician.de/arraycontext", None),
     "h5py": ("https://docs.h5py.org/en/stable", None),
     "h5pyapi": ("https://api.h5py.org", None),
-    "pyopencl": ("https://documen.tician.de/pyopencl", None),
     "meshmode": ("https://documen.tician.de/meshmode", None),
-    "arraycontext": ("https://documen.tician.de/arraycontext", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "pyopencl": ("https://documen.tician.de/pyopencl", None),
+    "python": ("https://docs.python.org/3", None),
 }
 
 # }}}
