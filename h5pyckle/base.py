@@ -7,6 +7,7 @@
 
 .. autoclass:: PickleGroup
     :no-show-inheritance:
+    :members:
 
 .. autofunction:: dump
 .. autofunction:: dump_to_group
@@ -69,31 +70,10 @@ _H5PYCKLE_VERSION = 1
 
 
 class PickleGroup(h5py.Group):
-    """Inherits from :class:`h5py.Group`.
+    """Inherits from :class:`h5py.Group`."""
 
-    .. attribute:: pycls
-
-        If the group has type information, this attribute will return the
-        corresponding class.
-
-    .. attribute:: has_type
-
-        If *True*, the group has type information that can be used to
-        reconstruct the object.
-
-    .. attribute:: h5_dset_options
-
-    .. automethod:: __init__
-    .. automethod:: from_h5
-    .. automethod:: replace
-
-    .. automethod:: create_group
-    .. automethod:: create_dataset
-    .. automethod:: __getitem__
-
-    .. automethod:: create_type
-    .. automethod:: append_type
-    """
+    #: A :class:`dict` of default options used when creating new datasets.
+    h5_dset_options: Dict[str, Any]
 
     def __init__(
         self,
@@ -110,6 +90,7 @@ class PickleGroup(h5py.Group):
             h5_dset_options = {}
 
         super().__init__(gid)
+
         self.h5_dset_options = h5_dset_options
         self._type = None
 
@@ -244,6 +225,9 @@ class PickleGroup(h5py.Group):
 
     @property
     def pycls(self) -> Type[Any]:
+        """If the group has type information, this attribute will return the
+        corresponding class.
+        """
         if not self.has_type:
             raise AttributeError(f"group '{self.name}' has no known type")
 
@@ -263,6 +247,9 @@ class PickleGroup(h5py.Group):
 
     @property
     def has_type(self) -> bool:
+        """If *True*, the group has type information that can be used to
+        reconstruct the object.
+        """
         return "__type" in self.attrs
 
     # }}}
