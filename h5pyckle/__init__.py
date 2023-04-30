@@ -22,21 +22,23 @@ from h5pyckle.base import (
     load_group_as_dict,
     loader,
 )
+from h5pyckle.decorator import h5pyckable
 
 __version__ = metadata.version("h5pyckle")
 
 __all__ = (
-    "dump",
-    "load",
-    "dump_to_group",
-    "load_from_group",
-    "load_by_pattern",
     "PickleGroup",
-    "dumper",
-    "loader",
+    "dump",
     "dump_sequence_to_group",
     "dump_to_attribute",
-    "load_from_type",
+    "dump_to_group",
+    "dumper",
+    "h5pyckable",
+    "load",
+    "load_by_pattern",
     "load_from_attribute",
+    "load_from_group",
+    "load_from_type",
     "load_group_as_dict",
+    "loader",
 )

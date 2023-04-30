@@ -5,16 +5,20 @@
 import logging
 import pathlib
 import sys
-from typing import Any, Dict, List
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import numpy.linalg as la
 import pytest
 
-from h5pyckle import dump, load
+from h5pyckle import dump, h5pyckable, load
 
 logger = logging.getLogger(__name__)
-dirname = pathlib.Path(__file__).parent
+
+dirname = pathlib.Path(__file__).parent / "pickles"
+if not dirname.exists():
+    dirname.mkdir()
 
 
 def norm(x: np.ndarray) -> float:
@@ -221,6 +225,46 @@ def test_pickling_scalar() -> None:
 
     # pylint: disable-next=unidiomatic-typecheck
     assert type(arg_in["float"]) == type(arg_out["float"])  # noqa: E721
+
+
+# }}}
+
+
+# {{{ test_pickling_dataclass
+
+
+@h5pyckable
+@dataclass(frozen=True)
+class Employee:
+    name: str
+    position: str
+    age: int
+    date: Tuple[int, int]
+    paychecks: np.ndarray = field(compare=False)
+
+
+def test_pickling_dataclass() -> None:
+    filename = dirname / "pickle_dataclass.h5"
+
+    from h5pyckle import dumper, loader
+
+    assert dumper.dispatch(Employee).__name__ == "_dump_dataclass"
+    assert loader.dispatch(Employee).__name__ == "_load_dataclass"
+
+    arg_in = Employee(
+        name="John Doe",
+        position="Data Scientist",
+        age=727,
+        date=(4, 2022),
+        paychecks=np.full(17, 8700.1),
+    )
+
+    dump(arg_in, filename)
+    arg_out = load(filename)
+
+    assert arg_in == arg_out
+    assert isinstance(arg_out, Employee)
+    assert np.allclose(arg_in.paychecks, arg_out.paychecks, atol=3.0e-16)
 
 
 # }}}

@@ -72,6 +72,22 @@ _H5PYCKLE_VERSION = 2
 _MAX_ATTRIBUTE_SIZE = 2**13
 
 
+def _reset_dataclass_field_types(cls: type) -> None:
+    import dataclasses
+    from dataclasses import _FIELDS  # type: ignore[attr-defined]
+
+    try:
+        fields = getattr(cls, _FIELDS)
+    except AttributeError:
+        raise TypeError("must be called with a dataclass type or instance") from None
+
+    # NOTE: ensure that the same instance of the field type is set in the dataclass.
+    # This is not great at all and we should figure out a better way to do it :(
+    for f in fields.values():
+        # pylint: disable=protected-access
+        f._field_type = getattr(dataclasses, f._field_type.name)
+
+
 class PickleGroup(h5py.Group):
     """Inherits from :class:`h5py.Group`."""
 
@@ -245,6 +261,11 @@ class PickleGroup(h5py.Group):
                 self._type = getattr(mod, cls.__name__)
             except AttributeError:
                 self._type = cls
+
+            from dataclasses import is_dataclass
+
+            if is_dataclass(cls):
+                _reset_dataclass_field_types(cls)
 
         return self._type  # type: ignore[return-value]
 
@@ -429,9 +450,7 @@ def load(filename: PathLike) -> Union[Any, Dict[str, Any]]:
 # {{{ dump helpers
 
 
-def pickle_to_group(
-    obj: object, group: PickleGroup, *, name: str
-) -> None:
+def pickle_to_group(obj: object, group: PickleGroup, *, name: str) -> None:
     state = pickle.dumps(obj)
 
     if len(state) < _MAX_ATTRIBUTE_SIZE:

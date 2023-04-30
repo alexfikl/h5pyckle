@@ -59,7 +59,7 @@ filename = pathlib.Path("pickled_custom.h5")
 from h5pyckle import PickleGroup, dumper, loader
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class CustomClass:
     name: str
     values: np.ndarray
@@ -94,5 +94,32 @@ cc_out = load(filename)
 print(cc_in)
 print(cc_out)
 assert cc_in == cc_out
+
+# }}}
+
+# {{{ decorated type
+
+from h5pyckle import h5pyckable
+
+
+@h5pyckable
+@dataclass(frozen=True, eq=False)
+class DecoratedCustomClass:
+    name: str
+    values: np.ndarray
+
+    def __eq__(self, other: Any) -> bool:
+        return self.name == other.name and bool(
+            np.array_equal(self.values, other.values)
+        )
+
+
+dcc_in = DecoratedCustomClass(name="Steve", values=np.ones(42))
+dump(dcc_in, filename)
+dcc_out = load(filename)
+
+print(dcc_in)
+print(dcc_out)
+assert dcc_in == dcc_out
 
 # }}}

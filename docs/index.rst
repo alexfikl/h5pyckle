@@ -36,12 +36,22 @@ method as
     :language: python
     :linenos:
 
+For simple classes, this can also be achieved with the :func:`~h5pyckle.h5pyckable`
+decorator as below.
+
+.. literalinclude:: ../examples/basic.py
+    :lines: 102-123
+    :language: python
+    :linenos:
+
 These examples can be found in :download:`examples/basic.py <../examples/basic.py>`.
 
 Reference
 =========
 
 .. automodule:: h5pyckle.base
+
+.. automodule:: h5pyckle.decorator
 
 Numpy
 -----
