@@ -66,7 +66,7 @@ PathLike = Union[str, bytes, "os.PathLike[Any]", io.IOBase]
 # {{{ wrapper for h5py.Group
 
 _H5PYCKLE_RESERVED_ATTRS = ["__type", "__type_name", "__pickle", "__version"]
-_H5PYCKLE_VERSION = 1
+_H5PYCKLE_VERSION = 2
 
 # https://docs.h5py.org/en/stable/high/attr.html#attributes
 _MAX_ATTRIBUTE_SIZE = 2**13
