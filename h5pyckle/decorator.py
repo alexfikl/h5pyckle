@@ -22,7 +22,7 @@ from h5pyckle.base import (
 _SCALAR_CLASSES = (int, float, str, bytes)
 
 
-def _is_scalar_field(f: Field[Any]) -> bool:
+def _is_scalar_field(f: "Field[Any]") -> bool:
     # FIXME: add support for some typing, e.g. Optional, Union
     try:
         return issubclass(f.type, _SCALAR_CLASSES)
