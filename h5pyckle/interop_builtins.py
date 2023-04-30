@@ -2,26 +2,19 @@
 #
 # SPDX-License-Identifier: MIT
 
-try:
-    import cloudpickle as pickle
-except ImportError:
-    try:
-        import dill as pickle
-    except ImportError:
-        import pickle
-
 from numbers import Number
-from pickle import UnpicklingError
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import h5py
-import numpy as np
 
-from h5pyckle.base import PickleGroup, dumper, load_from_type, loader
-
-# https://docs.h5py.org/en/stable/high/attr.html#attributes
-_MAX_ATTRIBUTE_SIZE = 2**13
-
+from h5pyckle.base import (
+    PickleGroup,
+    dumper,
+    load_from_type,
+    loader,
+    pickle_from_group,
+    pickle_to_group,
+)
 
 # {{{ object
 
@@ -34,38 +27,13 @@ def _dump_object(
     # was found and we should fall back to the generic pickle
     group = parent.create_type(name, obj)
 
-    if hasattr(obj, "__getstate__"):
-        group.attrs["__pickle"] = "getstate"
-
-        state = obj.__getstate__()
-        dumper(state, group, name="state")
-    else:
-        group.attrs["__pickle"] = "pickle"
-
-        state = pickle.dumps(obj)
-        if len(state) < _MAX_ATTRIBUTE_SIZE:
-            group.attrs["state"] = np.void(state)
-        else:
-            group.create_dataset("state", data=np.array(state))
+    group.attrs["__pickle"] = "pickle"
+    pickle_to_group(obj, group, name="state")
 
 
 @loader.register(object)
 def _load_object(parent: PickleGroup) -> Any:
-    method = parent.attrs.get("__pickle")
-
-    if method == "getstate":
-        state = load_from_type(parent["state"])
-
-        obj = parent.pycls()
-        obj.__setstate__(state)
-        return obj
-    elif method == "pickle":
-        if "state" in parent:
-            return pickle.loads(parent["state"][()])
-        else:
-            return pickle.loads(parent.attrs["state"].tobytes())
-    else:
-        raise UnpicklingError
+    return pickle_from_group("state", parent)
 
 
 # }}}

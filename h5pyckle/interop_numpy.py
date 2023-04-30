@@ -6,7 +6,14 @@ from typing import Any, Optional, Sequence
 
 import numpy as np
 
-from h5pyckle.base import PickleGroup, dumper, load_from_type, loader
+from h5pyckle.base import (
+    PickleGroup,
+    dumper,
+    load_from_type,
+    loader,
+    pickle_from_group,
+    pickle_to_group,
+)
 
 
 def make_obj_array(arrays: Sequence[Any]) -> np.ndarray:
@@ -67,7 +74,7 @@ def _dump_ndarray(
 
     dumper(obj.dtype, grp)
     if hasattr(obj, "__dict__"):
-        dumper(obj.__dict__, grp, name="__dict__")
+        pickle_to_group(obj.__dict__, grp, name="__dict__")
 
     if obj.dtype.char == "O":
         for i, ary in enumerate(obj):
@@ -87,8 +94,8 @@ def _load_ndarray(parent: PickleGroup) -> np.ndarray:
     else:
         obj = load_numpy_dataset(parent, "entry")
 
-    if "__dict__" in parent:
-        fields = load_from_type(parent["__dict__"])
+    fields = pickle_from_group("__dict__", parent)
+    if fields:
         if not hasattr(obj, "__dict__"):
             obj.__dict__ = {}
 

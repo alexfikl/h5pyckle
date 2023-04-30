@@ -68,6 +68,9 @@ PathLike = Union[str, bytes, "os.PathLike[Any]", io.IOBase]
 _H5PYCKLE_RESERVED_ATTRS = ["__type", "__type_name", "__pickle", "__version"]
 _H5PYCKLE_VERSION = 1
 
+# https://docs.h5py.org/en/stable/high/attr.html#attributes
+_MAX_ATTRIBUTE_SIZE = 2**13
+
 
 class PickleGroup(h5py.Group):
     """Inherits from :class:`h5py.Group`."""
@@ -265,7 +268,7 @@ class PickleGroup(h5py.Group):
 def dumper(obj: Any, parent: PickleGroup, *, name: Optional[str] = None) -> None:
     """
     :param obj: object to dump to the given group.
-    :param parent: :class:`PicklerGroup` into which to dump the object.
+    :param parent: :class:`PickleGroup` into which to dump the object.
     :param name: name of the newly created group. This is required for most
         cases, but can be omitted for some containers, e.g. a dictionary can
         be stored as separate groups based on its keys.
@@ -426,6 +429,17 @@ def load(filename: PathLike) -> Union[Any, Dict[str, Any]]:
 # {{{ dump helpers
 
 
+def pickle_to_group(
+    obj: object, group: PickleGroup, *, name: str
+) -> None:
+    state = pickle.dumps(obj)
+
+    if len(state) < _MAX_ATTRIBUTE_SIZE:
+        group.attrs[name] = np.void(state)
+    else:
+        group.create_dataset(name, data=np.array(state))
+
+
 def dump_sequence_to_group(
     obj: Union[Set[Any], Sequence[Any]],
     parent: PickleGroup,
@@ -472,13 +486,24 @@ def dump_to_attribute(
     if isinstance(obj, (Number, str, bytes)):
         parent.attrs[name] = obj
     else:
-        parent.attrs[name] = pickle.dumps(obj)
+        parent.attrs[name] = np.void(pickle.dumps(obj))
 
 
 # }}}
 
 
 # {{{ load helpers
+
+
+def pickle_from_group(name: str, group: PickleGroup) -> Any:
+    if name in group:
+        obj = group[name][()]
+    elif name in group.attrs:
+        obj = group.attrs[name].tobytes()
+    else:
+        return None
+
+    return pickle.loads(obj)
 
 
 def load_from_type(group: PickleGroup, *, cls: Optional[Type[Any]] = None) -> Any:

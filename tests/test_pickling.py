@@ -72,7 +72,6 @@ def test_pickling_dict(arg_in: Dict[str, str]) -> None:
 # {{{ test_pickling_list_like
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 11), reason="fails for some reason")
 @pytest.mark.parametrize(
     "arg_in",
     [
@@ -151,7 +150,6 @@ def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
 # {{{ test_pickling_numpy_subclass
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 11), reason="fails for some reason")
 def test_pickling_numpy_subclass() -> None:
     unyt = pytest.importorskip("unyt")
     x_in = unyt.unyt_array([1, 2, 3, 4, 5, 6], units=unyt.K)
