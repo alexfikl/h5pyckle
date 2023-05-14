@@ -84,7 +84,6 @@ def _reset_dataclass_field_types(cls: type) -> None:
     # NOTE: ensure that the same instance of the field type is set in the dataclass.
     # This is not great at all and we should figure out a better way to do it :(
     for f in fields.values():
-        # pylint: disable=protected-access
         f._field_type = getattr(dataclasses, f._field_type.name)
 
 
@@ -149,7 +148,6 @@ class PickleGroup(h5py.Group):
 
     # {{{ h5py.Group overwrites
 
-    # pylint: disable=arguments-differ
     def create_group(
         self, name: str, *, track_order: Optional[bool] = True
     ) -> "PickleGroup":
@@ -162,7 +160,6 @@ class PickleGroup(h5py.Group):
         grp = super().create_group(name, track_order=track_order)
         return self.replace(gid=grp.id)
 
-    # pylint: disable=arguments-differ
     def create_dataset(
         self,
         name: str,
@@ -251,7 +248,6 @@ class PickleGroup(h5py.Group):
             raise AttributeError(f"group '{self.name}' has no known type")
 
         if self._type is None:
-            # pylint: disable=no-member
             cls = pickle.loads(self.attrs["__type"].tobytes())
 
             import importlib

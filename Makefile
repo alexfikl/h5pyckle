@@ -24,16 +24,6 @@ black:			## Run black over the source code
 		h5pyckle tests examples docs setup.py
 .PHONY: black
 
-flake8:			## Run flake8 checks over the source code
-	$(PYTHON) -m flake8 h5pyckle tests examples docs
-	@echo -e "\e[1;32mflake8 clean!\e[0m"
-.PHONY: flake8
-
-pylint:			## Run pylint checks over the source code
-	PYTHONWARNINGS=ignore $(PYTHON) -m pylint h5pyckle tests/*.py examples/*.py
-	@echo -e "\e[1;32mpylint clean!\e[0m"
-.PHONY: pylint
-
 mypy:			## Run mypy checks over the source code
 	$(PYTHON) -m mypy \
 		--show-error-codes $(MYPY_ADDOPTS) \
@@ -41,23 +31,10 @@ mypy:			## Run mypy checks over the source code
 	@echo -e "\e[1;32mmypy clean!\e[0m"
 .PHONY: mypy
 
-pyright:		## Run pyright checks over the source code
-	pyright --stats h5pyckle tests examples
-	@echo -e "\e[1;32mpyright clean!\e[0m"
-.PHONY: pyright
-
 ruff:			## Run ruff checks over the source code
 	ruff h5pyckle tests examples
 	@echo -e "\e[1;32mruff clean!\e[0m"
 .PHONY: ruff
-
-pytype:			## Run pytype checks over the source code
-	$(PYTHON) -m pytype \
-		--strict-parameter-checks \
-		--strict-primitive-comparisons \
-		h5pyckle tests examples
-	@echo -e "\e[1;32mpytype clean!\e[0m"
-.PHONY: pytype
 
 doc8:			## Run doc8 checks over the source code
 	$(PYTHON) -m doc8 docs h5pyckle
