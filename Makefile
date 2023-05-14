@@ -40,19 +40,19 @@ doc8:			## Run doc8 checks over the source code
 .PHONY: doc8
 
 codespell:		## Run codespell over the source code and documentation
-	@codespell --summary \
+	codespell --summary \
 		--skip _build \
 		--ignore-words .codespell-ignore \
 		h5pyckle tests examples docs
 .PHONY: codespell
 
 reuse:			## Check REUSE license compliance
-	@reuse lint
+	$(PYTHON) -m reuse lint
 	@echo -e "\e[1;32mREUSE compliant!\e[0m"
 .PHONY: reuse
 
 manifest:		## Update MANIFEST.in file
-	@check-manifest
+	$(PYTHON) -m check_manifest
 	@echo -e "\e[1;32mMANIFEST.in is up to date!\e[0m"
 .PHONY: manifest
 
