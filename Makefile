@@ -13,7 +13,6 @@ help: 			## Show this help
 # {{{ linting
 
 fmt: black		## Run all formatting scripts
-	$(PYTHON) -m setup_cfg_fmt --include-version-classifiers setup.cfg
 	$(PYTHON) -m pyproject_fmt --indent 4 pyproject.toml
 	$(PYTHON) -m isort h5pyckle tests examples docs
 .PHONY: fmt
@@ -65,13 +64,13 @@ REQUIREMENTS=\
 	requirements-dev.txt \
 	requirements.txt
 
-requirements-dev.txt: setup.cfg
+requirements-dev.txt: pyproject.toml
 	$(PYTHON) -m piptools compile \
 		--resolver=backtracking --upgrade \
 		--extra dev --extra unittest --extra fancy \
 		-o $@ $<
 
-requirements.txt: setup.cfg
+requirements.txt: pyproject.toml
 	$(PYTHON) -m piptools compile \
 		--resolver=backtracking --upgrade \
 		-o $@ $<

@@ -3,8 +3,9 @@ include pyproject.toml
 include README.rst
 include requirements.txt
 include requirements-dev.txt
-include setup.cfg
 include setup.py
+include .codespell-ignore
+include .reuse/dep5
 recursive-include LICENSES *.txt
 
 recursive-include docs *.py

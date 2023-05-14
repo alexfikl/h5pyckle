@@ -5,6 +5,57 @@ requires = [
     "wheel",
 ]
 
+[project]
+name = "h5pyckle"
+version = "2023.4"
+description = "Extensible pickling using HDF5"
+readme= "README.rst"
+keywords = [
+    "hdf5",
+    "pickle",
+    "storage",
+]
+license = { text = "MIT" }
+maintainers = [{ name = "Alexandru Fikl", email = "alexfikl@gmail.com" }]
+authors = [{ name = "Alexandru Fikl", email = "alexfikl@gmail.com" }]
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "h5py",
+    "numpy",
+]
+[project.optional-dependencies]
+dev = [
+    "mypy",
+    "pip-tools",
+    "pytest",
+    "ruff",
+    "types-dataclasses",
+]
+fancy = [
+    "cloudpickle",
+]
+unittest = [
+    "unyt",
+]
+[project.urls]
+Documentation = "https://h5pyckle.readthedocs.io"
+Repository = "https://github.com/alexfikl/h5pyckle"
+
+[tool.setuptools]
+packages = ["h5pyckle"]
+
 [tool.black]
 line-length = 88
 target-version = ["py38"]
@@ -12,6 +63,30 @@ exclude='\.eggs|\.git|\.mypy_cache|build|dist|\.pytest_cache|\.pytype'
 
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+markers = [
+    "meshmode: mark a test that uses meshmode",
+]
+
+[tool.mypy]
+warn_unused_ignores = true
+plugins = "numpy.typing.mypy_plugin"
+
+[[tool.mypy.overrides]]
+module = [
+    "arraycontext.*",
+    "cloudpickle.*",
+    "dill.*",
+    "h5py.*",
+    "importlib_metadata.*",
+    "matplotlib.*",
+    "meshmode.*",
+    "numpy.*",
+    "pyopencl.*",
+]
+ignore_missing_imports = true
 
 [tool.ruff]
 target-version = "py38"
@@ -55,3 +130,13 @@ multiline-quotes = "double"
 
 [tool.ruff.pyupgrade]
 keep-runtime-typing = true
+
+[tool.check-manifest]
+ignore = [
+    "*.yml",
+    "*.yaml",
+    ".ci/*",
+]
+
+[tool.doc8]
+max-line-length = 88
