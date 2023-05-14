@@ -31,7 +31,7 @@ mypy:			## Run mypy checks over the source code
 .PHONY: mypy
 
 ruff:			## Run ruff checks over the source code
-	ruff h5pyckle tests examples
+	ruff check h5pyckle tests examples
 	@echo -e "\e[1;32mruff clean!\e[0m"
 .PHONY: ruff
 
