@@ -11,14 +11,14 @@ The default interface to :mod:`h5pyckle` is the same as for the
 dumped and loaded from HDF5 files using
 
 .. literalinclude:: ../examples/basic.py
-    :lines: 15-27
+    :lines: 17-29
     :language: python
     :linenos:
 
 Data can also be stored and loaded directly from subgroups in HD5 files.
 
 .. literalinclude:: ../examples/basic.py
-    :lines: 37-50
+    :lines: 39-53
     :language: python
     :linenos:
 
@@ -32,7 +32,7 @@ To register custom methods for new types, use the :func:`functools.singledispatc
 method as
 
 .. literalinclude:: ../examples/basic.py
-    :lines: 58-95
+    :lines: 61-98
     :language: python
     :linenos:
 
@@ -40,7 +40,7 @@ For simple classes, this can also be achieved with the :func:`~h5pyckle.h5pyckab
 decorator as below.
 
 .. literalinclude:: ../examples/basic.py
-    :lines: 102-123
+    :lines: 107-125
     :language: python
     :linenos:
 
