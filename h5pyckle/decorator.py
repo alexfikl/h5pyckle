@@ -7,8 +7,10 @@
 .. autofunction:: h5pyckable
 """
 
+from __future__ import annotations
+
 from dataclasses import Field, fields, is_dataclass
-from typing import Any, Optional
+from typing import Any
 
 from h5pyckle.base import (
     PickleGroup,
@@ -38,7 +40,7 @@ def _h5pyckle_dataclass(cls: type) -> type:
 
     @dumper.register(cls)
     def _dump_dataclass(
-        obj: Any, parent: PickleGroup, *, name: Optional[str] = None
+        obj: Any, parent: PickleGroup, *, name: str | None = None
     ) -> None:
         group = parent.create_type(name, obj)
 

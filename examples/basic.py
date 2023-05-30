@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 import pathlib
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -72,7 +74,7 @@ class CustomClass:
 
 @dumper.register(CustomClass)
 def _dump_custom(
-    obj: CustomClass, parent: PickleGroup, *, name: Optional[str] = None
+    obj: CustomClass, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     grp = parent.create_type(name, obj)
     grp.attrs["name"] = obj.name

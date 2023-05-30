@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 try:
     import cloudpickle as pickle
 except ImportError:
@@ -13,7 +15,7 @@ except ImportError:
 import sys
 import threading
 from contextlib import contextmanager
-from typing import Iterator, List, Optional
+from typing import Iterator
 
 import arraycontext.impl.pyopencl.taggable_cl_array as tga
 import numpy as np
@@ -77,7 +79,7 @@ def array_context_for_pickling(actx: ArrayContext) -> Iterator[None]:
 
 def get_array_context() -> ArrayContext:
     try:
-        actx: Optional[ArrayContext] = _ARRAY_CONTEXT_FOR_PICKLING_TLS.actx
+        actx: ArrayContext | None = _ARRAY_CONTEXT_FOR_PICKLING_TLS.actx
     except AttributeError:
         actx = None
 
@@ -91,7 +93,7 @@ def get_array_context() -> ArrayContext:
     return actx
 
 
-def to_numpy(x: Optional[Array]) -> Optional[np.ndarray]:
+def to_numpy(x: Array | None) -> np.ndarray | None:
     if x is None:
         return x
 
@@ -102,7 +104,7 @@ def to_numpy(x: Optional[Array]) -> Optional[np.ndarray]:
     return result
 
 
-def from_numpy(x: Optional[np.ndarray], *, frozen: bool = True) -> Optional[Array]:
+def from_numpy(x: np.ndarray | None, *, frozen: bool = True) -> Array | None:
     if x is None:
         result = None
     else:
@@ -126,7 +128,7 @@ def from_numpy(x: Optional[np.ndarray], *, frozen: bool = True) -> Optional[Arra
 
 @dumper.register(cla.Array)
 def _dump_cl_array(
-    obj: cla.Array, parent: PickleGroup, *, name: Optional[str] = None
+    obj: cla.Array, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     group = parent.create_type(name, obj)
 
@@ -148,7 +150,7 @@ def _load_cl_array(parent: PickleGroup) -> cla.Array:
 
 @dumper.register(tga.TaggableCLArray)
 def _dump_taggable_cl_array(
-    obj: tga.TaggableCLArray, parent: PickleGroup, *, name: Optional[str] = None
+    obj: tga.TaggableCLArray, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     group = parent.create_type(name, obj)
 
@@ -178,7 +180,7 @@ def _load_taggable_cl_array(parent: PickleGroup) -> tga.TaggableCLArray:
 
 @dumper.register(DOFArray)
 def _dump_dof_array(
-    obj: DOFArray, parent: PickleGroup, *, name: Optional[str] = None
+    obj: DOFArray, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     group = parent.create_type(name, obj)
     group.attrs["frozen"] = obj.array_context is None
@@ -219,7 +221,7 @@ def _load_order(parent: PickleGroup):
 
 @dumper.register(MeshElementGroup)
 def _dump_mesh_element_grouo(
-    obj: MeshElementGroup, parent: PickleGroup, *, name: Optional[str] = None
+    obj: MeshElementGroup, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     parent = parent.create_type(name, obj)
 
@@ -253,7 +255,7 @@ def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
 
 
 @dumper.register(Mesh)
-def _dump_mesh(obj: Mesh, parent: PickleGroup, *, name: Optional[str] = None) -> None:
+def _dump_mesh(obj: Mesh, parent: PickleGroup, *, name: str | None = None) -> None:
     parent = parent.create_type(name, obj)
 
     if hasattr(obj, "boundary_tags"):
@@ -319,7 +321,7 @@ class _SameElementGroupFactory:
     .. automethod:: __init__
     """
 
-    def __init__(self, groups: List[ElementGroupBase]) -> None:
+    def __init__(self, groups: list[ElementGroupBase]) -> None:
         """
         :param groups: a :class:`list` of
             :class:`~meshmode.discretization.ElementGroupBase`.
@@ -341,7 +343,7 @@ class _SameElementGroupFactory:
 
 @dumper.register(ElementGroupBase)
 def _dump_element_group(
-    obj: ElementGroupBase, parent: PickleGroup, *, name: Optional[str] = None
+    obj: ElementGroupBase, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     # NOTE: these are dumped only for use in Discretization at the moment.
     # There we don't really need to dump mesh_el_group again
@@ -370,7 +372,7 @@ def _dump_recursivenodes_element_group(
     obj: PolynomialRecursiveNodesElementGroup,
     parent: PickleGroup,
     *,
-    name: Optional[str] = None,
+    name: str | None = None,
 ) -> None:
     group = parent.create_type(name, obj)
     _dump_order(group, obj.order)
@@ -398,7 +400,7 @@ def _load_recursivenodes_element_group(
 
 @dumper.register(Discretization)
 def _dump_discretization(
-    obj: Discretization, parent: PickleGroup, *, name: Optional[str] = None
+    obj: Discretization, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     group = parent.create_type(name, obj)
 
@@ -430,7 +432,7 @@ def _load_discretization(parent: PickleGroup) -> Discretization:
 
 @dumper.register(InterpolationBatch)
 def _dump_interpolation_batch(
-    obj: InterpolationBatch, parent: PickleGroup, *, name: Optional[str] = None
+    obj: InterpolationBatch, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     grp = parent.create_type(name, obj)
 
@@ -466,7 +468,7 @@ def _dump_connection_element_group(
     obj: DiscretizationConnectionElementGroup,
     parent: PickleGroup,
     *,
-    name: Optional[str] = None,
+    name: str | None = None,
 ) -> None:
     group = parent.create_type(name, obj)
     dumper(obj.batches, group, name="batches")
@@ -486,7 +488,7 @@ def _dump_direct_connection(
     obj: DirectDiscretizationConnection,
     parent: PickleGroup,
     *,
-    name: Optional[str] = None,
+    name: str | None = None,
 ) -> None:
     group = parent.create_type(name, obj)
 

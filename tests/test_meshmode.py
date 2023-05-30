@@ -190,7 +190,7 @@ def test_dataclass_pickling() -> None:
 
     filename = dirname / "pickle_record.h5"
     dump(cr_in, filename)
-    cr_out: TimingRecord = load(filename)  # type: ignore[assignment]
+    cr_out: TimingRecord = load(filename)
 
     assert cr_in.name == cr_out.name
     assert np.array_equal(cr_in.history, cr_out.history)

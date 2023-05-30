@@ -2,7 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 
-from typing import Any, Optional, Sequence
+from __future__ import annotations
+
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -44,9 +46,7 @@ def load_numpy_dataset(parent, name):
 
 
 @dumper.register(np.dtype)
-def _dump_dtype(
-    obj: np.dtype, parent: PickleGroup, *, name: Optional[str] = None
-) -> None:
+def _dump_dtype(obj: np.dtype, parent: PickleGroup, *, name: str | None = None) -> None:
     if name is None:
         parent.attrs["dtype"] = np.array(obj.str.encode())
     else:
@@ -68,7 +68,7 @@ def _load_dtype(parent: PickleGroup) -> np.dtype:
 
 @dumper.register(np.ndarray)
 def _dump_ndarray(
-    obj: np.ndarray, parent: PickleGroup, *, name: Optional[str] = None
+    obj: np.ndarray, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     grp = parent.create_type(name, obj)
 

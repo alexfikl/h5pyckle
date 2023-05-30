@@ -2,11 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 import logging
 import pathlib
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import numpy.linalg as la
@@ -59,7 +61,7 @@ def rnorm(x: np.ndarray, y: np.ndarray) -> float:
         },
     ],
 )
-def test_pickling_dict(arg_in: Dict[str, str]) -> None:
+def test_pickling_dict(arg_in: dict[str, str]) -> None:
     filename = dirname / "pickle_dict.h5"
 
     dump(arg_in, filename)
@@ -84,7 +86,7 @@ def test_pickling_dict(arg_in: Dict[str, str]) -> None:
         [1, int, "string", 2.0],
     ],
 )
-def test_pickling_list_like(arg_in: List[Any]) -> None:
+def test_pickling_list_like(arg_in: list[Any]) -> None:
     filename = dirname / "pickle_list_like.h5"
 
     dump(
@@ -236,7 +238,7 @@ class Employee:
     name: str
     position: str
     age: int
-    date: Tuple[int, int]
+    date: tuple[int, int]
     paychecks: np.ndarray = field(compare=False)
 
 
