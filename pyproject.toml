@@ -128,9 +128,6 @@ docstring-quotes = "double"
 inline-quotes = "double"
 multiline-quotes = "double"
 
-[tool.ruff.pyupgrade]
-keep-runtime-typing = true
-
 [tool.check-manifest]
 ignore = [
     "*.yml",
