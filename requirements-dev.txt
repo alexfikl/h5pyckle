@@ -37,13 +37,13 @@ pyproject-hooks==1.0.0
     # via build
 pytest==7.3.1
     # via h5pyckle (pyproject.toml)
-ruff==0.0.270
+ruff==0.0.272
     # via h5pyckle (pyproject.toml)
 sympy==1.12
     # via unyt
 types-dataclasses==0.6.6
     # via h5pyckle (pyproject.toml)
-typing-extensions==4.6.2
+typing-extensions==4.6.3
     # via mypy
 unyt==2.9.5
     # via h5pyckle (pyproject.toml)
