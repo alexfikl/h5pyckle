@@ -49,6 +49,10 @@ fancy = [
 unittest = [
     "unyt",
 ]
+docs = [
+    "sphinx>=6.0",
+    "sphinx-book-theme",
+]
 [project.urls]
 Documentation = "https://h5pyckle.readthedocs.io"
 Repository = "https://github.com/alexfikl/h5pyckle"
