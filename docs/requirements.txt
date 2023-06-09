@@ -1,3 +1,0 @@
-numpy
-sphinx>=6.0
-sphinx-book-theme
