@@ -1,5 +1,5 @@
-Welcome to h5pyckle's documentation!
-====================================
+h5pyckle documentation
+======================
 
 .. automodule:: h5pyckle
 

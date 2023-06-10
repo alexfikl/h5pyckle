@@ -62,12 +62,39 @@ spelling_word_list_filename = "wordlist_en.txt"
 
 # html
 html_theme = "sphinx_book_theme"
+html_title = "h5pyckle"
 html_theme_options = {
     "show_toc_level": 2,
     "use_source_button": True,
     "use_repository_button": True,
     "repository_url": "https://github.com/alexfikl/h5pyckle",
     "repository_branch": "main",
+    "icon_links": [
+        {
+            "name": "Release",
+            "url": "https://github.com/alexfikl/h5pyckle/releases",
+            "icon": "https://img.shields.io/github/v/release/alexfikl/h5pyckle",
+            "type": "url",
+        },
+        {
+            "name": "License",
+            "url": "https://github.com/alexfikl/h5pyckle/tree/main/LICENSES",
+            "icon": "https://img.shields.io/badge/License-MIT-blue.svg",
+            "type": "url",
+        },
+        {
+            "name": "CI",
+            "url": "https://github.com/alexfikl/h5pyckle",
+            "icon": "https://github.com/alexfikl/h5pyckle/workflows/CI/badge.svg",
+            "type": "url",
+        },
+        {
+            "name": "Issues",
+            "url": "https://github.com/alexfikl/h5pyckle/issues",
+            "icon": "https://img.shields.io/github/issues/alexfikl/h5pyckle",
+            "type": "url",
+        },
+    ],
 }
 
 # }}}
