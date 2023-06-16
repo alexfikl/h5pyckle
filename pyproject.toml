@@ -39,19 +39,20 @@ dependencies = [
 dev = [
     "mypy",
     "pip-tools",
+    "pyproject-fmt",
     "pytest",
     "ruff",
     "types-dataclasses",
+]
+docs = [
+    "sphinx>=6",
+    "sphinx-book-theme",
 ]
 fancy = [
     "cloudpickle",
 ]
 unittest = [
     "unyt",
-]
-docs = [
-    "sphinx>=6.0",
-    "sphinx-book-theme",
 ]
 [project.urls]
 Documentation = "https://h5pyckle.readthedocs.io"
@@ -64,33 +65,6 @@ packages = ["h5pyckle"]
 line-length = 88
 target-version = ["py38"]
 exclude='\.eggs|\.git|\.mypy_cache|build|dist|\.pytest_cache|\.pytype'
-
-[tool.isort]
-profile = "black"
-
-[tool.pytest.ini_options]
-testpaths = "tests"
-markers = [
-    "meshmode: mark a test that uses meshmode",
-]
-
-[tool.mypy]
-warn_unused_ignores = true
-plugins = "numpy.typing.mypy_plugin"
-
-[[tool.mypy.overrides]]
-module = [
-    "arraycontext.*",
-    "cloudpickle.*",
-    "dill.*",
-    "h5py.*",
-    "importlib_metadata.*",
-    "matplotlib.*",
-    "meshmode.*",
-    "numpy.*",
-    "pyopencl.*",
-]
-ignore_missing_imports = true
 
 [tool.ruff]
 target-version = "py38"
@@ -132,6 +106,33 @@ ignore = [
 docstring-quotes = "double"
 inline-quotes = "double"
 multiline-quotes = "double"
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+markers = [
+    "meshmode: mark a test that uses meshmode",
+]
+
+[tool.mypy]
+warn_unused_ignores = true
+plugins = "numpy.typing.mypy_plugin"
+
+[[tool.mypy.overrides]]
+module = [
+    "arraycontext.*",
+    "cloudpickle.*",
+    "dill.*",
+    "h5py.*",
+    "importlib_metadata.*",
+    "matplotlib.*",
+    "meshmode.*",
+    "numpy.*",
+    "pyopencl.*",
+]
+ignore_missing_imports = true
 
 [tool.check-manifest]
 ignore = [
