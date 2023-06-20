@@ -10,19 +10,19 @@ click==8.1.3
     # via pip-tools
 cloudpickle==2.2.1
     # via h5pyckle (pyproject.toml)
-h5py==3.8.0
+h5py==3.9.0
     # via h5pyckle (pyproject.toml)
 iniconfig==2.0.0
     # via pytest
 mpmath==1.3.0
     # via sympy
-mypy==1.3.0
+mypy==1.4.0
     # via h5pyckle (pyproject.toml)
 mypy-extensions==1.0.0
     # via mypy
-natsort==8.3.1
+natsort==8.4.0
     # via pyproject-fmt
-numpy==1.24.3
+numpy==1.25.0
     # via
     #   h5py
     #   h5pyckle (pyproject.toml)

@@ -4,9 +4,9 @@
 #
 #    pip-compile --output-file=requirements.txt --resolver=backtracking pyproject.toml
 #
-h5py==3.8.0
+h5py==3.9.0
     # via h5pyckle (pyproject.toml)
-numpy==1.24.3
+numpy==1.25.0
     # via
     #   h5py
     #   h5pyckle (pyproject.toml)
