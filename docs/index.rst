@@ -89,6 +89,16 @@ calls with the context manager
 .. currentmodule:: h5pyckle.interop_meshmode
 .. autofunction:: array_context_for_pickling
 
+Acknowledgments
+===============
+
+Work on ``h5pyckle`` was sponsored, in part, by the Office of Naval Research (ONR)
+as part of the Multidisciplinary University Research Initiatives (MURI)
+Program, under Grant Number N00014-16-1-2617.
+
+The views and opinions expressed herein do not necessarily reflect those of the
+funding agencies.
+
 Indices and tables
 ==================
 
