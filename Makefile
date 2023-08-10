@@ -40,8 +40,9 @@ doc8:			## Run doc8 checks over the source code
 .PHONY: doc8
 
 codespell:		## Run codespell over the source code and documentation
-	codespell --summary \
+	@codespell --summary \
 		--skip _build \
+		--uri-ignore-words-list '*' \
 		--ignore-words .codespell-ignore \
 		h5pyckle tests examples docs
 .PHONY: codespell
