@@ -67,13 +67,13 @@ REQUIREMENTS=\
 
 requirements-dev.txt: pyproject.toml
 	$(PYTHON) -m piptools compile \
-		--resolver=backtracking --upgrade \
+		--resolver=backtracking --strip-extras --upgrade \
 		--extra dev --extra unittest --extra fancy \
 		-o $@ $<
 
 requirements.txt: pyproject.toml
 	$(PYTHON) -m piptools compile \
-		--resolver=backtracking --upgrade \
+		--resolver=backtracking --strip-extras --upgrade \
 		-o $@ $<
 
 pin: $(REQUIREMENTS)	## Pin dependency versions to requirements.txt
