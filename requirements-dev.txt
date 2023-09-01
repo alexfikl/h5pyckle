@@ -6,7 +6,7 @@
 #
 build==0.10.0
     # via pip-tools
-click==8.1.6
+click==8.1.7
     # via pip-tools
 cloudpickle==2.2.1
     # via h5pyckle (pyproject.toml)
@@ -16,7 +16,7 @@ iniconfig==2.0.0
     # via pytest
 mpmath==1.3.0
     # via sympy
-mypy==1.5.0
+mypy==1.5.1
     # via h5pyckle (pyproject.toml)
 mypy-extensions==1.0.0
     # via mypy
@@ -34,15 +34,15 @@ packaging==23.1
     #   pytest
 pip-tools==7.3.0
     # via h5pyckle (pyproject.toml)
-pluggy==1.2.0
+pluggy==1.3.0
     # via pytest
-pyproject-fmt==0.13.0
+pyproject-fmt==1.1.0
     # via h5pyckle (pyproject.toml)
 pyproject-hooks==1.0.0
     # via build
 pytest==7.4.0
     # via h5pyckle (pyproject.toml)
-ruff==0.0.284
+ruff==0.0.286
     # via h5pyckle (pyproject.toml)
 sympy==1.12
     # via unyt
@@ -54,7 +54,7 @@ typing-extensions==4.7.1
     # via mypy
 unyt==2.9.5
     # via h5pyckle (pyproject.toml)
-wheel==0.41.1
+wheel==0.41.2
     # via pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
