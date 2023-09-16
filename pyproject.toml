@@ -66,6 +66,7 @@ target-version = ["py38"]
 exclude='\.eggs|\.git|\.mypy_cache|build|dist|\.pytest_cache|\.pytype'
 
 [tool.ruff]
+preview = true
 target-version = "py38"
 line-length = 88
 select = [

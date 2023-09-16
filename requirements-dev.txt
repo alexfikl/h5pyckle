@@ -4,7 +4,7 @@
 #
 #    pip-compile --extra=dev --extra=fancy --extra=unittest --output-file=requirements-dev.txt --strip-extras pyproject.toml
 #
-build==0.10.0
+build==1.0.3
     # via pip-tools
 click==8.1.7
     # via pip-tools
@@ -40,9 +40,9 @@ pyproject-fmt==1.1.0
     # via h5pyckle (pyproject.toml)
 pyproject-hooks==1.0.0
     # via build
-pytest==7.4.0
+pytest==7.4.2
     # via h5pyckle (pyproject.toml)
-ruff==0.0.286
+ruff==0.0.290
     # via h5pyckle (pyproject.toml)
 sympy==1.12
     # via unyt

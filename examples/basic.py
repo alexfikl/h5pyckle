@@ -62,7 +62,7 @@ from h5pyckle import PickleGroup, dumper, loader
 
 
 @dataclass(frozen=True, eq=False)
-class CustomClass:
+class CustomClass:  # noqa: PLW1641
     name: str
     values: np.ndarray
 
@@ -106,7 +106,7 @@ from h5pyckle import h5pyckable
 
 @h5pyckable
 @dataclass(frozen=True, eq=False)
-class DecoratedCustomClass:
+class DecoratedCustomClass:  # noqa: PLW1641
     name: str
     values: np.ndarray
 
