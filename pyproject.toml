@@ -45,6 +45,7 @@ dev = [
 ]
 docs = [
     "sphinx>=6",
+    "sphinx-autoapi",
     "sphinx-book-theme",
 ]
 fancy = [

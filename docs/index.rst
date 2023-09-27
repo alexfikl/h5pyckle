@@ -84,10 +84,15 @@ The array type in :mod:`meshmode` is handled by an
 (as it could be on a GPU device). When pickling objects of the types above,
 wrap the corresponding :func:`~h5pyckle.load` or :func:`~h5pyckle.dump`
 calls with the context manager
-:func:`~h5pyckle.interop_meshmode.array_context_for_pickling`
+:func:`~h5pyckle.interop_meshmode.array_context_for_pickling`.
 
 .. currentmodule:: h5pyckle.interop_meshmode
-.. autofunction:: array_context_for_pickling
+
+.. function:: array_context_for_pickling(actx: arraycontext.ArrayContext) -> Iterator[None]
+
+    A context manager that can be used to provide an
+    :class:`~arraycontext.ArrayContext` for pickling and unpickling
+    :mod:`meshmode` objects.
 
 Acknowledgments
 ===============

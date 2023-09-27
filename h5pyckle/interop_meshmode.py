@@ -12,7 +12,6 @@ except ImportError:
     except ImportError:
         import pickle
 
-import sys
 import threading
 from contextlib import contextmanager
 from typing import Iterator
@@ -35,21 +34,6 @@ import h5pyckle.interop_numpy  # noqa: F401
 from h5pyckle.base import PickleGroup, dumper, load_from_type, loader
 
 __all__ = ("array_context_for_pickling",)
-
-if getattr(sys, "_BUILDING_SPHINX_DOCS", False):
-    # FIXME: without this mocking pyopencl or meshmode classes would result
-    # in some sort of infinite loop trying to unwrap the registered class,
-    # which had a `__wrapped__` attribute for some reason.
-
-    def register(cls):
-        def wrapper(func):
-            return func
-
-        return wrapper
-
-    dumper.register = register  # type: ignore[assignment]
-    loader.register = register  # type: ignore[assignment]
-
 
 # {{{ context manager
 

@@ -1,10 +1,6 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
-# NOTE: hack required in h5pyckle.interop_meshmode
-import sys
 from importlib import metadata
-
-sys._BUILDING_SPHINX_DOCS = True
 
 # {{{ project information
 
@@ -21,7 +17,7 @@ release = version
 
 # needed extensions
 extensions = [
-    "sphinx.ext.autodoc",
+    "autoapi.extension",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx.ext.mathjax",
@@ -38,7 +34,7 @@ except ImportError:
 source_suffix = ".rst"
 # name of the main (master) document
 master_doc = "index"
-# min sphinx version (needed for `autodoc_type_aliases`)
+# min sphinx version
 needs_sphinx = "6.0"
 # files to ignore
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
@@ -101,13 +97,16 @@ html_theme_options = {
 
 # {{{ extension settings
 
-autoclass_content = "class"
-autodoc_member_order = "bysource"
-autodoc_default_options = {
-    "show-inheritance": None,
-}
+autoapi_type = "python"
+autoapi_dirs = ["."]
+autoapi_add_toctree_entry = False
 
-autodoc_mock_imports = ["h5py", "pyopencl", "arraycontext", "meshmode"]
+autoapi_python_class_content = "class"
+autoapi_member_order = "bysource"
+autoapi_options = [
+    "show-inheritance",
+]
+suppress_warnings = ["autoapi"]
 
 # }}}
 
