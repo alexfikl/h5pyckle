@@ -10,7 +10,7 @@ click==8.1.7
     # via pip-tools
 cloudpickle==2.2.1
     # via h5pyckle (pyproject.toml)
-h5py==3.9.0
+h5py==3.10.0
     # via h5pyckle (pyproject.toml)
 iniconfig==2.0.0
     # via pytest
@@ -22,12 +22,12 @@ mypy-extensions==1.0.0
     # via mypy
 natsort==8.4.0
     # via pyproject-fmt
-numpy==1.25.2
+numpy==1.26.0
     # via
     #   h5py
     #   h5pyckle (pyproject.toml)
     #   unyt
-packaging==23.1
+packaging==23.2
     # via
     #   build
     #   pyproject-fmt
@@ -36,13 +36,13 @@ pip-tools==7.3.0
     # via h5pyckle (pyproject.toml)
 pluggy==1.3.0
     # via pytest
-pyproject-fmt==1.1.0
+pyproject-fmt==1.2.0
     # via h5pyckle (pyproject.toml)
 pyproject-hooks==1.0.0
     # via build
 pytest==7.4.2
     # via h5pyckle (pyproject.toml)
-ruff==0.0.290
+ruff==0.0.292
     # via h5pyckle (pyproject.toml)
 sympy==1.12
     # via unyt
@@ -50,7 +50,7 @@ tomlkit==0.12.1
     # via pyproject-fmt
 types-dataclasses==0.6.6
     # via h5pyckle (pyproject.toml)
-typing-extensions==4.7.1
+typing-extensions==4.8.0
     # via mypy
 unyt==2.9.5
     # via h5pyckle (pyproject.toml)
