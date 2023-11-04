@@ -21,15 +21,14 @@ fmt: format
 .PHONY: fmt
 
 black:			## Run black over the source code
-	$(PYTHON) -m black \
-		--safe --target-version py38 --preview \
-		h5pyckle tests examples docs setup.py
+	$(PYTHON) -m black h5pyckle tests examples docs setup.py
 .PHONY: black
 
+lint: ruff mypy doc8 codespell reuse manifest	## Run linting checks
+.PHONY: lint
+
 mypy:			## Run mypy checks over the source code
-	$(PYTHON) -m mypy \
-		--show-error-codes $(MYPY_ADDOPTS) \
-		h5pyckle tests examples
+	$(PYTHON) -m mypy h5pyckle tests examples
 	@echo -e "\e[1;32mmypy clean!\e[0m"
 .PHONY: mypy
 

@@ -468,7 +468,7 @@ def dump_sequence_to_group(
     If the sequence only contains :class:`numbers.Number`, then it is stored
     as a dataset instead of individual entries.
 
-    :param obj: a class sastisfying the :class:`collections.abc.Sequence` protocol.
+    :param obj: a class satisfying the :class:`collections.abc.Sequence` protocol.
     """
     grp = parent.create_type(name, obj)
     obj = list(obj)
