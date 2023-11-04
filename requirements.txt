@@ -6,7 +6,7 @@
 #
 h5py==3.10.0
     # via h5pyckle (pyproject.toml)
-numpy==1.26.0
+numpy==1.26.1
     # via
     #   h5py
     #   h5pyckle (pyproject.toml)
