@@ -92,15 +92,20 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Main Script
+      env:
+        PYTHON_VERSION: ${{ matrix.python-version }}
       run: |
-        sudo apt-get update
         curl -L -O https://tiker.net/ci-support-v0
         . ./ci-support-v0
 
+        # set up environment
         export CONDA_ENVIRONMENT=".ci/environment-meshmode.yml"
         export REQUIREMENTS_TXT=".ci/requirements-meshmode.txt"
+        sed -i "s/python=3.*/python=${PYTHON_VERSION}/" "${CONDA_ENVIRONMENT}"
+
         build_py_project_in_conda_env
 
+        # run tests
         make PYTEST_ADDOPTS='-m "meshmode"' test
 
 # vim: set ts=2 sw=2 et:
