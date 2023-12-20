@@ -115,6 +115,13 @@ multiline-quotes = "double"
 [tool.isort]
 profile = "black"
 
+[tool.check-manifest]
+ignore = [
+    "*.yml",
+    "*.yaml",
+    ".ci/*",
+]
+
 [tool.pytest.ini_options]
 testpaths = "tests"
 markers = [
@@ -139,13 +146,6 @@ module = [
     "pyopencl.*",
 ]
 ignore_missing_imports = true
-
-[tool.check-manifest]
-ignore = [
-    "*.yml",
-    "*.yaml",
-    ".ci/*",
-]
 
 [tool.doc8]
 max-line-length = 88
