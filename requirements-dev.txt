@@ -16,13 +16,13 @@ iniconfig==2.0.0
     # via pytest
 mpmath==1.3.0
     # via sympy
-mypy==1.7.1
+mypy==1.8.0
     # via h5pyckle (pyproject.toml)
 mypy-extensions==1.0.0
     # via mypy
 natsort==8.4.0
     # via pyproject-fmt
-numpy==1.26.2
+numpy==1.26.3
     # via
     #   h5py
     #   h5pyckle (pyproject.toml)
@@ -41,9 +41,9 @@ pyproject-fmt==1.5.3
     # via h5pyckle (pyproject.toml)
 pyproject-hooks==1.0.0
     # via build
-pytest==7.4.3
+pytest==7.4.4
     # via h5pyckle (pyproject.toml)
-ruff==0.1.8
+ruff==0.1.11
     # via h5pyckle (pyproject.toml)
 sympy==1.12
     # via unyt
