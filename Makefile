@@ -14,39 +14,39 @@ help: 			## Show this help
 
 format: black	## Run all formatting scripts
 	$(PYTHON) -m pyproject_fmt --indent 4 pyproject.toml
-	$(PYTHON) -m isort h5pyckle tests examples docs
+	$(PYTHON) -m isort src tests examples docs
 .PHONY: fmt
 
 fmt: format
 .PHONY: fmt
 
 black:			## Run black over the source code
-	$(PYTHON) -m black h5pyckle tests examples docs setup.py
+	$(PYTHON) -m black src tests examples docs setup.py
 .PHONY: black
 
 lint: ruff mypy doc8 codespell reuse manifest	## Run linting checks
 .PHONY: lint
 
 mypy:			## Run mypy checks over the source code
-	$(PYTHON) -m mypy h5pyckle tests examples
+	$(PYTHON) -m mypy src tests examples
 	@echo -e "\e[1;32mmypy clean!\e[0m"
 .PHONY: mypy
 
 ruff:			## Run ruff checks over the source code
-	ruff check h5pyckle tests examples
+	ruff check src tests examples
 	@echo -e "\e[1;32mruff clean!\e[0m"
 .PHONY: ruff
 
 doc8:			## Run doc8 checks over the source code
-	$(PYTHON) -m doc8 docs h5pyckle
+	$(PYTHON) -m doc8 docs src
 .PHONY: doc8
 
 codespell:		## Run codespell over the source code and documentation
 	@codespell --summary \
-		--skip _build \
+		--skip _build --skip src/*.egg-info \
 		--uri-ignore-words-list '*' \
 		--ignore-words .codespell-ignore \
-		h5pyckle tests examples docs
+		src tests examples docs
 .PHONY: codespell
 
 reuse:			## Check REUSE license compliance
