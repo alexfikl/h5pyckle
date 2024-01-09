@@ -128,13 +128,13 @@ def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
         from h5pyckle.interop_numpy import make_obj_array
 
         if dtype_in == np.int32:
-            arg_in = make_obj_array(
-                [rng.integers(42, size=42, dtype=dtype_in) for _ in range(3)]
-            )
+            arg_in = make_obj_array([
+                rng.integers(42, size=42, dtype=dtype_in) for _ in range(3)
+            ])
         else:
-            arg_in = make_obj_array(
-                [rng.random(size=42, dtype=dtype_in) for _ in range(3)]
-            )
+            arg_in = make_obj_array([
+                rng.random(size=42, dtype=dtype_in) for _ in range(3)
+            ])
     else:
         raise ValueError(f"unknown type: '{arg_in_type}'")
 

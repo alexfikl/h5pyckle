@@ -18,8 +18,8 @@ format: black	## Run all formatting scripts
 fmt: format
 .PHONY: fmt
 
-black:			## Run black over the source code
-	$(PYTHON) -m black src tests examples docs
+black:			## Run ruff format over the source code
+	ruff format src tests examples docs
 .PHONY: black
 
 lint: ruff mypy doc8 codespell reuse manifest	## Run linting checks
