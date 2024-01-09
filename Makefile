@@ -1,6 +1,4 @@
 PYTHON?=python -X dev
-PYTEST_ADDOPTS?=
-MYPY_ADDOPTS?=
 
 all: help
 
@@ -15,38 +13,40 @@ help: 			## Show this help
 format: black	## Run all formatting scripts
 	$(PYTHON) -m pyproject_fmt --indent 4 pyproject.toml
 	$(PYTHON) -m isort src tests examples docs
-.PHONY: fmt
+.PHONY: format
 
 fmt: format
 .PHONY: fmt
 
 black:			## Run black over the source code
-	$(PYTHON) -m black src tests examples docs setup.py
+	$(PYTHON) -m black src tests examples docs
 .PHONY: black
 
 lint: ruff mypy doc8 codespell reuse manifest	## Run linting checks
 .PHONY: lint
+
+ruff:			## Run ruff checks over the source code
+	ruff check src tests examples docs
+	@echo -e "\e[1;32mruff clean!\e[0m"
+.PHONY: ruff
 
 mypy:			## Run mypy checks over the source code
 	$(PYTHON) -m mypy src tests examples
 	@echo -e "\e[1;32mmypy clean!\e[0m"
 .PHONY: mypy
 
-ruff:			## Run ruff checks over the source code
-	ruff check src tests examples
-	@echo -e "\e[1;32mruff clean!\e[0m"
-.PHONY: ruff
-
 doc8:			## Run doc8 checks over the source code
-	$(PYTHON) -m doc8 docs src
+	$(PYTHON) -m doc8 src docs
+	@echo -e "\e[1;32mdoc8 clean!\e[0m"
 .PHONY: doc8
 
-codespell:		## Run codespell over the source code and documentation
+codespell:		## Run codespell checks over the documentation
 	@codespell --summary \
 		--skip _build --skip src/*.egg-info \
 		--uri-ignore-words-list '*' \
 		--ignore-words .codespell-ignore \
-		src tests examples docs
+		src tests examples docs README.rst
+	@echo -e "\e[1;32mcodespell clean!\e[0m"
 .PHONY: codespell
 
 reuse:			## Check REUSE license compliance
@@ -54,7 +54,7 @@ reuse:			## Check REUSE license compliance
 	@echo -e "\e[1;32mREUSE compliant!\e[0m"
 .PHONY: reuse
 
-manifest:		## Update MANIFEST.in file
+manifest:		## Check MANIFEST.in file
 	$(PYTHON) -m check_manifest
 	@echo -e "\e[1;32mMANIFEST.in is up to date!\e[0m"
 .PHONY: manifest
@@ -87,7 +87,7 @@ pip-install:	## Install pinned dependencies from requirements.txt
 .PHONY: pip-install
 
 test:			## Run pytest tests
-	$(PYTHON) -m pytest -rswx --durations=25 -v -s $(PYTEST_ADDOPTS)
+	$(PYTHON) -m pytest -rswx --durations=25 -v -s
 .PHONY: test
 
 run-examples:	## Run examples with default options

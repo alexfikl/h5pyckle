@@ -24,7 +24,7 @@ between the two is that ``h5pyckle`` piggybacks on Python's
 implement the pickling for various types. This has the benefit of
 
 * making it very easy to add custom pickling routines for new types
-* defering the dispatch issue for subclasses to a well-tested code
+* deferring the dispatch issue for subclasses to a well-tested code
 
 Links
 
