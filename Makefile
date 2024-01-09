@@ -10,16 +10,19 @@ help: 			## Show this help
 
 # {{{ linting
 
-format: black	## Run all formatting scripts
-	$(PYTHON) -m pyproject_fmt --indent 4 pyproject.toml
-	$(PYTHON) -m isort src tests examples docs
+format: black pyproject							## Run all formatting scripts
 .PHONY: format
 
 fmt: format
 .PHONY: fmt
 
+pyproject:		## Run pyproject-fmt over the configuration
+	$(PYTHON) -m pyproject_fmt --indent 4 pyproject.toml
+.PHONY: pyproject
+
 black:			## Run ruff format over the source code
 	ruff format src tests examples docs
+	ruff check --fix --select=I src tests examples docs
 .PHONY: black
 
 lint: ruff mypy doc8 codespell reuse manifest	## Run linting checks
