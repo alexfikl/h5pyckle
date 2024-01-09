@@ -18,11 +18,13 @@ fmt: format
 
 pyproject:		## Run pyproject-fmt over the configuration
 	$(PYTHON) -m pyproject_fmt --indent 4 pyproject.toml
+	@echo -e "\e[1;32mpyproject clean!\e[0m"
 .PHONY: pyproject
 
 black:			## Run ruff format over the source code
 	ruff format src tests examples docs
 	ruff check --fix --select=I src tests examples docs
+	@echo -e "\e[1;32mruff format clean!\e[0m"
 .PHONY: black
 
 lint: ruff mypy doc8 codespell reuse manifest	## Run linting checks
@@ -30,7 +32,7 @@ lint: ruff mypy doc8 codespell reuse manifest	## Run linting checks
 
 ruff:			## Run ruff checks over the source code
 	ruff check src tests examples docs
-	@echo -e "\e[1;32mruff clean!\e[0m"
+	@echo -e "\e[1;32mruff lint clean!\e[0m"
 .PHONY: ruff
 
 mypy:			## Run mypy checks over the source code
