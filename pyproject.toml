@@ -101,6 +101,7 @@ ignore = [
     "PLR2004",  # magic-value-comparison
     "S101",     # assert
     "S102",     # exec-builtin
+    "S403",     # suspicious-pickle-import
     "S301",     # suspicious-pickle-usage
     "SIM108",   # use-ternary-operator
     "UP037",    # quoted-annotation
