@@ -76,7 +76,7 @@ _MAX_ATTRIBUTE_SIZE = 2**13
 
 def _reset_dataclass_field_types(cls: type) -> None:
     import dataclasses
-    from dataclasses import _FIELDS  # type: ignore[attr-defined]
+    from dataclasses import _FIELDS  # type: ignore[attr-defined] # noqa: PLC2701
 
     try:
         fields = getattr(cls, _FIELDS)

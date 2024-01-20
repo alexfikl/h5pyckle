@@ -40,7 +40,7 @@ jinja2==3.1.3
     # via reuse
 license-expression==30.2.0
     # via reuse
-markupsafe==2.1.3
+markupsafe==2.1.4
     # via jinja2
 mpmath==1.3.0
     # via sympy
@@ -79,9 +79,9 @@ python-debian==0.1.49
     # via reuse
 restructuredtext-lint==1.4.0
     # via doc8
-reuse==2.1.0
+reuse==3.0.1
     # via h5pyckle (pyproject.toml)
-ruff==0.1.12
+ruff==0.1.14
     # via h5pyckle (pyproject.toml)
 stevedore==5.1.0
     # via doc8
