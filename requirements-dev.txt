@@ -65,15 +65,15 @@ pbr==6.0.0
     # via stevedore
 pip-tools==7.3.0
     # via h5pyckle (pyproject.toml)
-pluggy==1.3.0
+pluggy==1.4.0
     # via pytest
 pygments==2.17.2
     # via doc8
-pyproject-fmt==1.6.0
+pyproject-fmt==1.7.0
     # via h5pyckle (pyproject.toml)
 pyproject-hooks==1.0.0
     # via build
-pytest==7.4.4
+pytest==8.0.0
     # via h5pyckle (pyproject.toml)
 python-debian==0.1.49
     # via reuse
@@ -81,7 +81,7 @@ restructuredtext-lint==1.4.0
     # via doc8
 reuse==3.0.1
     # via h5pyckle (pyproject.toml)
-ruff==0.1.14
+ruff==0.2.0
     # via h5pyckle (pyproject.toml)
 stevedore==5.1.0
     # via doc8
