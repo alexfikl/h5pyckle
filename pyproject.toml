@@ -41,7 +41,7 @@ dev = [
     "codespell",
     "doc8",
     "mypy",
-    "pip-tools",
+    "uv",
     "pyproject-fmt",
     "pytest",
     "reuse",
