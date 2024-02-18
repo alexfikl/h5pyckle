@@ -41,12 +41,12 @@ dev = [
     "codespell",
     "doc8",
     "mypy",
-    "uv",
     "pyproject-fmt",
     "pytest",
     "reuse",
     "ruff",
     "types-dataclasses",
+    "uv",
 ]
 docs = [
     "sphinx>=6",
