@@ -15,7 +15,7 @@
 .. autofunction:: load_from_group
 .. autofunction:: load_by_pattern
 
-.. function:: dumper(obj: Any, parent: PickleGroup, *, name: str | None = None)
+.. function:: dumper(obj: Any, parent: PickleGroup, *, name: str | None = None) -> None
 
     Function to implement for pickling various non-standard types. It is based
     on :func:`functools.singledispatch`, so new types can be registered
@@ -23,12 +23,21 @@
     Python versions. The object metadata and attributes are stored as a
     subgroup of the given parent group.
 
-.. function:: loader(group: PickleGroup)
+    :param obj: object to dump to the given group.
+    :param parent: :class:`PickleGroup` into which to dump the object.
+    :param name: name of the newly created group. This is required for most
+        cases, but can be omitted for some containers, e.g. a dictionary can
+        be stored as separate groups based on its keys.
+
+.. function:: loader(parent: PickleGroup) -> Any
 
     Similar to :func:`dumper`, the loader is based on :func:`functools.singledispatch`.
     Unlike :func:`dumper`, this must register types explicitly with
     ``loader.register(MyFancyType)``.
 
+    :param parent: an instance of :class:`PickleGroup` from which to load an
+        object.
+    :returns: an object based on the type information stored in *parent*.
 
 .. autofunction:: dump_sequence_to_group
 .. autofunction:: dump_to_attribute
@@ -92,8 +101,8 @@ def _reset_dataclass_field_types(cls: type) -> None:
 class PickleGroup(h5py.Group):
     """Inherits from :class:`h5py.Group`."""
 
-    #: A :class:`dict` of default options used when creating new datasets.
     h5_dset_options: dict[str, Any]
+    """A :class:`dict` of default options used when creating new datasets."""
 
     def __init__(
         self,
@@ -285,24 +294,11 @@ class PickleGroup(h5py.Group):
 
 @singledispatch
 def dumper(obj: Any, parent: PickleGroup, *, name: str | None = None) -> None:
-    """
-    :param obj: object to dump to the given group.
-    :param parent: :class:`PickleGroup` into which to dump the object.
-    :param name: name of the newly created group. This is required for most
-        cases, but can be omitted for some containers, e.g. a dictionary can
-        be stored as separate groups based on its keys.
-    """
     raise NotImplementedError(f"pickling of '{type(obj).__name__}'")
 
 
 @singledispatch
 def loader(parent: Any) -> Any:
-    """
-    :param parent: an instance of :class:`PickleGroup` from which to load an
-        object.
-    :returns: an object based on the type information stored in *parent*.
-    """
-
     assert isinstance(parent, PickleGroup)
 
     if parent.has_type:
