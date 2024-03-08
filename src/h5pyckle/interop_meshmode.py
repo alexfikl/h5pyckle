@@ -313,16 +313,13 @@ class _SameElementGroupFactory:
 
         self.groups = groups
 
-    def __call__(self, mesh_el_group: MeshElementGroup, index: int) -> ElementGroupBase:
-        if not 0 <= index < len(self.groups):
-            raise ValueError("'group_index' outside known range of groups")
-
-        grp = self.groups[index]
+    def __call__(self, mesh_el_group: MeshElementGroup) -> ElementGroupBase:
+        grp = self.groups.pop()
 
         if isinstance(grp, PolynomialRecursiveNodesElementGroup):
-            return type(grp)(mesh_el_group, grp.order, grp.family, index)
+            return type(grp)(mesh_el_group, grp.order, grp.family)
 
-        return type(grp)(mesh_el_group, grp.order, index)
+        return type(grp)(mesh_el_group, grp.order)
 
 
 @dumper.register(ElementGroupBase)
@@ -333,7 +330,11 @@ def _dump_element_group(
     # There we don't really need to dump mesh_el_group again
     group = parent.create_type(name, obj)
     _dump_order(group, obj.order)
-    group.attrs["index"] = getattr(obj, "_index", None)
+
+    index = getattr(obj, "_index", None)
+    if index is not None:
+        group.attrs["index"] = index
+
     group.attrs["dim"] = obj.dim
 
 
@@ -347,7 +348,7 @@ def _load_element_group(parent: PickleGroup) -> ElementGroupBase:
     return parent.pycls(
         ElementGroup(dim=int(parent.attrs["dim"])),
         _load_order(parent),
-        int(parent.attrs["index"]),
+        index=parent.attrs.get("index", None),
     )
 
 
@@ -360,7 +361,11 @@ def _dump_recursivenodes_element_group(
 ) -> None:
     group = parent.create_type(name, obj)
     _dump_order(group, obj.order)
-    group.attrs["index"] = getattr(obj, "_index", None)
+
+    index = getattr(obj, "_index", None)
+    if index is not None:
+        group.attrs["index"] = index
+
     group.attrs["dim"] = obj.dim
     group.attrs["family"] = obj.family
 
@@ -378,7 +383,7 @@ def _load_recursivenodes_element_group(
         ElementGroup(dim=int(parent.attrs["dim"])),
         _load_order(parent),
         str(parent.attrs["family"]),
-        int(parent.attrs["index"]),
+        index=parent.attrs.get("index", None),
     )
 
 
