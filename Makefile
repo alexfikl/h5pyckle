@@ -32,7 +32,7 @@ isort:			## Run ruff isort fixes over the source code
 	@echo -e "\e[1;32mruff isort clean!\e[0m"
 .PHONY: isort
 
-lint: ruff mypy doc8 codespell reuse manifest	## Run linting checks
+lint: ruff mypy doc8 codespell reuse 			## Run linting checks
 .PHONY: lint
 
 ruff:			## Run ruff checks over the source code
@@ -64,11 +64,6 @@ reuse:			## Check REUSE license compliance
 	@echo -e "\e[1;32mREUSE compliant!\e[0m"
 .PHONY: reuse
 
-manifest:		## Check MANIFEST.in file
-	$(PYTHON) -m check_manifest
-	@echo -e "\e[1;32mMANIFEST.in is up to date!\e[0m"
-.PHONY: manifest
-
 # }}}
 
 # {{{ testing
@@ -92,7 +87,7 @@ pin: $(REQUIREMENTS)	## Pin dependency versions to requirements.txt
 .PHONY: pin
 
 pip-install:	## Install pinned dependencies from requirements.txt
-	$(PYTHON) -m pip install --upgrade pip setuptools wheel
+	$(PYTHON) -m pip install --upgrade pip hatchling wheel
 	$(PYTHON) -m pip install -r requirements-dev.txt -e .
 .PHONY: pip-install
 

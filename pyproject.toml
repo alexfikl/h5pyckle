@@ -1,8 +1,7 @@
 [build-system]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
 requires = [
-    "setuptools>=62",
-    "wheel",
+    "hatchling>=1.10",
 ]
 
 [project]
@@ -37,7 +36,6 @@ dependencies = [
 ]
 [project.optional-dependencies]
 dev = [
-    "check-manifest",
     "codespell",
     "doc8",
     "mypy",
@@ -63,9 +61,11 @@ unittest = [
 Documentation = "https://h5pyckle.readthedocs.io"
 Repository = "https://github.com/alexfikl/h5pyckle"
 
-[tool.setuptools]
-package-dir = { "" = "src" }
-packages = { find = { where = ["src"] } }
+[tool.hatch.build.targets.sdist]
+exclude = [".github", ".ci", "docs/_build"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/h5pyckle"]
 
 [tool.ruff]
 preview = true
@@ -117,13 +117,6 @@ multiline-quotes = "double"
 
 [tool.ruff.lint.isort]
 known-first-party = ["h5pyckle"]
-
-[tool.check-manifest]
-ignore = [
-    "*.yml",
-    "*.yaml",
-    ".ci/*",
-]
 
 [tool.pytest.ini_options]
 testpaths = "tests"
