@@ -1,14 +1,16 @@
-.. image:: https://github.com/alexfikl/h5pyckle/workflows/CI/badge.svg
+.. |github-ci| image:: https://github.com/alexfikl/h5pyckle/workflows/CI/badge.svg
     :alt: Build Status
     :target: https://github.com/alexfikl/h5pyckle/actions?query=branch%3Amain+workflow%3ACI
 
-.. image:: https://readthedocs.org/projects/h5pyckle/badge/?version=latest
+.. |rtd-docs| image:: https://readthedocs.org/projects/h5pyckle/badge/?version=latest
     :alt: Documentation
     :target: https://h5pyckle.readthedocs.io/en/latest/?badge=latest
 
-.. image:: https://api.reuse.software/badge/github.com/alexfikl/h5pyckle
+.. |reuse| image:: https://api.reuse.software/badge/github.com/alexfikl/h5pyckle
     :alt: REUSE
     :target: https://api.reuse.software/info/github.com/alexfikl/h5pyckle
+
+|github-ci| |rtd-docs| |reuse|
 
 h5pyckle
 ========
