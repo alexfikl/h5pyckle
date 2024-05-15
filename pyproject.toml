@@ -76,12 +76,11 @@ packages = [
 ]
 
 [tool.ruff]
-preview = true
 target-version = "py38"
 line-length = 88
 
-[tool.ruff.lint]
-select = [
+preview = true
+lint.select = [
     "A",   # flake8-builtins
     "B",   # flake8-bugbear
     "C4",  # flake8-comprehensions
@@ -102,7 +101,13 @@ select = [
     "UP",  # pyupgrade
     "W",   # flake8
 ]
-ignore = [
+lint.flake8-quotes.docstring-quotes = "double"
+lint.flake8-quotes.inline-quotes = "double"
+lint.flake8-quotes.multiline-quotes = "double"
+lint.isort.known-first-party = [
+    "h5pyckle",
+]
+lint.ignore = [
     "E402",    # module-import-not-at-top-of-file
     "ISC001",  # single-line-implicit-string-concatenation
     "PLC0415", # import-outside-top-level
@@ -112,20 +117,10 @@ ignore = [
     "PLR2004", # magic-value-comparison
     "S101",    # assert
     "S102",    # exec-builtin
-    "S403",    # suspicious-pickle-import
     "S301",    # suspicious-pickle-usage
+    "S403",    # suspicious-pickle-import
     "SIM108",  # use-ternary-operator
     "UP037",   # quoted-annotation
-]
-
-[tool.ruff.lint.flake8-quotes]
-docstring-quotes = "double"
-inline-quotes = "double"
-multiline-quotes = "double"
-
-[tool.ruff.lint.isort]
-known-first-party = [
-    "h5pyckle",
 ]
 
 [tool.pytest.ini_options]
