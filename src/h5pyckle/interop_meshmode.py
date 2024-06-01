@@ -314,7 +314,7 @@ class _SameElementGroupFactory:
         self.groups = groups
 
     def __call__(self, mesh_el_group: MeshElementGroup) -> ElementGroupBase:
-        grp = self.groups.pop()
+        grp = self.groups.pop(0)
 
         if isinstance(grp, PolynomialRecursiveNodesElementGroup):
             return type(grp)(mesh_el_group, grp.order, grp.family)
