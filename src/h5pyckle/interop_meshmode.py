@@ -297,7 +297,6 @@ def _load_mesh(parent: PickleGroup) -> Mesh:
         element_id_dtype=element_id_dtype,
         is_conforming=is_conforming,
         skip_tests=True,
-        factory_constructed=True,
         **kwargs,
     )
 
