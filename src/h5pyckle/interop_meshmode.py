@@ -268,6 +268,14 @@ def _load_mesh(parent: PickleGroup) -> Mesh:
         boundary_tags = pickle.loads(parent.attrs["boundary_tags"].tobytes())
         kwargs["boundary_tags"] = boundary_tags
 
+    from dataclasses import is_dataclass
+
+    if is_dataclass(Mesh):
+        # NOTE: Mesh is a dataclass starting with
+        #   https://github.com/inducer/meshmode/pull/400
+        # Setting this to True will skip additional preprocessing
+        kwargs["factory_constructed"] = True
+
     if "vertices" in parent:
         vertices = parent["vertices"][:]
     else:
@@ -289,6 +297,7 @@ def _load_mesh(parent: PickleGroup) -> Mesh:
         element_id_dtype=element_id_dtype,
         is_conforming=is_conforming,
         skip_tests=True,
+        factory_constructed=True,
         **kwargs,
     )
 
