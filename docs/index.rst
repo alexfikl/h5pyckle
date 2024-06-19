@@ -1,12 +1,6 @@
 h5pyckle documentation
 ======================
 
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-
-   autoapi/index
-
 .. automodule:: h5pyckle
 
 Example
