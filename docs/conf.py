@@ -99,13 +99,12 @@ html_theme_options = {
 
 autoapi_type = "python"
 autoapi_dirs = ["."]
-autoapi_keep_files = True
-autoapi_add_toctree_entry = False
 
 autoapi_python_class_content = "class"
 autoapi_member_order = "bysource"
 autoapi_options = [
     "show-inheritance",
+    "undoc-members"
 ]
 suppress_warnings = ["autoapi"]
 
