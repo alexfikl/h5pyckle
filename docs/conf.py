@@ -104,7 +104,7 @@ autoapi_python_class_content = "class"
 autoapi_member_order = "bysource"
 autoapi_options = [
     "show-inheritance",
-    "undoc-members"
+    "undoc-members",
 ]
 suppress_warnings = ["autoapi"]
 
