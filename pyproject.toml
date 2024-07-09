@@ -123,6 +123,7 @@ lint.flake8-quotes.multiline-quotes = "double"
 lint.isort.known-first-party = [
     "h5pyckle",
 ]
+lint.flake8-pytest-style.mark-parentheses = false
 
 [tool.pytest.ini_options]
 testpaths = "tests"
