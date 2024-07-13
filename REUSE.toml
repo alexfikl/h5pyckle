@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2024 Alexandru Fikl <alexfikl@gmail.com>
+# SPDX-License-Identifier: CC0-1.0
+
+version = 1
+SPDX-PackageName = "h5pyckle"
+SPDX-PackageSupplier = "Alexandru Fikl <alexfikl@gmail.com>"
+SPDX-PackageDownloadLocation = "https://github.com/alexfikl/h5pyckle"
+
+[[annotations]]
+path = ["docs/*.rst", "docs/Makefile"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2022 Alexandru Fikl <alexfikl@gmail.com>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+    ".readthedocs.yml",
+    "Makefile",
+    "README.rst",
+    "pyproject.toml",
+    "requirements*.txt",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2022 Alexandru Fikl <alexfikl@gmail.com>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+    ".ci/**",
+    ".github/dependabot.yml",
+    ".github/workflows/**.yml",
+    ".gitignore",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2022 Alexandru Fikl <alexfikl@gmail.com>"
+SPDX-License-Identifier = "CC0-1.0"
