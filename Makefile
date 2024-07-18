@@ -32,7 +32,7 @@ isort:			## Run ruff isort fixes over the source code
 	@echo -e "\e[1;32mruff isort clean!\e[0m"
 .PHONY: isort
 
-lint: ruff mypy doc8 codespell reuse 			## Run linting checks
+lint: ruff mypy doc8 typos reuse 				## Run linting checks
 .PHONY: lint
 
 ruff:			## Run ruff checks over the source code
@@ -50,14 +50,10 @@ doc8:			## Run doc8 checks over the source code
 	@echo -e "\e[1;32mdoc8 clean!\e[0m"
 .PHONY: doc8
 
-codespell:		## Run codespell checks over the documentation
-	@codespell --summary \
-		--skip _build --skip src/*.egg-info \
-		--uri-ignore-words-list '*' \
-		--ignore-words .codespell-ignore \
-		src tests examples docs README.rst
-	@echo -e "\e[1;32mcodespell clean!\e[0m"
-.PHONY: codespell
+typos:			## Run typos over the source code and documentation
+	@typos
+	@echo -e "\e[1;32mtypos clean!\e[0m"
+.PHONY: typos
 
 reuse:			## Check REUSE license compliance
 	$(PYTHON) -m reuse lint

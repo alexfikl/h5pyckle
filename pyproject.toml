@@ -39,7 +39,6 @@ dependencies = [
     "numpy",
 ]
 optional-dependencies.dev = [
-    "codespell",
     "doc8",
     "mypy",
     "pyproject-fmt",
@@ -47,6 +46,7 @@ optional-dependencies.dev = [
     "reuse",
     "ruff",
     "types-dataclasses",
+    "typos",
     "uv",
 ]
 optional-dependencies.docs = [
@@ -117,13 +117,14 @@ lint.ignore = [
     "UP037",   # quoted-annotation
 ]
 
+lint.flake8-pytest-style.mark-parentheses = false
+
 lint.flake8-quotes.docstring-quotes = "double"
 lint.flake8-quotes.inline-quotes = "double"
 lint.flake8-quotes.multiline-quotes = "double"
 lint.isort.known-first-party = [
     "h5pyckle",
 ]
-lint.flake8-pytest-style.mark-parentheses = false
 
 [tool.pytest.ini_options]
 testpaths = "tests"
