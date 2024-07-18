@@ -14,8 +14,6 @@ chardet==5.2.0
     #   python-debian
 cloudpickle==3.0.0
     # via h5pyckle (pyproject.toml)
-codespell==2.3.0
-    # via h5pyckle (pyproject.toml)
 colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
 doc8==1.1.1
@@ -24,7 +22,7 @@ docutils==0.20.1
     # via
     #   doc8
     #   restructuredtext-lint
-exceptiongroup==1.2.1 ; python_version < '3.11'
+exceptiongroup==1.2.2 ; python_version < '3.11'
     # via pytest
 h5py==3.11.0
     # via h5pyckle (pyproject.toml)
@@ -69,7 +67,7 @@ restructuredtext-lint==1.4.0
     # via doc8
 reuse==4.0.3
     # via h5pyckle (pyproject.toml)
-ruff==0.5.1
+ruff==0.5.2
     # via h5pyckle (pyproject.toml)
 stevedore==5.2.0
     # via doc8
@@ -81,13 +79,15 @@ tomli==2.0.1 ; python_version < '3.11'
     #   mypy
     #   pyproject-fmt
     #   pytest
-tomlkit==0.12.5
+tomlkit==0.13.0
     # via reuse
 types-dataclasses==0.6.6
     # via h5pyckle (pyproject.toml)
 typing-extensions==4.12.2
     # via mypy
+typos==1.23.2
+    # via h5pyckle (pyproject.toml)
 unyt==3.0.3
     # via h5pyckle (pyproject.toml)
-uv==0.2.23
+uv==0.2.26
     # via h5pyckle (pyproject.toml)
