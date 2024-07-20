@@ -109,3 +109,12 @@ ctags:			## Regenerate ctags
 		--python-kinds=-i \
 		--language-force=python
 .PHONY: ctags
+
+clean:			## Remove various build artifacts
+	rm -rf build dist
+	rm -rf docs/_build
+.PHONY: clean
+
+purge: clean	## Remove various temporary files
+	rm -rf .ruff_cache .pytest_cache .mypy_cache
+.PHONY: purge
