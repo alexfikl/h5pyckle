@@ -125,6 +125,9 @@ lint.flake8-quotes.multiline-quotes = "double"
 lint.isort.known-first-party = [
     "h5pyckle",
 ]
+lint.isort.required-imports = [
+    "from __future__ import annotations",
+]
 
 [tool.pytest.ini_options]
 testpaths = "tests"

@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 from importlib import metadata
 
 # NOTE: importing to have the types registered
