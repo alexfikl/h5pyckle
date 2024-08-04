@@ -51,7 +51,7 @@ doc8:			## Run doc8 checks over the source code
 .PHONY: doc8
 
 typos:			## Run typos over the source code and documentation
-	@typos
+	typos
 	@echo -e "\e[1;32mtypos clean!\e[0m"
 .PHONY: typos
 
