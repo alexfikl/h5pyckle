@@ -136,6 +136,7 @@ markers = [
 ]
 
 [tool.mypy]
+python_version = "3.9"
 hide_error_codes = false
 warn_unused_ignores = true
 plugins = "numpy.typing.mypy_plugin"
