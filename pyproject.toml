@@ -136,7 +136,9 @@ markers = [
 ]
 
 [tool.mypy]
-python_version = "3.9"
+# NOTE: this doesn't match project.python-version due to jax>=0.4.31 requiring
+# python 3.10 (jax gets potentially pulled in from arraycontext)
+python_version = "3.10"
 hide_error_codes = false
 warn_unused_ignores = true
 plugins = "numpy.typing.mypy_plugin"
