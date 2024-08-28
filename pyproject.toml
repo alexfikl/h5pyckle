@@ -6,7 +6,7 @@ requires = [
 
 [project]
 name = "h5pyckle"
-version = "2023.4"
+version = "2024.8"
 description = "Extensible pickling using HDF5"
 readme = "README.rst"
 keywords = [
@@ -21,13 +21,12 @@ maintainers = [
 authors = [
     { name = "Alexandru Fikl", email = "alexfikl@gmail.com" },
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -76,7 +75,7 @@ packages = [
 ]
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py310"
 line-length = 88
 
 preview = true
@@ -136,8 +135,6 @@ markers = [
 ]
 
 [tool.mypy]
-# NOTE: this doesn't match project.python-version due to jax>=0.4.31 requiring
-# python 3.10 (jax gets potentially pulled in from arraycontext)
 python_version = "3.10"
 hide_error_codes = false
 warn_unused_ignores = true

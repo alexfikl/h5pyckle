@@ -58,10 +58,11 @@ except ImportError:
 
 import io
 import os
+from collections.abc import Sequence
 from contextlib import suppress
 from functools import singledispatch
 from pickle import UnpicklingError
-from typing import Any, Sequence, Union
+from typing import Any, Union
 
 import h5py
 import numpy as np
@@ -496,7 +497,7 @@ def dump_to_attribute(
 
     from numbers import Number
 
-    if isinstance(obj, (Number, str, bytes)):
+    if isinstance(obj, Number | str | bytes):
         parent.attrs[name] = obj
     else:
         parent.attrs[name] = np.void(pickle.dumps(obj))

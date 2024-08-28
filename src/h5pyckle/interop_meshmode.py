@@ -13,8 +13,8 @@ except ImportError:
         import pickle
 
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
 
 import arraycontext.impl.pyopencl.taggable_cl_array as tga
 import numpy as np
