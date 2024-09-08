@@ -16,9 +16,9 @@ cloudpickle==3.0.0
     # via h5pyckle (pyproject.toml)
 colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
-doc8==1.1.1
+doc8==1.1.2
     # via h5pyckle (pyproject.toml)
-docutils==0.20.1
+docutils==0.21.2
     # via
     #   doc8
     #   restructuredtext-lint
@@ -40,7 +40,7 @@ mypy==1.11.2
     # via h5pyckle (pyproject.toml)
 mypy-extensions==1.0.0
     # via mypy
-numpy==2.1.0
+numpy==2.1.1
     # via
     #   h5pyckle (pyproject.toml)
     #   h5py
@@ -55,7 +55,7 @@ pluggy==1.5.0
     # via pytest
 pygments==2.18.0
     # via doc8
-pyproject-fmt==2.2.1
+pyproject-fmt==2.2.3
     # via h5pyckle (pyproject.toml)
 pyproject-fmt-rust==1.1.6
     # via pyproject-fmt
@@ -67,7 +67,7 @@ restructuredtext-lint==1.4.0
     # via doc8
 reuse==4.0.3
     # via h5pyckle (pyproject.toml)
-ruff==0.6.2
+ruff==0.6.4
     # via h5pyckle (pyproject.toml)
 stevedore==5.3.0
     # via doc8
@@ -85,9 +85,9 @@ types-dataclasses==0.6.6
     # via h5pyckle (pyproject.toml)
 typing-extensions==4.12.2
     # via mypy
-typos==1.24.1
+typos==1.24.5
     # via h5pyckle (pyproject.toml)
 unyt==3.0.3
     # via h5pyckle (pyproject.toml)
-uv==0.3.5
+uv==0.4.7
     # via h5pyckle (pyproject.toml)
