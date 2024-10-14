@@ -84,7 +84,7 @@ _H5PYCKLE_VERSION = 2
 _MAX_ATTRIBUTE_SIZE = 2**13
 
 
-def _reset_dataclass_field_types(cls: type) -> None:
+def _reset_dataclass_field_types(cls: type[Any]) -> None:
     import dataclasses
     from dataclasses import _FIELDS  # type: ignore[attr-defined] # noqa: PLC2701
 
@@ -273,6 +273,7 @@ class PickleGroup(h5py.Group):
             from dataclasses import is_dataclass
 
             if is_dataclass(cls):
+                assert isinstance(cls, type)
                 _reset_dataclass_field_types(cls)
 
         return self._type  # type: ignore[return-value]
