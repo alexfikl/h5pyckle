@@ -4,8 +4,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -17,6 +16,9 @@ from h5pyckle.base import (
     pickle_from_group,
     pickle_to_group,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def make_obj_array(arrays: Sequence[Any]) -> np.ndarray:

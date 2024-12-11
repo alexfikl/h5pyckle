@@ -13,8 +13,8 @@ except ImportError:
         import pickle
 
 import threading
-from collections.abc import Iterator
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 import arraycontext.impl.pyopencl.taggable_cl_array as tga
 import numpy as np
@@ -34,6 +34,9 @@ import h5pyckle.interop_numpy  # noqa: F401
 from h5pyckle.base import PickleGroup, dumper, load_from_type, loader
 
 __all__ = ("array_context_for_pickling",)
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 # {{{ context manager
 
@@ -97,11 +100,7 @@ def from_numpy(x: np.ndarray | None, *, frozen: bool = True) -> Array | None:
         if frozen:
             result = actx.freeze(result)
 
-    from typing import cast
-
-    # NOTE: arraycontext annotations aren't smart enough to realize this is
-    # not an array container, but just an array (depends on dtype)
-    return cast(Array, result)
+    return result
 
 
 # }}}
@@ -231,11 +230,10 @@ def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
     nodes = parent["nodes"][:]
     unit_nodes = parent["unit_nodes"][:]
 
-    from typing import cast
+    cls = parent.cls
+    assert issubclass(cls, MeshElementGroup)
 
-    return cast(MeshElementGroup, parent.pycls).make_group(
-        order, vertex_indices, nodes, unit_nodes=unit_nodes, dim=dim
-    )
+    return cls.make_group(order, vertex_indices, nodes, unit_nodes=unit_nodes, dim=dim)
 
 
 @dumper.register(Mesh)

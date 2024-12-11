@@ -8,7 +8,7 @@ import logging
 import pathlib
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, cast
+from typing import Any
 
 import numpy as np
 import pytest
@@ -92,7 +92,7 @@ def test_discretization_pickling(
     from h5pyckle import dump, load
     from h5pyckle.interop_meshmode import array_context_for_pickling
 
-    nodes = cast(np.ndarray, actx.thaw(discr.nodes()))
+    nodes = actx.thaw(discr.nodes())
 
     from meshmode.transform_metadata import FirstAxisIsElementsTag
 

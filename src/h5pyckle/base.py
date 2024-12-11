@@ -56,24 +56,23 @@ except ImportError:
     except ImportError:
         import pickle
 
-import io
-import os
-from collections.abc import Sequence
 from contextlib import suppress
 from functools import singledispatch
 from pickle import UnpicklingError
-from typing import Any, Union
+from typing import TYPE_CHECKING, Any
 
 import h5py
 import numpy as np
 
-# {{{ type aliases
+if TYPE_CHECKING:
+    import io
+    import os
+    from collections.abc import Sequence
 
-# https://github.com/python/mypy/issues/5667
-PathLike = Union[str, bytes, "os.PathLike[Any]", io.IOBase]
-
-# }}}
-
+    # https://github.com/python/mypy/issues/5667
+    PathLike = str | bytes | os.PathLike[Any] | io.IOBase
+else:
+    PathLike = Any
 
 # {{{ wrapper for h5py.Group
 
