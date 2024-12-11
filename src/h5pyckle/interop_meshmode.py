@@ -230,7 +230,7 @@ def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
     nodes = parent["nodes"][:]
     unit_nodes = parent["unit_nodes"][:]
 
-    cls = parent.cls
+    cls = parent.pycls
     assert issubclass(cls, MeshElementGroup)
 
     return cls.make_group(order, vertex_indices, nodes, unit_nodes=unit_nodes, dim=dim)
