@@ -39,8 +39,9 @@ def rnorm(actx: Any, x: "np.ndarray[Any, Any]", y: "np.ndarray[Any, Any]") -> fl
 
 @pytest.mark.meshmode
 @pytest.mark.parametrize("ambient_dim", [2, 3])
+@pytest.mark.parametrize("target_order", [3])
 def test_discretization_pickling(
-    ambient_dim: int, *, visualize: bool = False, target_order: int = 3
+    ambient_dim: int, target_order: int
 ) -> None:
     """Tests that the interop_meshmode types can all be dumped/loaded correctly."""
 
