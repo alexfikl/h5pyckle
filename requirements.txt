@@ -2,7 +2,7 @@
 #    uv pip compile --universal --python-version 3.10 -o requirements.txt pyproject.toml
 h5py==3.12.1
     # via h5pyckle (pyproject.toml)
-numpy==2.1.3
+numpy==2.2.2
     # via
     #   h5pyckle (pyproject.toml)
     #   h5py

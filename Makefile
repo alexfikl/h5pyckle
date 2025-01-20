@@ -65,14 +65,14 @@ reuse:			## Check REUSE license compliance
 # {{{ testing
 
 REQUIREMENTS=\
-	requirements-dev.txt \
+	requirements-test.txt \
 	requirements.txt
 
-requirements-dev.txt: pyproject.toml
+requirements-test.txt: pyproject.toml
 	uv pip compile --upgrade --universal --python-version '3.10' \
-		--extra dev --extra unittest --extra fancy \
+		--extra test \
 		-o $@ $<
-.PHONY: requirements-dev.txt
+.PHONY: requirements-test.txt
 
 requirements.txt: pyproject.toml
 	uv pip compile --upgrade --universal --python-version '3.10' \
@@ -84,7 +84,7 @@ pin: $(REQUIREMENTS)	## Pin dependency versions to requirements.txt
 
 pip-install:	## Install pinned dependencies from requirements.txt
 	$(PYTHON) -m pip install --upgrade pip hatchling wheel
-	$(PYTHON) -m pip install -r requirements-dev.txt -e .
+	$(PYTHON) -m pip install -r requirements-test.txt -e .
 .PHONY: pip-install
 
 test:			## Run pytest tests

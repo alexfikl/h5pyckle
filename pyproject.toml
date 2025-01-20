@@ -40,12 +40,8 @@ dependencies = [
 ]
 optional-dependencies.dev = [
     "doc8",
-    "mypy",
     "pyproject-fmt",
-    "pytest",
     "reuse",
-    "ruff",
-    "types-dataclasses",
     "typos",
     "uv",
 ]
@@ -54,10 +50,12 @@ optional-dependencies.docs = [
     "sphinx-autoapi",
     "sphinx-book-theme",
 ]
-optional-dependencies.fancy = [
+optional-dependencies.test = [
     "cloudpickle",
-]
-optional-dependencies.unittest = [
+    "mypy",
+    "pytest",
+    "ruff",
+    "types-dataclasses",
     "unyt",
 ]
 urls.Documentation = "https://h5pyckle.readthedocs.io"
