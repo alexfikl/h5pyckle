@@ -50,7 +50,7 @@ def test_discretization_pickling(ambient_dim: int, target_order: int) -> None:
 
     ctx = cl.create_some_context()
     queue = cl.CommandQueue(ctx)
-    actx = PyOpenCLArrayContext(queue, force_device_scalars=True)
+    actx = PyOpenCLArrayContext(queue)
 
     # {{{ geometry
 
@@ -212,7 +212,7 @@ def test_pickling_cl_scalar() -> None:
 
     ctx = cl.create_some_context()
     queue = cl.CommandQueue(ctx)
-    actx = PyOpenCLArrayContext(queue, force_device_scalars=True)
+    actx = PyOpenCLArrayContext(queue)
 
     # {{{
 
