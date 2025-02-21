@@ -83,7 +83,7 @@ requirements_txt:
         -o requirements.txt pyproject.toml
 
 [doc('Pin dependency versions to requirements.txt')]
-pin: requirements_txt requirements_test_txt requirements_build_txt
+pin: requirements_txt requirements_test_txt requirements_build_txt requirements_meshmode_txt
 
 # }}}
 # {{{ develop

@@ -64,7 +64,7 @@ urls.Repository = "https://github.com/alexfikl/h5pyckle"
 exclude = [
     ".github",
     ".ci",
-    "docs/_build",
+    "docs/build.sphinx",
 ]
 
 [tool.hatch.build.targets.wheel]

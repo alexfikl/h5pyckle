@@ -26,9 +26,9 @@ SPDX-License-Identifier = "CC0-1.0"
 
 [[annotations]]
 path = [
-    ".ci/**",
-    ".github/requirements-*.txt",
-    ".github/requirements-build.in",
+    ".ci/*.in",
+    ".ci/*.txt",
+    ".ci/*.yml",
     ".github/dependabot.yml",
     ".github/workflows/**.yml",
     ".gitignore",

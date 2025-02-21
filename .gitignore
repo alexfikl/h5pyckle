@@ -2,10 +2,9 @@
 __pycache__
 .pytest_cache
 .mypy_cache
-docs/_build
+docs/build.sphinx
 *.egg-info
 build
-_build
 dist
 
 # generated files
