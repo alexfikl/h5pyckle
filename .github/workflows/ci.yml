@@ -106,18 +106,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: extractions/setup-just@v2
+    - uses: mamba-org/setup-micromamba@v2
+      with:
+        environment-file: .ci/environment-meshmode.yml
+        cache-environment: true
+        post-cleanup: 'all'
+
     - name: Main Script
       run: |
-        curl -L -O https://tiker.net/ci-support-v0
-        . ./ci-support-v0
-
-        # set up environment
-        export CONDA_ENVIRONMENT=".ci/environment-meshmode.yml"
-        export REQUIREMENTS_TXT=".ci/requirements-meshmode.txt"
-
-        build_py_project_in_conda_env
-
-        # run tests
+        just pip-install
+        just pip-meshmode
         just test -m '"meshmode"'
 
 # vim: set ts=2 sw=2 et:

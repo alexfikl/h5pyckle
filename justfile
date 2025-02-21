@@ -95,6 +95,10 @@ develop: clean
         --no-build-isolation \
         --editable .
 
+[doc("Install dependencies for meshmode tests")]
+pip-meshmode:
+    {{ PYTHON }} -m pip install --requirement .ci/requirements-meshmode.txt
+
 [doc("Editable install using pinned dependencies from requirements-test.txt")]
 pip-install:
     {{ PYTHON }} -m pip install --requirement .ci/requirements-build.txt
