@@ -10,11 +10,11 @@ pathspec==0.12.1
     # via hatchling
 pip==25.1.1
     # via -r .ci/requirements-build.in
-pluggy==1.5.0
+pluggy==1.6.0
     # via hatchling
 tomli==2.2.1 ; python_full_version < '3.11'
     # via hatchling
-trove-classifiers==2025.5.1.12
+trove-classifiers==2025.5.9.12
     # via hatchling
 wheel==0.45.1
     # via -r .ci/requirements-build.in

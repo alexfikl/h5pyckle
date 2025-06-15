@@ -4,19 +4,24 @@ cloudpickle==3.1.1
     # via h5pyckle (pyproject.toml)
 colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
-exceptiongroup==1.2.2 ; python_full_version < '3.11'
+exceptiongroup==1.3.0 ; python_full_version < '3.11'
     # via pytest
-h5py==3.13.0
+h5py==3.14.0
     # via h5pyckle (pyproject.toml)
 iniconfig==2.1.0
     # via pytest
 mpmath==1.3.0
     # via sympy
-mypy==1.15.0
+mypy==1.16.0
     # via h5pyckle (pyproject.toml)
 mypy-extensions==1.1.0
     # via mypy
-numpy==2.2.5
+numpy==2.2.6 ; python_full_version < '3.11'
+    # via
+    #   h5pyckle (pyproject.toml)
+    #   h5py
+    #   unyt
+numpy==2.3.0 ; python_full_version >= '3.11'
     # via
     #   h5pyckle (pyproject.toml)
     #   h5py
@@ -25,11 +30,15 @@ packaging==25.0
     # via
     #   pytest
     #   unyt
-pluggy==1.5.0
+pathspec==0.12.1
+    # via mypy
+pluggy==1.6.0
     # via pytest
-pytest==8.3.5
+pygments==2.19.1
+    # via pytest
+pytest==8.4.0
     # via h5pyckle (pyproject.toml)
-ruff==0.11.8
+ruff==0.11.13
     # via h5pyckle (pyproject.toml)
 sympy==1.14.0
     # via unyt
@@ -39,7 +48,9 @@ tomli==2.2.1 ; python_full_version < '3.11'
     #   pytest
 types-dataclasses==0.6.6
     # via h5pyckle (pyproject.toml)
-typing-extensions==4.13.2
-    # via mypy
+typing-extensions==4.14.0
+    # via
+    #   exceptiongroup
+    #   mypy
 unyt==3.0.4
     # via h5pyckle (pyproject.toml)
