@@ -126,9 +126,12 @@ def _dump_cl_array(
 def _load_cl_array(parent: PickleGroup) -> cla.Array:
     from h5pyckle.interop_numpy import load_numpy_dataset
 
-    return from_numpy(
+    result = from_numpy(
         load_numpy_dataset(parent, "entry"), frozen=parent.attrs["frozen"]
     )
+    assert isinstance(result, cla.Array)
+
+    return result
 
 
 @dumper.register(tga.TaggableCLArray)
@@ -152,6 +155,7 @@ def _load_taggable_cl_array(parent: PickleGroup) -> tga.TaggableCLArray:
     axes = load_from_type(parent["axes"])
     tags = load_from_type(parent["tags"])
 
+    assert isinstance(ary, cla.Array)
     return tga.to_tagged_cl_array(ary, axes=axes, tags=tags)
 
 
