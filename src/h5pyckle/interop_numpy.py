@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-def make_obj_array(arrays: Sequence[Any]) -> np.ndarray:
+def make_obj_array(arrays: Sequence[Any]) -> np.ndarray[tuple[int], np.dtype[object]]:
     result = np.empty((len(arrays),), dtype=object)
 
     # 'result[:] = res_list' may look tempting, however:

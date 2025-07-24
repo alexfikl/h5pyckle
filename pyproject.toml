@@ -49,8 +49,8 @@ optional-dependencies.docs = [
     "sphinx-book-theme",
 ]
 optional-dependencies.test = [
+    "basedpyright",
     "cloudpickle",
-    "mypy",
     "pytest",
     "ruff",
     "types-dataclasses",
@@ -132,18 +132,10 @@ markers = [
     "meshmode: mark a test that uses meshmode",
 ]
 
-[tool.mypy]
-python_version = "3.10"
-hide_error_codes = false
-warn_unused_ignores = true
+[tool.basedpyright]
+pythonVersion = "3.10"
+pythonPlatform = "All"
 
-[[tool.mypy.overrides]]
-module = [
-    "arraycontext.*",
-    "cloudpickle.*",
-    "dill.*",
-    "h5py.*",
-    "meshmode.*",
-    "pyopencl.*",
-]
-ignore_missing_imports = true
+reportUnknownMemberType = "hint"
+reportExplicitAny = "hint"
+reportAny = "hint"

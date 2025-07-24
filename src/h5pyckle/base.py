@@ -59,7 +59,7 @@ except ImportError:
 from contextlib import suppress
 from functools import singledispatch
 from pickle import UnpicklingError
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 import h5py
 import numpy as np
@@ -69,10 +69,9 @@ if TYPE_CHECKING:
     import os
     from collections.abc import Sequence
 
-    # https://github.com/python/mypy/issues/5667
-    PathLike = str | bytes | os.PathLike[Any] | io.IOBase
-else:
-    PathLike = Any
+
+PathLike: TypeAlias = "str | bytes | os.PathLike[Any] | io.IOBase"
+
 
 # {{{ wrapper for h5py.Group
 
@@ -85,7 +84,7 @@ _MAX_ATTRIBUTE_SIZE = 2**13
 
 def _reset_dataclass_field_types(cls: type[Any]) -> None:
     import dataclasses
-    from dataclasses import _FIELDS  # type: ignore[attr-defined] # noqa: PLC2701
+    from dataclasses import _FIELDS  # noqa: PLC2701
 
     try:
         fields = getattr(cls, _FIELDS)
@@ -275,7 +274,7 @@ class PickleGroup(h5py.Group):
                 assert isinstance(cls, type)
                 _reset_dataclass_field_types(cls)
 
-        return self._type  # type: ignore[return-value]
+        return self._type
 
     @property
     def has_type(self) -> bool:
