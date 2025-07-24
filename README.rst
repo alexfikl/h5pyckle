@@ -1,7 +1,7 @@
 h5pyckle
 ========
 
-.. |badge-ci| image:: https://github.com/alexfikl/h5pyckle/actions/workflows/ci.yml/badge.svg
+.. |github-ci| image:: https://github.com/alexfikl/h5pyckle/actions/workflows/ci.yml/badge.svg
     :alt: Build Status
     :target: https://github.com/alexfikl/h5pyckle/actions/workflows/ci.yml
 
