@@ -81,7 +81,7 @@ def get_array_context() -> ArrayContext:
     return actx
 
 
-def to_numpy(x: Array | None) -> np.ndarray | None:
+def to_numpy(x: Array | None) -> np.ndarray[Any, np.dtype[Any]] | None:
     if x is None:
         return x
 
@@ -92,7 +92,11 @@ def to_numpy(x: Array | None) -> np.ndarray | None:
     return result
 
 
-def from_numpy(x: np.ndarray | None, *, frozen: bool = True) -> Array | None:
+def from_numpy(
+    x: np.ndarray[Any, np.dtype[Any]] | None,
+    *,
+    frozen: bool = True,
+) -> Array | None:
     if x is None:
         result = None
     else:

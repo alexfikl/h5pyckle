@@ -74,7 +74,10 @@ def load_dtype(parent: PickleGroup) -> np.dtype:
 
 @dumper.register(np.ndarray)
 def dump_ndarray(
-    obj: np.ndarray, parent: PickleGroup, *, name: str | None = None
+    obj: np.ndarray[Any, np.dtype[Any]],
+    parent: PickleGroup,
+    *,
+    name: str | None = None,
 ) -> None:
     grp = parent.create_type(name, obj)
 
@@ -90,7 +93,7 @@ def dump_ndarray(
 
 
 @loader.register(np.ndarray)
-def load_ndarray(parent: PickleGroup) -> np.ndarray:
+def load_ndarray(parent: PickleGroup) -> np.ndarray[Any, np.dtype[Any]]:
     dtype = load_from_type(parent, cls=np.dtype)
 
     if dtype.char == "O":
