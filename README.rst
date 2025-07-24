@@ -1,6 +1,9 @@
-.. |github-ci| image:: https://github.com/alexfikl/h5pyckle/workflows/CI/badge.svg
+h5pyckle
+========
+
+.. |badge-ci| image:: https://github.com/alexfikl/h5pyckle/actions/workflows/ci.yml/badge.svg
     :alt: Build Status
-    :target: https://github.com/alexfikl/h5pyckle/actions?query=branch%3Amain+workflow%3ACI
+    :target: https://github.com/alexfikl/h5pyckle/actions/workflows/ci.yml
 
 .. |rtd-docs| image:: https://readthedocs.org/projects/h5pyckle/badge/?version=latest
     :alt: Documentation
@@ -12,9 +15,6 @@
 
 |github-ci| |rtd-docs| |reuse|
 
-h5pyckle
-========
-
 An alternative to the venerable `pickle module <https://docs.python.org/3/library/pickle.html>`__
 that uses `HDF5 <https://www.hdfgroup.org/solutions/hdf5>`__ as a storage
 backend.
@@ -25,10 +25,10 @@ between the two is that ``h5pyckle`` piggybacks on Python's
 `singledispatch <https://docs.python.org/3/library/functools.html>`__ to
 implement the pickling for various types. This has the benefit of
 
-* making it very easy to add custom pickling routines for new types
-* deferring the dispatch issue for subclasses to a well-tested code
+* making it very easy to add custom pickling routines for new types, and
+* deferring the dispatch issue for subclasses to a well-tested code.
 
 Links
 
-* `Documentation <https://h5pyckle.readthedocs.io/en/latest/>`__
-* `Code <https://github.com/alexfikl/h5pyckle>`__
+* `Documentation <https://h5pyckle.readthedocs.io/en/latest/>`__.
+* `Code <https://github.com/alexfikl/h5pyckle>`__.
