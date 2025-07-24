@@ -23,13 +23,16 @@ if not dirname.exists():
     dirname.mkdir()
 
 
-def norm(x: np.ndarray) -> float:
+def norm(x: np.ndarray[Any, np.dtype[Any]]) -> float:
     if x.dtype.char == "O":
         x = np.sqrt(x.dot(x))
     return float(la.norm(x))
 
 
-def rnorm(x: np.ndarray, y: np.ndarray) -> float:
+def rnorm(
+    x: np.ndarray[Any, np.dtype[Any]],
+    y: np.ndarray[Any, np.dtype[Any]],
+) -> float:
     norm_y = norm(y)
     if norm_y < 1.0e-15:
         norm_y = 1.0
@@ -120,9 +123,9 @@ def test_pickling_numpy(arg_in_type: str, dtype_in: Any) -> None:
 
     if arg_in_type == "scalar":
         if dtype_in == np.int32:
-            arg_in = np.arange(42, dtype=dtype_in)
+            arg_in = np.arange(42, dtype=np.dtype(np.int32))
         else:
-            arg_in = np.linspace(-1.0, 1.0, 42, dtype=dtype_in)
+            arg_in = np.linspace(-1.0, 1.0, 42, dtype=np.dtype(dtype_in))
 
     elif arg_in_type == "object":
         from h5pyckle.interop_numpy import make_obj_array
@@ -255,7 +258,7 @@ def test_pickling_dataclass() -> None:
         position="Data Scientist",
         age=727,
         date=(4, 2022),
-        paychecks=np.full(17, 8700.1),
+        paychecks=np.full((17,), 8700.1),
     )
 
     dump(arg_in, filename)
@@ -275,6 +278,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         exec(sys.argv[1])
     else:
-        pytest.main([__file__])
+        _ = pytest.main([__file__])
 
 # vim: fdm=marker

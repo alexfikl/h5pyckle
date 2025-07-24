@@ -48,32 +48,55 @@
 
 from __future__ import annotations
 
-try:
-    import cloudpickle as pickle
-except ImportError:
-    try:
-        import dill as pickle
-    except ImportError:
-        import pickle
-
 from contextlib import suppress
 from functools import singledispatch
 from pickle import UnpicklingError
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Protocol,
+    TypeAlias,
+    TypeGuard,
+    cast,
+    runtime_checkable,
+)
 
 import h5py
 import numpy as np
+from typing_extensions import Buffer, override
 
 if TYPE_CHECKING:
     import io
     import os
+    import pickle
     from collections.abc import Sequence
+else:
+    try:
+        import cloudpickle as pickle
+    except ImportError:
+        try:
+            import dill as pickle
+        except ImportError:
+            import pickle
+
+PathLike: TypeAlias = "str | bytes | os.PathLike[str] | io.IOBase"
 
 
-PathLike: TypeAlias = "str | bytes | os.PathLike[Any] | io.IOBase"
+@runtime_checkable
+class HasToBytes(Protocol):
+    def tobytes(self) -> bytes: ...
+
+
+def has_tobytes(obj: object) -> TypeGuard[HasToBytes]:
+    return isinstance(obj, HasToBytes)
 
 
 # {{{ wrapper for h5py.Group
+
+# NOTE: this is taken from the official source code
+# https://github.com/python/cpython/blob/d8fa40b08da60a711311751891fa830cb4ae77f3/Lib/dataclasses.py#L209
+_FIELDS = "__dataclass_fields__"
+
 
 _H5PYCKLE_RESERVED_ATTRS = ["__type", "__type_name", "__pickle", "__version"]
 _H5PYCKLE_VERSION = 2
@@ -82,9 +105,8 @@ _H5PYCKLE_VERSION = 2
 _MAX_ATTRIBUTE_SIZE = 2**13
 
 
-def _reset_dataclass_field_types(cls: type[Any]) -> None:
+def _reset_dataclass_field_types(cls: type) -> None:
     import dataclasses
-    from dataclasses import _FIELDS  # noqa: PLC2701
 
     try:
         fields = getattr(cls, _FIELDS)
@@ -99,9 +121,6 @@ def _reset_dataclass_field_types(cls: type[Any]) -> None:
 
 class PickleGroup(h5py.Group):
     """Inherits from :class:`h5py.Group`."""
-
-    h5_dset_options: dict[str, Any]
-    """A :class:`dict` of default options used when creating new datasets."""
 
     def __init__(
         self,
@@ -119,8 +138,9 @@ class PickleGroup(h5py.Group):
 
         super().__init__(gid)
 
-        self.h5_dset_options = h5_dset_options
-        self._type = None
+        self.h5_dset_options: dict[str, Any] = h5_dset_options
+        """A :class:`dict` of default options used when creating new datasets."""
+        self._type: type | None = None
 
     @classmethod
     def from_h5(cls, h5: Any) -> "PickleGroup":
@@ -158,7 +178,13 @@ class PickleGroup(h5py.Group):
 
     # {{{ h5py.Group overwrites
 
-    def create_group(
+    @property
+    @override
+    def name(self) -> str | None:
+        return cast("str | None", super().name)
+
+    @override
+    def create_group(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, name: str, *, track_order: bool | None = True
     ) -> "PickleGroup":
         """Thin wrapper around :meth:`h5py.Group.create_group`.
@@ -170,13 +196,14 @@ class PickleGroup(h5py.Group):
         grp = super().create_group(name, track_order=track_order)
         return self.replace(gid=grp.id)
 
-    def create_dataset(
+    @override
+    def create_dataset(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         name: str,
         *,
         shape: tuple[int, ...] | None = None,
         dtype: Any = None,
-        data: "np.ndarray" | None = None,
+        data: np.ndarray[Any, np.dtype[Any]] | None = None,
     ) -> h5py.Dataset:
         """Thin wrapper around :meth:`h5py.Group.create_dataset`. It uses
         the options from :attr:`h5_dset_options` to create the dataset.
@@ -194,6 +221,7 @@ class PickleGroup(h5py.Group):
             name, shape=shape, dtype=dtype, data=data, **self.h5_dset_options
         )
 
+    @override
     def __getitem__(self, name: str) -> Any:
         """Retrieves an object in the group.
 
@@ -222,7 +250,7 @@ class PickleGroup(h5py.Group):
         grp = self.create_group(name)
         return grp.append_type(obj)
 
-    def append_type(self, obj: Any, force_cls: type | None = None) -> "PickleGroup":
+    def append_type(self, obj: object, force_cls: type | None = None) -> "PickleGroup":
         """Append type information to the current group.
 
         :param obj: object whose type information will be appended.
@@ -240,7 +268,7 @@ class PickleGroup(h5py.Group):
 
         module = cls.__module__
         name = cls.__qualname__
-        if not (module is None or module == str.__module__):
+        if not (module is None or module == str.__module__):  # pyright: ignore[reportUnnecessaryComparison]
             name = f"{module}.{name}"
 
         self.attrs["__type"] = np.void(pickle.dumps(cls))
@@ -250,7 +278,7 @@ class PickleGroup(h5py.Group):
         return self
 
     @property
-    def pycls(self) -> type[Any]:
+    def pycls(self) -> type:
         """If the group has type information, this attribute will return the
         corresponding class.
         """
@@ -258,7 +286,11 @@ class PickleGroup(h5py.Group):
             raise AttributeError(f"group '{self.name}' has no known type")
 
         if self._type is None:
-            cls = pickle.loads(self.attrs["__type"].tobytes())
+            attr = cast("object", self.attrs["__type"])
+            if has_tobytes(attr):
+                cls = pickle.loads(attr.tobytes())
+            else:
+                raise TypeError(f"Unsupported attribute type: {type(attr)}")
 
             import importlib
 
@@ -274,6 +306,7 @@ class PickleGroup(h5py.Group):
                 assert isinstance(cls, type)
                 _reset_dataclass_field_types(cls)
 
+        assert self._type is not None
         return self._type
 
     @property
@@ -318,7 +351,12 @@ def loader(parent: Any) -> Any:
 # {{{ io
 
 
-def dump_to_group(obj: Any, parent: PickleGroup, *, name: str | None = None) -> None:
+def dump_to_group(
+    obj: Any,
+    parent: h5py.Group | h5py.File | PickleGroup,
+    *,
+    name: str | None = None,
+) -> None:
     """Stores pickled data in a specific HDF5 subgroup.
 
     :param parent: a group in an open :class:`h5py.File`.
@@ -329,7 +367,7 @@ def dump_to_group(obj: Any, parent: PickleGroup, *, name: str | None = None) -> 
 
 
 def load_from_group(
-    parent: PickleGroup,
+    parent: h5py.File | h5py.Group | PickleGroup,
     *,
     exclude: set[str] | Sequence[str] | None = None,
 ) -> Any:
@@ -349,7 +387,11 @@ def load_from_group(
     return load_group_as_dict(parent, exclude=unique_exclude)
 
 
-def load_by_pattern(parent: PickleGroup, *, pattern: str) -> Any:
+def load_by_pattern(
+    parent: h5py.Group | h5py.File | PickleGroup,
+    *,
+    pattern: str,
+) -> Any:
     """
     :param parent: a group in an open :class:`h5py.File`.
     :param pattern: the pattern is searched for using :meth:`h5py.Group.visit`
@@ -450,7 +492,7 @@ def pickle_to_group(obj: object, group: PickleGroup, *, name: str) -> None:
     if len(state) < _MAX_ATTRIBUTE_SIZE:
         group.attrs[name] = np.void(state)
     else:
-        group.create_dataset(name, data=np.array(state))
+        _ = group.create_dataset(name, data=np.array(state))
 
 
 def dump_sequence_to_group(
@@ -474,14 +516,14 @@ def dump_sequence_to_group(
     is_number = all(isinstance(el, Number) for el in obj)
 
     if is_number:
-        grp.create_dataset("entry", data=np.array(obj))
+        _ = grp.create_dataset("entry", data=np.array(obj))
     else:
         for i, el in enumerate(obj):
             dumper(el, grp, name=f"entry_{i}")
 
 
 def dump_to_attribute(
-    obj: Any, parent: PickleGroup, *, name: str | None = None
+    obj: object, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     """Dumps the object into :attr:`h5py.Group.attrs`.
 
@@ -510,9 +552,13 @@ def dump_to_attribute(
 
 def pickle_from_group(name: str, group: PickleGroup) -> Any:
     if name in group:
-        obj = group[name][()]
+        obj: Buffer = group[name][()]
     elif name in group.attrs:
-        obj = group.attrs[name].tobytes()
+        attr = cast("object", group.attrs[name])
+        if has_tobytes(attr):
+            obj = attr.tobytes()
+        else:
+            raise TypeError(f"Unknown attribute type: {type(attr)}")
     else:
         return None
 
@@ -547,7 +593,7 @@ def load_from_attribute(name: str, group: PickleGroup) -> Any:
     if name not in group.attrs:
         return None
 
-    attr = group.attrs[name]
+    attr = cast("object", group.attrs[name])
     if isinstance(attr, np.void):
         attr = attr.tobytes()
 
@@ -570,22 +616,22 @@ def load_group_as_dict(
         exclude = []
     unique_exclude = set(list(exclude) + _H5PYCKLE_RESERVED_ATTRS)
 
-    from h5py import Dataset
-
-    groups = {}
+    groups: dict[str, Any] = {}
     for name in parent:
+        assert isinstance(name, str)
         if any(ex in name for ex in unique_exclude):
             continue
 
         obj = parent[name]
         if obj.has_type:
             groups[name] = load_from_type(obj)
-        elif isinstance(obj, Dataset):
+        elif isinstance(obj, h5py.Dataset):
             groups[name] = obj[:]
         else:
             raise TypeError(f"cannot unpickle '{name}'")
 
     for name in parent.attrs:
+        assert isinstance(name, str)
         if any(ex in name for ex in unique_exclude):
             continue
 

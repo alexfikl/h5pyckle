@@ -34,8 +34,9 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "h5py",
-    "numpy",
+    "h5py>=3.10",
+    "numpy>=2.1",
+    "typing-extensions>=4.1",
 ]
 optional-dependencies.dev = [
     "pyproject-fmt",
@@ -136,6 +137,7 @@ markers = [
 pythonVersion = "3.10"
 pythonPlatform = "All"
 
+reportImplicitStringConcatenation = "none"
 reportUnknownMemberType = "hint"
-reportExplicitAny = "hint"
-reportAny = "hint"
+reportExplicitAny = "none"
+reportAny = "none"

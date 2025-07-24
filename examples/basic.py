@@ -46,6 +46,7 @@ with h5py.File(filename, mode="a") as h5:
 
 with h5py.File(filename, mode="r") as h5:
     subgroup = h5["pickling"]
+    assert isinstance(subgroup, h5py.Group)
     arg_out = load_from_group(subgroup)
     first_name = load_by_pattern(subgroup, pattern="FirstName")
 
@@ -73,16 +74,16 @@ class CustomClass:  # noqa: PLW1641
 
 
 @dumper.register(CustomClass)
-def _dump_custom(
+def dump_custom(
     obj: CustomClass, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     grp = parent.create_type(name, obj)
     grp.attrs["name"] = obj.name
-    grp.create_dataset("values", data=obj.values)
+    _ = grp.create_dataset("values", data=obj.values)
 
 
 @loader.register(CustomClass)
-def _load_custom(parent: PickleGroup) -> CustomClass:
+def load_custom(parent: PickleGroup) -> CustomClass:
     name = parent.attrs["name"]
     values = parent["values"][:]
     return parent.pycls(name=name, values=values)

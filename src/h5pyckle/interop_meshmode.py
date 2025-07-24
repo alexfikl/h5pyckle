@@ -4,17 +4,9 @@
 
 from __future__ import annotations
 
-try:
-    import cloudpickle as pickle
-except ImportError:
-    try:
-        import dill as pickle
-    except ImportError:
-        import pickle
-
 import threading
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 import arraycontext.impl.pyopencl.taggable_cl_array as tga
 import numpy as np
@@ -30,13 +22,22 @@ from meshmode.discretization.poly_element import PolynomialRecursiveNodesElement
 from meshmode.dof_array import DOFArray
 from meshmode.mesh import Mesh, MeshElementGroup
 
-import h5pyckle.interop_numpy  # noqa: F401
-from h5pyckle.base import PickleGroup, dumper, load_from_type, loader
+import h5pyckle.interop_numpy  # pyright: ignore[reportUnusedImport] # noqa: F401
+from h5pyckle.base import PickleGroup, dumper, has_tobytes, load_from_type, loader
 
 __all__ = ("array_context_for_pickling",)
 
 if TYPE_CHECKING:
+    import pickle
     from collections.abc import Iterator
+else:
+    try:
+        import cloudpickle as pickle
+    except ImportError:
+        try:
+            import dill as pickle
+        except ImportError:
+            import pickle
 
 # {{{ context manager
 
@@ -103,6 +104,28 @@ def from_numpy(x: np.ndarray | None, *, frozen: bool = True) -> Array | None:
     return result
 
 
+def get_integer_from_attrs(parent: PickleGroup, name: str) -> int:
+    if name in parent.attrs:
+        attr = cast("object", parent.attrs[name])
+        if isinstance(attr, (int, np.integer)):
+            return int(attr)  # pyright: ignore[reportUnknownArgumentType]
+        else:
+            raise TypeError(f"'{name}' attribute should be an integer: {type(attr)}")
+    else:
+        raise KeyError(f"'{name}' not in the 'attrs' of group '{parent.name}'")
+
+
+def get_boolean_from_attrs(parent: PickleGroup, name: str) -> bool:
+    if name in parent.attrs:
+        attr = cast("object", parent.attrs[name])
+        if isinstance(attr, (bool, np.bool)):
+            return bool(attr)
+        else:
+            raise TypeError(f"'{name}' attribute should be a bool: {type(attr)}")
+    else:
+        raise KeyError(f"'{name}' not in the 'attrs' of group '{parent.name}'")
+
+
 # }}}
 
 
@@ -110,32 +133,31 @@ def from_numpy(x: np.ndarray | None, *, frozen: bool = True) -> Array | None:
 
 
 @dumper.register(cla.Array)
-def _dump_cl_array(
+def dump_cl_array(
     obj: cla.Array, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     group = parent.create_type(name, obj)
 
     group.attrs["frozen"] = obj.queue is None
-    group.create_dataset(
+    _ = group.create_dataset(
         "entry",
         data=to_numpy(tga.to_tagged_cl_array(obj)),
     )
 
 
 @loader.register(cla.Array)
-def _load_cl_array(parent: PickleGroup) -> cla.Array:
+def load_cl_array(parent: PickleGroup) -> cla.Array:
     from h5pyckle.interop_numpy import load_numpy_dataset
 
-    result = from_numpy(
-        load_numpy_dataset(parent, "entry"), frozen=parent.attrs["frozen"]
-    )
+    frozen = get_boolean_from_attrs(parent, "frozen")
+    result = from_numpy(load_numpy_dataset(parent, "entry"), frozen=frozen)
     assert isinstance(result, cla.Array)
 
     return result
 
 
 @dumper.register(tga.TaggableCLArray)
-def _dump_taggable_cl_array(
+def dump_taggable_cl_array(
     obj: tga.TaggableCLArray, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     group = parent.create_type(name, obj)
@@ -144,14 +166,15 @@ def _dump_taggable_cl_array(
     dumper(obj.axes, group, name="axes")
     dumper(obj.tags, group, name="tags")
 
-    group.create_dataset("entry", data=to_numpy(obj))
+    _ = group.create_dataset("entry", data=to_numpy(obj))
 
 
 @loader.register(tga.TaggableCLArray)
-def _load_taggable_cl_array(parent: PickleGroup) -> tga.TaggableCLArray:
+def load_taggable_cl_array(parent: PickleGroup) -> tga.TaggableCLArray:
     from h5pyckle.interop_numpy import load_numpy_dataset
 
-    ary = from_numpy(load_numpy_dataset(parent, "entry"), frozen=parent.attrs["frozen"])
+    frozen = get_boolean_from_attrs(parent, "frozen")
+    ary = from_numpy(load_numpy_dataset(parent, "entry"), frozen=frozen)
     axes = load_from_type(parent["axes"])
     tags = load_from_type(parent["tags"])
 
@@ -166,7 +189,7 @@ def _load_taggable_cl_array(parent: PickleGroup) -> tga.TaggableCLArray:
 
 
 @dumper.register(DOFArray)
-def _dump_dof_array(
+def dump_dof_array(
     obj: DOFArray, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     group = parent.create_type(name, obj)
@@ -176,13 +199,14 @@ def _dump_dof_array(
 
 
 @loader.register(DOFArray)
-def _load_dof_array(parent: PickleGroup) -> DOFArray:
+def load_dof_array(parent: PickleGroup) -> DOFArray:
     entries = load_from_type(parent["entries"])
 
-    array_context = None if parent.attrs["frozen"] else get_array_context()
+    frozen = get_boolean_from_attrs(parent, "frozen")
+    array_context = None if frozen else get_array_context()
     return parent.pycls(
         array_context,
-        tuple(from_numpy(x, frozen=parent.attrs["frozen"]) for x in entries),
+        tuple(from_numpy(x, frozen=frozen) for x in entries),
     )
 
 
@@ -192,22 +216,22 @@ def _load_dof_array(parent: PickleGroup) -> DOFArray:
 # {{{ mesh
 
 
-def _dump_order(parent: PickleGroup, order) -> None:
+def _dump_order(parent: PickleGroup, order: int | tuple[int, ...]) -> None:
     if isinstance(order, tuple):
         dumper(order, parent, name="order")
     else:
         parent.attrs["order"] = order
 
 
-def _load_order(parent: PickleGroup):
+def _load_order(parent: PickleGroup) -> int | tuple[int, ...]:
     if "order" in parent.attrs:
-        return int(parent.attrs["order"])
+        return get_integer_from_attrs(parent, "order")
 
     return load_from_type(parent["order"])
 
 
 @dumper.register(MeshElementGroup)
-def _dump_mesh_element_grouo(
+def dump_mesh_element_grouo(
     obj: MeshElementGroup, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     parent = parent.create_type(name, obj)
@@ -216,16 +240,15 @@ def _dump_mesh_element_grouo(
     parent.attrs["dim"] = obj.dim
 
     if obj.vertex_indices is not None:
-        parent.create_dataset("vertex_indices", data=obj.vertex_indices)
-    parent.create_dataset("nodes", data=obj.nodes)
-    parent.create_dataset("unit_nodes", data=obj.unit_nodes)
+        _ = parent.create_dataset("vertex_indices", data=obj.vertex_indices)
+    _ = parent.create_dataset("nodes", data=obj.nodes)
+    _ = parent.create_dataset("unit_nodes", data=obj.unit_nodes)
 
 
 @loader.register(MeshElementGroup)
-def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
-    # NOTE: h5py extracts these as np.intp
+def load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
     order = _load_order(parent)
-    dim = int(parent.attrs["dim"])
+    dim = get_integer_from_attrs(parent, "dim")
 
     if "vertex_indices" in parent:
         vertex_indices = parent["vertex_indices"][:]
@@ -241,17 +264,18 @@ def _load_mesh_element_group(parent: PickleGroup) -> MeshElementGroup:
 
 
 @dumper.register(Mesh)
-def _dump_mesh(obj: Mesh, parent: PickleGroup, *, name: str | None = None) -> None:
+def dump_mesh(obj: Mesh, parent: PickleGroup, *, name: str | None = None) -> None:
     parent = parent.create_type(name, obj)
 
-    if hasattr(obj, "boundary_tags"):
-        parent.attrs["boundary_tags"] = np.void(pickle.dumps(obj.boundary_tags))
+    boundary_tags = getattr(obj, "boundary_tags", None)
+    if boundary_tags is not None:
+        parent.attrs["boundary_tags"] = np.void(pickle.dumps(boundary_tags))
 
     if obj.is_conforming is not None:
         parent.attrs["is_conforming"] = obj.is_conforming
 
     if obj.vertices is not None:
-        parent.create_dataset("vertices", data=obj.vertices)
+        _ = parent.create_dataset("vertices", data=obj.vertices)
 
     dumper(obj.vertex_id_dtype, parent, name="vertex_id_dtype")
     dumper(obj.element_id_dtype, parent, name="element_id_dtype")
@@ -263,12 +287,14 @@ def _dump_mesh(obj: Mesh, parent: PickleGroup, *, name: str | None = None) -> No
 
 
 @loader.register(Mesh)
-def _load_mesh(parent: PickleGroup) -> Mesh:
+def load_mesh(parent: PickleGroup) -> Mesh:
     kwargs = {}
 
     if "boundary_tags" in parent.attrs:
-        boundary_tags = pickle.loads(parent.attrs["boundary_tags"].tobytes())
-        kwargs["boundary_tags"] = boundary_tags
+        attr = cast("object", parent.attrs["boundary_tags"])
+        if has_tobytes(attr):
+            boundary_tags = pickle.loads(attr.tobytes())
+            kwargs["boundary_tags"] = boundary_tags
 
     from dataclasses import is_dataclass
 
@@ -283,7 +309,10 @@ def _load_mesh(parent: PickleGroup) -> Mesh:
     else:
         vertices = None
 
-    is_conforming = parent.attrs.get("is_conforming", None)
+    is_conforming = None
+    if "is_conforming" in parent.attrs:
+        is_conforming = get_boolean_from_attrs(parent, "is_conforming")
+
     vertex_id_dtype = load_from_type(parent["vertex_id_dtype"])
     element_id_dtype = load_from_type(parent["element_id_dtype"])
     groups = load_from_type(parent["groups"])
@@ -321,7 +350,7 @@ class _SameElementGroupFactory:
             :class:`~meshmode.discretization.ElementGroupBase`.
         """
 
-        self.groups = groups
+        self.groups: list[ElementGroupBase] = groups
 
     def __call__(self, mesh_el_group: MeshElementGroup) -> ElementGroupBase:
         grp = self.groups.pop(0)
@@ -332,8 +361,12 @@ class _SameElementGroupFactory:
         return type(grp)(mesh_el_group, grp.order)
 
 
+class ElementGroup(NamedTuple):
+    dim: int
+
+
 @dumper.register(ElementGroupBase)
-def _dump_element_group(
+def dump_element_group(
     obj: ElementGroupBase, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     # NOTE: these are dumped only for use in Discretization at the moment.
@@ -345,19 +378,16 @@ def _dump_element_group(
 
 
 @loader.register(ElementGroupBase)
-def _load_element_group(parent: PickleGroup) -> ElementGroupBase:
+def load_element_group(parent: PickleGroup) -> ElementGroupBase:
     # NOTE: the real mesh_el_group is set by the group factory
-    from collections import namedtuple
-
-    ElementGroup = namedtuple("ElementGroup", ["dim"])
     return parent.pycls(
-        ElementGroup(dim=int(parent.attrs["dim"])),
+        ElementGroup(dim=get_integer_from_attrs(parent, "dim")),
         _load_order(parent),
     )
 
 
 @dumper.register(PolynomialRecursiveNodesElementGroup)
-def _dump_recursivenodes_element_group(
+def dump_recursivenodes_element_group(
     obj: PolynomialRecursiveNodesElementGroup,
     parent: PickleGroup,
     *,
@@ -371,23 +401,19 @@ def _dump_recursivenodes_element_group(
 
 
 @loader.register(PolynomialRecursiveNodesElementGroup)
-def _load_recursivenodes_element_group(
+def load_recursivenodes_element_group(
     parent: PickleGroup,
 ) -> PolynomialRecursiveNodesElementGroup:
     # NOTE: the real mesh_el_group is set by the group factory
-    from collections import namedtuple
-
-    ElementGroup = namedtuple("ElementGroup", ["dim"])
-
     return parent.pycls(
-        ElementGroup(dim=int(parent.attrs["dim"])),
+        ElementGroup(dim=get_integer_from_attrs(parent, "dim")),
         _load_order(parent),
-        str(parent.attrs["family"]),
+        str(parent.attrs["family"]),  # pyright: ignore[reportUnknownArgumentType]
     )
 
 
 @dumper.register(Discretization)
-def _dump_discretization(
+def dump_discretization(
     obj: Discretization, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     group = parent.create_type(name, obj)
@@ -398,7 +424,7 @@ def _dump_discretization(
 
 
 @loader.register(Discretization)
-def _load_discretization(parent: PickleGroup) -> Discretization:
+def load_discretization(parent: PickleGroup) -> Discretization:
     mesh = load_from_type(parent["mesh"])
     real_dtype = load_from_type(parent["real_dtype"])
     groups = load_from_type(parent["groups"])
@@ -419,8 +445,8 @@ def _load_discretization(parent: PickleGroup) -> Discretization:
 
 
 @dumper.register(InterpolationBatch)
-def _dump_interpolation_batch(
-    obj: InterpolationBatch, parent: PickleGroup, *, name: str | None = None
+def dump_interpolation_batch(
+    obj: InterpolationBatch[Any], parent: PickleGroup, *, name: str | None = None
 ) -> None:
     grp = parent.create_type(name, obj)
 
@@ -428,15 +454,19 @@ def _dump_interpolation_batch(
     if obj.to_element_face is not None:
         grp.attrs["to_element_face"] = obj.to_element_face
 
-    grp.create_dataset("from_element_indices", data=to_numpy(obj.from_element_indices))
-    grp.create_dataset("to_element_indices", data=to_numpy(obj.to_element_indices))
-    grp.create_dataset("result_unit_nodes", data=obj.result_unit_nodes)
+    # fmt: off
+    _ = grp.create_dataset("from_element_indices", data=to_numpy(obj.from_element_indices))  # noqa: E501
+    _ = grp.create_dataset("to_element_indices", data=to_numpy(obj.to_element_indices))
+    _ = grp.create_dataset("result_unit_nodes", data=obj.result_unit_nodes)
+    # fmt: on
 
 
 @loader.register(InterpolationBatch)
-def _load_interpolation_batch(parent: PickleGroup) -> InterpolationBatch:
-    from_group_index = parent.attrs["from_group_index"]
-    to_element_face = parent.attrs.get("to_element_face", None)
+def load_interpolation_batch(parent: PickleGroup) -> InterpolationBatch[Any]:
+    from_group_index = get_integer_from_attrs(parent, "from_group_index")
+    to_element_face = None
+    if "to_element_face" in parent.attrs:
+        to_element_face = get_integer_from_attrs(parent, "to_element_face")
 
     from_element_indices = parent["from_element_indices"][:]
     to_element_indices = parent["from_element_indices"][:]
@@ -452,7 +482,7 @@ def _load_interpolation_batch(parent: PickleGroup) -> InterpolationBatch:
 
 
 @dumper.register(DiscretizationConnectionElementGroup)
-def _dump_connection_element_group(
+def dump_connection_element_group(
     obj: DiscretizationConnectionElementGroup,
     parent: PickleGroup,
     *,
@@ -463,7 +493,7 @@ def _dump_connection_element_group(
 
 
 @loader.register(DiscretizationConnectionElementGroup)
-def _load_connection_element_group(
+def load_connection_element_group(
     parent: PickleGroup,
 ) -> DiscretizationConnectionElementGroup:
     batches = load_from_type(parent["batches"])
@@ -472,7 +502,7 @@ def _load_connection_element_group(
 
 
 @dumper.register(DirectDiscretizationConnection)
-def _dump_direct_connection(
+def dump_direct_connection(
     obj: DirectDiscretizationConnection,
     parent: PickleGroup,
     *,
@@ -487,8 +517,8 @@ def _dump_direct_connection(
 
 
 @loader.register(DirectDiscretizationConnection)
-def _load_direct_connection(parent: PickleGroup) -> DirectDiscretizationConnection:
-    is_surjective = parent.attrs["is_surjective"]
+def load_direct_connection(parent: PickleGroup) -> DirectDiscretizationConnection:
+    is_surjective = get_boolean_from_attrs(parent, "is_surjective")
     from_discr = load_from_type(parent["from_discr"])
     to_discr = load_from_type(parent["to_discr"])
     groups = load_from_type(parent["groups"])

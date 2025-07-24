@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-def make_obj_array(arrays: Sequence[Any]) -> np.ndarray[tuple[int], np.dtype[object]]:
+def make_obj_array(arrays: Sequence[Any]) -> np.ndarray[tuple[int], np.dtype[Any]]:
     result = np.empty((len(arrays),), dtype=object)
 
     # 'result[:] = res_list' may look tempting, however:
@@ -32,7 +32,9 @@ def make_obj_array(arrays: Sequence[Any]) -> np.ndarray[tuple[int], np.dtype[obj
     return result
 
 
-def load_numpy_dataset(parent, name):
+def load_numpy_dataset(
+    parent: PickleGroup, name: str
+) -> np.ndarray[Any, np.dtype[Any]]:
     ds = parent[name]
     if ds.shape == ():
         ds = np.array(ds[()])
@@ -49,17 +51,18 @@ def load_numpy_dataset(parent, name):
 
 
 @dumper.register(np.dtype)
-def _dump_dtype(obj: np.dtype, parent: PickleGroup, *, name: str | None = None) -> None:
+def dump_dtype(obj: np.dtype, parent: PickleGroup, *, name: str | None = None) -> None:
+    descr = cast("str", obj.str)
     if name is None:
-        parent.attrs["dtype"] = np.array(obj.str.encode())
+        parent.attrs["dtype"] = np.array(descr.encode())
     else:
         grp = parent.create_group(name)
-        grp.append_type(obj, force_cls=np.dtype)
-        grp.attrs["dtype"] = np.array(obj.str.encode())
+        _ = grp.append_type(obj, force_cls=np.dtype)
+        grp.attrs["dtype"] = np.array(descr.encode())
 
 
 @loader.register(np.dtype)
-def _load_dtype(parent: PickleGroup) -> np.dtype:
+def load_dtype(parent: PickleGroup) -> np.dtype:
     return np.dtype(parent.attrs["dtype"])
 
 
@@ -70,7 +73,7 @@ def _load_dtype(parent: PickleGroup) -> np.dtype:
 
 
 @dumper.register(np.ndarray)
-def _dump_ndarray(
+def dump_ndarray(
     obj: np.ndarray, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     grp = parent.create_type(name, obj)
@@ -83,11 +86,11 @@ def _dump_ndarray(
         for i, ary in enumerate(obj):
             dumper(ary, grp, name=f"entry_{i}")
     else:
-        grp.create_dataset("entry", data=obj)
+        _ = grp.create_dataset("entry", data=obj)
 
 
 @loader.register(np.ndarray)
-def _load_ndarray(parent: PickleGroup) -> np.ndarray:
+def load_ndarray(parent: PickleGroup) -> np.ndarray:
     dtype = load_from_type(parent, cls=np.dtype)
 
     if dtype.char == "O":

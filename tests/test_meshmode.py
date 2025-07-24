@@ -8,25 +8,33 @@ import logging
 import pathlib
 from dataclasses import dataclass
 from functools import partial
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pytest
+
+if TYPE_CHECKING:
+    from arraycontext import ArrayContext
+    from meshmode.dof_array import DOFArray
 
 logger = logging.getLogger(__name__)
 dirname = pathlib.Path(__file__).parent
 
 
-def norm(actx: Any, x: "np.ndarray[Any, Any]") -> float:
+def norm(actx: ArrayContext, x: np.ndarray[Any, np.dtype[Any]] | DOFArray) -> float:
+    from meshmode.dof_array import flat_norm
+
     if isinstance(x, np.ndarray):
         x = actx.np.sqrt(x @ x)
-
-    from meshmode.dof_array import flat_norm
 
     return flat_norm(x)
 
 
-def rnorm(actx: Any, x: "np.ndarray[Any, Any]", y: "np.ndarray[Any, Any]") -> float:
+def rnorm(
+    actx: ArrayContext,
+    x: np.ndarray[Any, np.dtype[Any]] | DOFArray,
+    y: np.ndarray[Any, np.dtype[Any]] | DOFArray,
+) -> float:
     norm_y = norm(actx, y)
     if norm_y < 1.0e-15:
         norm_y = 1.0
@@ -93,9 +101,14 @@ def test_discretization_pickling(ambient_dim: int, target_order: int) -> None:
 
     nodes = actx.thaw(discr.nodes())
 
+    from arraycontext.impl.pyopencl.taggable_cl_array import TaggableCLArray
+
+    ary = nodes[0][0]
+    assert isinstance(ary, TaggableCLArray)
+
     from meshmode.transform_metadata import FirstAxisIsElementsTag
 
-    ary = nodes[0][0].tagged(FirstAxisIsElementsTag())
+    ary = ary.tagged(FirstAxisIsElementsTag())
 
     filename = dirname / "pickle_meshmode.h5"
     with array_context_for_pickling(actx):
@@ -216,7 +229,9 @@ def test_pickling_cl_scalar() -> None:
 
     # {{{
 
-    x = cl.array.to_device(queue, np.array(42))
+    import pyopencl.array as cla
+
+    x = cla.to_device(queue, np.array(42))
     arg_in = {"x": x}
 
     from h5pyckle import dump, load
@@ -245,6 +260,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         exec(sys.argv[1])
     else:
-        pytest.main([__file__])
+        _ = pytest.main([__file__])
 
 # vim: fdm=marker

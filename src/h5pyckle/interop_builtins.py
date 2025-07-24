@@ -22,7 +22,7 @@ from h5pyckle.base import (
 
 
 @dumper.register(object)
-def _dump_object(obj: object, parent: PickleGroup, *, name: str | None = None) -> None:
+def dump_object(obj: object, parent: PickleGroup, *, name: str | None = None) -> None:
     # NOTE: if we got here, it means no other (more specific) dumping method
     # was found and we should fall back to the generic pickle
     group = parent.create_type(name, obj)
@@ -32,7 +32,7 @@ def _dump_object(obj: object, parent: PickleGroup, *, name: str | None = None) -
 
 
 @loader.register(object)
-def _load_object(parent: PickleGroup) -> Any:
+def load_object(parent: PickleGroup) -> Any:
     return pickle_from_group("state", parent)
 
 
@@ -43,13 +43,13 @@ def _load_object(parent: PickleGroup) -> Any:
 
 
 @dumper.register(Number)
-def _dump_number(obj: Number, parent: PickleGroup, *, name: str | None = None) -> None:
+def dump_number(obj: Number, parent: PickleGroup, *, name: str | None = None) -> None:
     parent.attrs[name] = obj
 
 
 @dumper.register(str)
 @dumper.register(bytes)
-def _dump_string(
+def dump_string(
     obj: str | bytes, parent: PickleGroup, *, name: str | None = None
 ) -> None:
     parent.attrs[name] = obj
@@ -57,7 +57,7 @@ def _dump_string(
 
 @dumper.register(int)
 @dumper.register(float)
-def _dump_int(obj: Number, parent: PickleGroup, *, name: str | None = None) -> None:
+def dump_int(obj: Number, parent: PickleGroup, *, name: str | None = None) -> None:
     # NOTE: managed to hit an arbitrary precision int
     grp = parent.create_type(name, obj)
     grp.attrs["value"] = repr(obj).encode()
@@ -65,7 +65,7 @@ def _dump_int(obj: Number, parent: PickleGroup, *, name: str | None = None) -> N
 
 @loader.register(int)
 @loader.register(float)
-def _load_int(parent: PickleGroup) -> int:
+def load_int(parent: PickleGroup) -> int:
     from h5pyckle.base import load_from_attribute
 
     return parent.pycls(load_from_attribute("value", parent))
@@ -78,7 +78,7 @@ def _load_int(parent: PickleGroup) -> int:
 
 
 @dumper.register(dict)
-def _dump_dict(
+def dump_dict(
     obj: dict[str, Any], parent: PickleGroup, *, name: str | None = None
 ) -> None:
     if name is None:
@@ -91,7 +91,7 @@ def _dump_dict(
 
 
 @loader.register(dict)
-def _load_dict(parent: PickleGroup) -> dict[str, Any]:
+def load_dict(parent: PickleGroup) -> dict[str, Any]:
     from h5pyckle.base import load_group_as_dict
 
     return parent.pycls(load_group_as_dict(parent))
@@ -106,7 +106,7 @@ def _load_dict(parent: PickleGroup) -> dict[str, Any]:
 @dumper.register(set)
 @dumper.register(list)
 @dumper.register(tuple)
-def _dump_sequence(
+def dump_sequence(
     obj: list[Any] | set[Any] | tuple[Any, ...],
     parent: PickleGroup,
     *,
@@ -118,7 +118,7 @@ def _dump_sequence(
 
 
 @loader.register(list)
-def _load_list(parent: PickleGroup) -> list[Any]:
+def load_list(parent: PickleGroup) -> list[Any]:
     from h5pyckle.base import load_group_as_dict
 
     if "entry" in parent:
@@ -135,12 +135,12 @@ def _load_list(parent: PickleGroup) -> list[Any]:
 
 
 @loader.register(tuple)
-def _load_tuple(parent: PickleGroup) -> tuple[Any, ...]:
+def load_tuple(parent: PickleGroup) -> tuple[Any, ...]:
     return parent.pycls(load_from_type(parent, cls=list))
 
 
 @loader.register(set)
-def _load_set(parent: PickleGroup) -> set[Any]:
+def load_set(parent: PickleGroup) -> set[Any]:
     return parent.pycls(load_from_type(parent, cls=list))
 
 
