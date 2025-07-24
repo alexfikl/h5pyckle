@@ -59,6 +59,7 @@ jobs:
     - name: Main Script
       run: |
         just pip-install
+        just pyright-ignore-meshmode
         just pyright
 
   pytest:
