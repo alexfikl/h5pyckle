@@ -152,6 +152,7 @@ class PickleGroup(h5py.Group):
         if isinstance(h5, cls):
             return h5
         elif isinstance(h5, h5py.File):
+            # NOTE: File is also a Group and should go first
             return cls(h5["/"].id)
         elif isinstance(h5, h5py.Group):
             return cls(h5.id)
@@ -353,7 +354,7 @@ def loader(parent: Any) -> Any:
 
 def dump_to_group(
     obj: Any,
-    parent: h5py.Group | h5py.File | PickleGroup,
+    parent: h5py.Group | PickleGroup,
     *,
     name: str | None = None,
 ) -> None:
@@ -367,7 +368,7 @@ def dump_to_group(
 
 
 def load_from_group(
-    parent: h5py.File | h5py.Group | PickleGroup,
+    parent: h5py.Group | PickleGroup,
     *,
     exclude: set[str] | Sequence[str] | None = None,
 ) -> Any:
@@ -388,7 +389,7 @@ def load_from_group(
 
 
 def load_by_pattern(
-    parent: h5py.Group | h5py.File | PickleGroup,
+    parent: h5py.Group | PickleGroup,
     *,
     pattern: str,
 ) -> Any:
