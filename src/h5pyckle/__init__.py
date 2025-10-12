@@ -7,7 +7,7 @@ from __future__ import annotations
 from importlib import metadata
 
 # NOTE: importing to have the types registered
-import h5pyckle.interop_builtins  # pyright: ignore[reportUnusedImport]
+import h5pyckle.interop_builtins  # pyright: ignore[reportUnusedImport]  # noqa: F401
 import h5pyckle.interop_numpy  # pyright: ignore[reportUnusedImport] # noqa: F401
 from h5pyckle.base import (
     PickleGroup,

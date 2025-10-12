@@ -192,16 +192,6 @@
                 }
             }
         ],
-        "./src/h5pyckle/interop_meshmode.py": [
-            {
-                "code": "reportUnknownArgumentType",
-                "range": {
-                    "startColumn": 55,
-                    "endColumn": 65,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./src/h5pyckle/interop_numpy.py": [
             {
                 "code": "reportUnknownArgumentType",
@@ -242,14 +232,6 @@
                 "range": {
                     "startColumn": 25,
                     "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnknownVariableType",
-                "range": {
-                    "startColumn": 53,
-                    "endColumn": 82,
                     "lineCount": 1
                 }
             },
