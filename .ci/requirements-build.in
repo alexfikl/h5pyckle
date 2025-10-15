@@ -1,4 +1,5 @@
-pip
 editables
 hatchling
+pip
+setuptools
 wheel
