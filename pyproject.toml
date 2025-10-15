@@ -6,7 +6,7 @@ requires = [
 
 [project]
 name = "h5pyckle"
-version = "2025.7"
+version = "2025.10"
 description = "Extensible pickling using HDF5"
 readme = "README.rst"
 keywords = [
