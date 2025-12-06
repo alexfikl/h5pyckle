@@ -39,27 +39,19 @@ dependencies = [
     "numpy>=2.1",
     "typing-extensions>=4.1",
 ]
-optional-dependencies.dev = [
-    "pyproject-fmt",
-    "reuse",
-    "typos",
-    "uv",
-]
+# NOTE: this is only here for readthedocs (keep in sync with the dependency group)
 optional-dependencies.docs = [
     "sphinx>=6",
     "sphinx-autoapi",
     "sphinx-book-theme",
 ]
-optional-dependencies.test = [
-    "basedpyright",
-    "cloudpickle",
-    "pytest",
-    "ruff",
-    "types-dataclasses",
-    "unyt",
-]
 urls.Documentation = "https://h5pyckle.readthedocs.io"
 urls.Repository = "https://github.com/alexfikl/h5pyckle"
+
+[dependency-groups]
+dev = [ "pyproject-fmt", "reuse", "typos", "uv" ]
+test = [ "basedpyright", "cloudpickle", "pytest", "unyt", "ruff" ]
+docs = [ "sphinx>=6", "sphinx-autoapi", "sphinx-book-theme" ]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
