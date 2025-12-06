@@ -50,7 +50,7 @@ urls.Repository = "https://github.com/alexfikl/h5pyckle"
 
 [dependency-groups]
 dev = [ "pyproject-fmt", "reuse", "typos", "uv" ]
-test = [ "basedpyright", "cloudpickle", "pytest", "unyt", "ruff" ]
+test = [ "basedpyright", "cloudpickle", "pytest", "ruff", "unyt" ]
 docs = [ "sphinx>=6", "sphinx-autoapi", "sphinx-book-theme" ]
 
 [tool.hatch.build.targets.sdist]
