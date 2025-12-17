@@ -27,7 +27,6 @@ SPDX-License-Identifier = "CC0-1.0"
 
 [[annotations]]
 path = [
-    ".basedpyright/baseline.json",
     ".ci/*.in",
     ".ci/*.txt",
     ".ci/*.yml",
