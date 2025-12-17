@@ -81,13 +81,13 @@ pluggy==1.6.0
     # via pytest
 pygments==2.19.2
     # via pytest
-pymbolic @ git+https://github.com/inducer/pymbolic.git@06b1bbb4524a5cf55b11a06bd16051841ec2cf7d#egg=pymbolic
+pymbolic @ git+https://github.com/inducer/pymbolic.git@f9f1b27b83473c162c48f5c0ebfabbd74c0fefd5#egg=pymbolic
     # via
     #   -r .ci/requirements-meshmode.in
     #   loopy
     #   meshmode
     #   modepy
-pytest==9.0.1
+pytest==9.0.2
     # via -r .ci/requirements-meshmode.in
 pytools==2025.2.5
     # via
