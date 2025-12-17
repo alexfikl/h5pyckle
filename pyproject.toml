@@ -50,7 +50,7 @@ urls.Repository = "https://github.com/alexfikl/h5pyckle"
 
 [dependency-groups]
 dev = [ "pyproject-fmt", "reuse", "typos", "uv" ]
-test = [ "basedpyright", "cloudpickle", "pytest", "ruff", "unyt" ]
+test = [ "cloudpickle", "pytest", "ruff", "ty", "unyt" ]
 docs = [ "sphinx>=6", "sphinx-autoapi", "sphinx-book-theme" ]
 
 [tool.hatch.build.targets.sdist]
@@ -125,12 +125,3 @@ testpaths = "tests"
 markers = [
     "meshmode: mark a test that uses meshmode",
 ]
-
-[tool.basedpyright]
-pythonVersion = "3.10"
-pythonPlatform = "All"
-
-reportImplicitStringConcatenation = "none"
-reportUnknownMemberType = "hint"
-reportExplicitAny = "none"
-reportAny = "none"

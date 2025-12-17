@@ -22,7 +22,7 @@ from meshmode.discretization.poly_element import PolynomialRecursiveNodesElement
 from meshmode.dof_array import DOFArray
 from meshmode.mesh import Mesh, MeshElementGroup
 
-import h5pyckle.interop_numpy  # pyright: ignore[reportUnusedImport] # noqa: F401
+import h5pyckle.interop_numpy  # noqa: F401
 from h5pyckle.base import PickleGroup, dumper, has_tobytes, load_from_type, loader
 
 __all__ = ("array_context_for_pickling",)
@@ -112,7 +112,7 @@ def get_integer_from_attrs(parent: PickleGroup, name: str) -> int:
     if name in parent.attrs:
         attr = cast("object", parent.attrs[name])
         if isinstance(attr, (int, np.integer)):
-            return int(attr)  # pyright: ignore[reportUnknownArgumentType]
+            return int(attr)
         else:
             raise TypeError(f"'{name}' attribute should be an integer: {type(attr)}")
     else:
@@ -412,7 +412,7 @@ def load_recursivenodes_element_group(
     return parent.pycls(
         ElementGroup(dim=get_integer_from_attrs(parent, "dim")),
         _load_order(parent),
-        str(parent.attrs["family"]),  # pyright: ignore[reportUnknownArgumentType]
+        str(parent.attrs["family"]),
     )
 
 

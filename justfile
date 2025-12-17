@@ -88,17 +88,6 @@ pin: requirements_txt requirements_test_txt requirements_build_txt requirements_
 # }}}
 # {{{ develop
 
-[private]
-pyright-ignore-meshmode:
-    #!/usr/bin/env bash
-    cat << 'EOF' | sed 's/^    //' >> pyproject.toml
-
-        ignore = [
-            'tests/test_meshmode.py',
-            'src/h5pyckle/interop_meshmode.py',
-        ]
-    EOF
-
 [doc('Install project in editable mode')]
 develop: clean
     {{ PYTHON }} -m pip install \

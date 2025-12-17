@@ -185,7 +185,7 @@ class PickleGroup(h5py.Group):
         return cast("str | None", super().name)
 
     @override
-    def create_group(  # pyright: ignore[reportIncompatibleMethodOverride]
+    def create_group(
         self, name: str, *, track_order: bool | None = True
     ) -> "PickleGroup":
         """Thin wrapper around :meth:`h5py.Group.create_group`.
@@ -198,7 +198,7 @@ class PickleGroup(h5py.Group):
         return self.replace(gid=grp.id)
 
     @override
-    def create_dataset(  # pyright: ignore[reportIncompatibleMethodOverride]
+    def create_dataset(
         self,
         name: str,
         *,
@@ -269,7 +269,7 @@ class PickleGroup(h5py.Group):
 
         module = cls.__module__
         name = cls.__qualname__
-        if not (module is None or module == str.__module__):  # pyright: ignore[reportUnnecessaryComparison]
+        if not (module is None or module == str.__module__):
             name = f"{module}.{name}"
 
         self.attrs["__type"] = np.void(pickle.dumps(cls))

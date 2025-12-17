@@ -43,7 +43,7 @@ def _h5pyckle_dataclass(cls: type) -> type:
     # FIXME: just generate and exec the code to avoid the for loop?
 
     @dumper.register(cls)
-    def _dump_dataclass(  # pyright: ignore[reportUnusedFunction]
+    def _dump_dataclass(
         obj: Any, parent: PickleGroup, *, name: str | None = None
     ) -> None:
         group = parent.create_type(name, obj)
@@ -59,7 +59,7 @@ def _h5pyckle_dataclass(cls: type) -> type:
                 dumper(value, group, name=f.name)
 
     @loader.register(cls)
-    def _load_dataclass(  # pyright: ignore[reportUnusedFunction]
+    def _load_dataclass(
         parent: PickleGroup,
     ) -> Any:
         kwargs = {}
