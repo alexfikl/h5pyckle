@@ -54,8 +54,8 @@ ruff:
     @echo -e "\e[1;32mruff clean!\e[0m"
 
 [doc("Run ty checks over the source code")]
-ty:
-    ty check src tests examples
+ty *args:
+    ty check {{ args }} src tests examples
     @echo -e "\e[1;32mty clean!\e[0m"
 
 # }}}

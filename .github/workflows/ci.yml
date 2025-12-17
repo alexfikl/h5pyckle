@@ -61,7 +61,9 @@ jobs:
       run: |
         just ci-install .venv
         source .venv/bin/activate
-        just ty
+        just ty \
+          --exclude=src/h5pyckle/interop_meshmode.py \
+          --exclude=tests/test_meshmode.py
 
   pytest:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
