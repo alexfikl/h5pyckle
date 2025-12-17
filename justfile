@@ -113,6 +113,8 @@ ci-install venv=".venv":
         --no-build-isolation \
         --editable .
 
+    @echo -e "\e[1;32mvenv setup completed: '{{ venv }}'!\e[0m"
+
 [doc("Remove various build artifacts")]
 clean:
     rm -rf build dist
