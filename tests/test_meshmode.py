@@ -25,7 +25,7 @@ def norm(actx: ArrayContext, x: np.ndarray[Any, np.dtype[Any]] | DOFArray) -> fl
     from meshmode.dof_array import flat_norm
 
     if isinstance(x, np.ndarray):
-        x = actx.np.sqrt(x @ x)
+        x = actx.np.sqrt(x @ x)  # ty: ignore[unsupported-operator]
 
     return flat_norm(x)
 
@@ -99,7 +99,7 @@ def test_discretization_pickling(ambient_dim: int, target_order: int) -> None:
     from h5pyckle import dump, load
     from h5pyckle.interop_meshmode import array_context_for_pickling
 
-    nodes = actx.thaw(discr.nodes())
+    nodes = actx.thaw(discr.nodes())  # ty: ignore[invalid-argument-type]
 
     from arraycontext.impl.pyopencl.taggable_cl_array import TaggableCLArray
 

@@ -56,14 +56,13 @@ from typing import (
     Any,
     Protocol,
     TypeAlias,
-    TypeGuard,
     cast,
     runtime_checkable,
 )
 
 import h5py
 import numpy as np
-from typing_extensions import Buffer, override
+from typing_extensions import Buffer, TypeIs, override
 
 if TYPE_CHECKING:
     import io
@@ -87,7 +86,7 @@ class HasToBytes(Protocol):
     def tobytes(self) -> bytes: ...
 
 
-def has_tobytes(obj: object) -> TypeGuard[HasToBytes]:
+def has_tobytes(obj: object) -> TypeIs[HasToBytes]:
     return isinstance(obj, HasToBytes)
 
 
@@ -186,7 +185,11 @@ class PickleGroup(h5py.Group):
 
     @override
     def create_group(
-        self, name: str, *, track_order: bool | None = True
+        self,
+        name: str,
+        track_order: bool | None = None,
+        *,
+        track_times: bool = False,
     ) -> "PickleGroup":
         """Thin wrapper around :meth:`h5py.Group.create_group`.
 
@@ -194,17 +197,19 @@ class PickleGroup(h5py.Group):
         :param track_order: If *True*, creation order in the group is preserved.
             This is the default to match the default :class:`dict` behavior.
         """
-        grp = super().create_group(name, track_order=track_order)
+        grp = super().create_group(
+            name, track_order=track_order, track_times=track_times
+        )
         return self.replace(gid=grp.id)
 
     @override
     def create_dataset(
         self,
         name: str,
-        *,
         shape: tuple[int, ...] | None = None,
         dtype: Any = None,
         data: np.ndarray[Any, np.dtype[Any]] | None = None,
+        **kwargs: Any,
     ) -> h5py.Dataset:
         """Thin wrapper around :meth:`h5py.Group.create_dataset`. It uses
         the options from :attr:`h5_dset_options` to create the dataset.
@@ -218,8 +223,9 @@ class PickleGroup(h5py.Group):
         if "/" in name:
             raise ValueError(f"dataset names cannot contain a '/': '{name}'")
 
+        kwargs = {**self.h5_dset_options, **kwargs}
         return super().create_dataset(
-            name, shape=shape, dtype=dtype, data=data, **self.h5_dset_options
+            name, shape=shape, dtype=dtype, data=data, **kwargs
         )
 
     @override

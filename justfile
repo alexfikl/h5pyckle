@@ -36,7 +36,7 @@ justfmt:
 # {{{ linting
 
 [doc('Run all linting checks over the source code')]
-lint: typos reuse ruff pyright
+lint: typos reuse ruff ty
 
 [doc('Run typos over the source code and documentation')]
 typos:
@@ -53,10 +53,10 @@ ruff:
     ruff check src tests examples docs
     @echo -e "\e[1;32mruff clean!\e[0m"
 
-[doc("Run pyright checks over the source code")]
-pyright:
-    basedpyright src tests examples
-    @echo -e "\e[1;32mpyright clean!\e[0m"
+[doc("Run ty checks over the source code")]
+ty:
+    ty check src tests examples
+    @echo -e "\e[1;32mty clean!\e[0m"
 
 # }}}
 # {{{ pin
@@ -96,8 +96,17 @@ develop: clean
         --editable .
 
 [doc("Editable install using pinned dependencies from requirements-test.txt")]
-pip-install:
+ci-install venv=".venv":
+    #!/usr/bin/env bash
+
+    # build a virtual environment
+    python -m venv {{ venv }}
+    source {{ venv }}/bin/activate
+
+    # install build dependencies (need to be first due to  --no-build-isolation)
     {{ PYTHON }} -m pip install --requirement .ci/requirements-build.txt
+
+    # install all other pinned dependencies
     {{ PYTHON }} -m pip install \
         --verbose \
         --requirement .ci/requirements-test.txt \

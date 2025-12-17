@@ -250,8 +250,8 @@ def test_pickling_dataclass() -> None:
 
     from h5pyckle import dumper, loader
 
-    assert dumper.dispatch(Employee).__name__ == "_dump_dataclass"
-    assert loader.dispatch(Employee).__name__ == "_load_dataclass"
+    assert dumper.dispatch(Employee).__name__ == "_dump_dataclass"  # ty: ignore[unresolved-attribute]
+    assert loader.dispatch(Employee).__name__ == "_load_dataclass"  # ty: ignore[unresolved-attribute]
 
     arg_in = Employee(
         name="John Doe",
