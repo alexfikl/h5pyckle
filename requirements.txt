@@ -6,7 +6,7 @@ numpy==2.2.6 ; python_full_version < '3.11'
     # via
     #   h5pyckle (pyproject.toml)
     #   h5py
-numpy==2.3.5 ; python_full_version >= '3.11'
+numpy==2.4.0 ; python_full_version >= '3.11'
     # via
     #   h5pyckle (pyproject.toml)
     #   h5py
