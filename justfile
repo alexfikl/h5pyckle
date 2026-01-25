@@ -61,21 +61,26 @@ ty *args:
 # }}}
 # {{{ pin
 
+REQUIREMENTS_DIR := ".ci"
+
 [private]
 requirements_meshmode_txt:
     uv pip compile --upgrade --universal --python-version "3.10" \
-        -o .ci/requirements-meshmode.txt .ci/requirements-meshmode.in
+        -o {{ REQUIREMENTS_DIR }}/requirements-meshmode.txt \
+        {{ REQUIREMENTS_DIR }}/requirements-meshmode.in
 
 [private]
 requirements_build_txt:
     uv pip compile --upgrade --universal --python-version "3.10" \
-        -o .ci/requirements-build.txt .ci/requirements-build.in
+        -o {{ REQUIREMENTS_DIR }}/requirements-build.txt \
+        {{ REQUIREMENTS_DIR }}/requirements-build.in
 
 [private]
 requirements_test_txt:
     uv pip compile --upgrade --universal --python-version '3.10' \
         --group test \
-        -o .ci/requirements-test.txt pyproject.toml
+        -o {{ REQUIREMENTS_DIR }}/requirements-test.txt \
+        pyproject.toml
 
 [private]
 requirements_txt:
@@ -100,16 +105,18 @@ ci-install venv=".venv":
     #!/usr/bin/env bash
 
     # build a virtual environment
-    python -m venv {{ venv }}
-    source {{ venv }}/bin/activate
+    if [[ ! -d "{{ venv }}" ]]; then
+        python -m venv {{ venv }}
+        source {{ venv }}/bin/activate
+    fi
 
     # install build dependencies (need to be first due to  --no-build-isolation)
-    {{ PYTHON }} -m pip install --requirement .ci/requirements-build.txt
+    {{ PYTHON }} -m pip install --requirement {{ REQUIREMENTS_DIR }}/requirements-build.txt
 
     # install all other pinned dependencies
     {{ PYTHON }} -m pip install \
         --verbose \
-        --requirement .ci/requirements-test.txt \
+        --requirement {{ REQUIREMENTS_DIR }}/requirements-test.txt \
         --no-build-isolation \
         --editable .
 
