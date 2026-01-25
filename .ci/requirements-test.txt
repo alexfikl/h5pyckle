@@ -22,7 +22,7 @@ numpy==2.4.1 ; python_full_version >= '3.11'
     #   h5pyckle (pyproject.toml)
     #   h5py
     #   unyt
-packaging==25.0
+packaging==26.0
     # via
     #   pytest
     #   unyt
@@ -32,17 +32,17 @@ pygments==2.19.2
     # via pytest
 pytest==9.0.2
     # via h5pyckle (pyproject.toml:test)
-ruff==0.14.11
+ruff==0.14.14
     # via h5pyckle (pyproject.toml:test)
 sympy==1.14.0
     # via unyt
-tomli==2.3.0 ; python_full_version < '3.11'
+tomli==2.4.0 ; python_full_version < '3.11'
     # via pytest
-ty==0.0.11
+ty==0.0.13
     # via h5pyckle (pyproject.toml:test)
 typing-extensions==4.15.0
     # via
     #   h5pyckle (pyproject.toml)
     #   exceptiongroup
-unyt==3.0.4
+unyt==3.1.0
     # via h5pyckle (pyproject.toml:test)
