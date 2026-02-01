@@ -125,3 +125,9 @@ testpaths = "tests"
 markers = [
     "meshmode: mark a test that uses meshmode",
 ]
+addopts = [
+    "-rswx",
+    "--durations=25",
+    "--verbose",
+    "--capture=no",
+]

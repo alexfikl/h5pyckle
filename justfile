@@ -147,10 +147,7 @@ ctags:
 
 [doc("Run pytest tests")]
 test *PYTEST_ADDOPTS:
-    {{ PYTHON }} -m pytest \
-        --junit-xml=pytest-results.xml \
-        -rswx --durations=25 -v -s \
-        {{ PYTEST_ADDOPTS }}
+    {{ PYTHON }} -m pytest {{ PYTEST_ADDOPTS }}
 
 [doc("Run examples with default options")]
 examples:
