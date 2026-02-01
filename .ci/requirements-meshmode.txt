@@ -31,9 +31,9 @@ immutabledict==4.2.2
     # via arraycontext
 iniconfig==2.3.0
     # via pytest
-islpy==2025.2.5
+islpy==2026.1
     # via loopy
-loopy @ git+https://github.com/inducer/loopy.git@fe33244be7759a867ea039c080cb126ea00ccd52#egg=loopy
+loopy @ git+https://github.com/inducer/loopy.git@4b0d88b301d946ebac74216c6bf192af3eaab500#egg=loopy
     # via
     #   -r .ci/requirements-meshmode.in
     #   meshmode
@@ -43,7 +43,7 @@ markupsafe==3.0.3
     # via mako
 meshmode @ git+https://github.com/inducer/meshmode.git@d9e3bff81cc8da545d9a0bc0892eb3fc1514c3d5#egg=meshmode
     # via -r .ci/requirements-meshmode.in
-modepy @ git+https://github.com/inducer/modepy.git@5c98ca006052a68ca5040d801dd56066e2a8861f#egg=modepy
+modepy @ git+https://github.com/inducer/modepy.git@a60de985f4103ff062b434d5e42cfed0002c4016#egg=modepy
     # via
     #   -r .ci/requirements-meshmode.in
     #   meshmode
@@ -58,7 +58,7 @@ numpy==2.2.6 ; python_full_version < '3.11'
     #   meshmode
     #   modepy
     #   recursivenodes
-numpy==2.4.1 ; python_full_version >= '3.11'
+numpy==2.4.2 ; python_full_version >= '3.11'
     # via
     #   arraycontext
     #   cgen
