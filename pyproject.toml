@@ -53,22 +53,19 @@ dev = [ "pyproject-fmt", "reuse", "typos", "uv" ]
 test = [ "cloudpickle", "pytest", "ruff", "ty", "unyt" ]
 docs = [ "sphinx>=6", "sphinx-autoapi", "sphinx-book-theme" ]
 
-[tool.hatch.build.targets.sdist]
-exclude = [
+[tool.hatch]
+build.targets.sdist.exclude = [
     ".github",
     ".ci",
     "docs/build.sphinx",
 ]
-
-[tool.hatch.build.targets.wheel]
-packages = [
+build.targets.wheel.packages = [
     "src/h5pyckle",
 ]
 
 [tool.ruff]
 target-version = "py310"
 line-length = 88
-
 preview = true
 lint.select = [
     "A",   # flake8-builtins
@@ -107,9 +104,7 @@ lint.ignore = [
     "SIM108",  # use-ternary-operator
     "UP037",   # quoted-annotation
 ]
-
 lint.flake8-pytest-style.mark-parentheses = false
-
 lint.flake8-quotes.docstring-quotes = "double"
 lint.flake8-quotes.inline-quotes = "double"
 lint.flake8-quotes.multiline-quotes = "double"
@@ -120,12 +115,12 @@ lint.isort.required-imports = [
     "from __future__ import annotations",
 ]
 
-[tool.pytest.ini_options]
-testpaths = "tests"
-markers = [
+[tool.pytest]
+ini_options.testpaths = "tests"
+ini_options.markers = [
     "meshmode: mark a test that uses meshmode",
 ]
-addopts = [
+ini_options.addopts = [
     "-rswx",
     "--durations=25",
     "--verbose",
