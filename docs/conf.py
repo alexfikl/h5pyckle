@@ -29,13 +29,6 @@ extensions = [
     "sphinx.ext.mathjax",
 ]
 
-try:
-    import sphinxcontrib.spelling  # noqa: F401
-
-    extensions.append("sphinxcontrib.spelling")
-except ImportError:
-    pass
-
 # extension for source files
 source_suffix = ".rst"
 # name of the main (master) document
