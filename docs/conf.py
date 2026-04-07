@@ -46,11 +46,6 @@ pygments_style = "sphinx"
 
 language = "en"
 
-# sphinxcontrib.spelling options
-spelling_lang = "en_US"
-tokenizer_lang = "en_US"
-spelling_word_list_filename = "wordlist_en.txt"
-
 # }}
 
 # {{{ output
