@@ -17,7 +17,7 @@ numpy==2.2.6 ; python_full_version < '3.11'
     #   h5pyckle (pyproject.toml)
     #   h5py
     #   unyt
-numpy==2.4.4 ; python_full_version >= '3.11'
+numpy==2.4.6 ; python_full_version >= '3.11'
     # via
     #   h5pyckle (pyproject.toml)
     #   h5py
@@ -30,15 +30,15 @@ pluggy==1.6.0
     # via pytest
 pygments==2.20.0
     # via pytest
-pytest==9.0.3
+pytest==9.1.1
     # via h5pyckle (pyproject.toml:test)
-ruff==0.15.13
+ruff==0.15.18
     # via h5pyckle (pyproject.toml:test)
 sympy==1.14.0
     # via unyt
 tomli==2.4.1 ; python_full_version < '3.11'
     # via pytest
-ty==0.0.35
+ty==0.0.51
     # via h5pyckle (pyproject.toml:test)
 typing-extensions==4.15.0
     # via
