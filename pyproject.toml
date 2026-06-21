@@ -50,7 +50,7 @@ urls.Repository = "https://github.com/alexfikl/h5pyckle"
 
 [dependency-groups]
 dev = [ "pyproject-fmt", "reuse", "typos", "uv" ]
-test = [ "cloudpickle", "pytest", "ruff", "ty", "unyt" ]
+test = [ "cloudpickle", "pytest", "pytest-github-actions-annotate-failures", "ruff", "ty", "unyt" ]
 docs = [ "sphinx>=6", "sphinx-autoapi", "sphinx-book-theme" ]
 
 [tool.hatch]
