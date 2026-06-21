@@ -29,7 +29,7 @@ __all__ = ("array_context_for_pickling",)
 
 if TYPE_CHECKING:
     import pickle
-    from collections.abc import Iterator
+    from collections.abc import Generator
 else:
     try:
         import cloudpickle as pickle
@@ -45,7 +45,7 @@ _ARRAY_CONTEXT_FOR_PICKLING_TLS = threading.local()
 
 
 @contextmanager
-def array_context_for_pickling(actx: ArrayContext) -> Iterator[None]:
+def array_context_for_pickling(actx: ArrayContext) -> Generator[None]:
     """A context manager that can be used to provide an
     :class:`~arraycontext.ArrayContext` for pickling and unpickling
     :mod:`meshmode` objects.

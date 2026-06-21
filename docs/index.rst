@@ -88,7 +88,7 @@ calls with the context manager
 
 .. currentmodule:: h5pyckle.interop_meshmode
 
-.. function:: array_context_for_pickling(actx: arraycontext.ArrayContext) -> Iterator[None]
+.. function:: array_context_for_pickling(actx: arraycontext.ArrayContext) -> Generator[None]
 
     A context manager that can be used to provide an
     :class:`~arraycontext.ArrayContext` for pickling and unpickling
