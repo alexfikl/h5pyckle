@@ -31,6 +31,10 @@ pluggy==1.6.0
 pygments==2.20.0
     # via pytest
 pytest==9.1.1
+    # via
+    #   h5pyckle (pyproject.toml:test)
+    #   pytest-github-actions-annotate-failures
+pytest-github-actions-annotate-failures==0.4.2
     # via h5pyckle (pyproject.toml:test)
 ruff==0.15.18
     # via h5pyckle (pyproject.toml:test)
