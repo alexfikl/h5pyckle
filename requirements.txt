@@ -6,9 +6,13 @@ numpy==2.2.6 ; python_full_version < '3.11'
     # via
     #   h5pyckle (pyproject.toml)
     #   h5py
-numpy==2.4.6 ; python_full_version >= '3.11'
+numpy==2.4.6 ; python_full_version == '3.11.*'
     # via
     #   h5pyckle (pyproject.toml)
     #   h5py
-typing-extensions==4.15.0
+numpy==2.5.1 ; python_full_version >= '3.12'
+    # via
+    #   h5pyckle (pyproject.toml)
+    #   h5py
+typing-extensions==4.16.0
     # via h5pyckle (pyproject.toml)
