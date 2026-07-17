@@ -22,7 +22,7 @@ from meshmode.discretization.poly_element import PolynomialRecursiveNodesElement
 from meshmode.dof_array import DOFArray
 from meshmode.mesh import Mesh, MeshElementGroup
 
-import h5pyckle.interop_numpy  # noqa: F401
+import h5pyckle.interop_numpy  # ruff:ignore[unused-import]
 from h5pyckle.base import PickleGroup, dumper, has_tobytes, load_from_type, loader
 
 __all__ = ("array_context_for_pickling",)
@@ -459,7 +459,7 @@ def dump_interpolation_batch(
         grp.attrs["to_element_face"] = obj.to_element_face
 
     # fmt: off
-    _ = grp.create_dataset("from_element_indices", data=to_numpy(obj.from_element_indices))  # noqa: E501
+    _ = grp.create_dataset("from_element_indices", data=to_numpy(obj.from_element_indices))  # ruff:ignore[line-too-long]
     _ = grp.create_dataset("to_element_indices", data=to_numpy(obj.to_element_indices))
     _ = grp.create_dataset("result_unit_nodes", data=obj.result_unit_nodes)
     # fmt: on

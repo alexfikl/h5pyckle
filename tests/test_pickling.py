@@ -225,8 +225,8 @@ def test_pickling_scalar() -> None:
     dump(arg_in, filename)
     arg_out = load(filename)
 
-    assert type(arg_in["int"]) == type(arg_out["int"])  # noqa: E721
-    assert type(arg_in["float"]) == type(arg_out["float"])  # noqa: E721
+    assert type(arg_in["int"]) == type(arg_out["int"])  # ruff:ignore[type-comparison]
+    assert type(arg_in["float"]) == type(arg_out["float"])  # ruff:ignore[type-comparison]
 
 
 # }}}

@@ -13,7 +13,7 @@ from importlib import metadata
 m = metadata.metadata("h5pyckle")
 project = m["Name"]
 author = m["Author-email"]
-copyright = f"2021 {author}"  # noqa: A001
+copyright = f"2021 {author}"  # ruff:ignore[builtin-variable-shadowing]
 version = m["Version"]
 release = version
 
