@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 from dataclasses import Field, fields, is_dataclass
-from typing import Any
+from typing import Any, ClassVar, Protocol, TypeVar
 
 from h5pyckle.base import (
     PickleGroup,
@@ -39,7 +39,15 @@ def _is_scalar_field(f: Field[Any]) -> bool:
 # {{{ dataclasses
 
 
-def _h5pyckle_dataclass(cls: type) -> type:
+# https://github.com/python/typeshed/blob/770724013de34af6f75fa444cdbb76d187b41875/stdlib/_typeshed/__init__.pyi#L329-L334
+class DataclassInstance(Protocol):
+    __dataclass_fields__: ClassVar[dict[str, Field[Any]]]
+
+
+DataclassInstanceT = TypeVar("DataclassInstanceT", bound=DataclassInstance)
+
+
+def _h5pyckle_dataclass(cls: type[DataclassInstanceT]) -> type[DataclassInstanceT]:
     # FIXME: just generate and exec the code to avoid the for loop?
 
     @dumper.register(cls)
