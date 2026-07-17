@@ -41,13 +41,13 @@ pytest==9.1.1
     #   pytest-github-actions-annotate-failures
 pytest-github-actions-annotate-failures==0.4.2
     # via h5pyckle (pyproject.toml:test)
-ruff==0.15.20
+ruff==0.15.22
     # via h5pyckle (pyproject.toml:test)
 sympy==1.14.0
     # via unyt
 tomli==2.4.1 ; python_full_version < '3.11'
     # via pytest
-ty==0.0.56
+ty==0.0.60
     # via h5pyckle (pyproject.toml:test)
 typing-extensions==4.16.0
     # via
