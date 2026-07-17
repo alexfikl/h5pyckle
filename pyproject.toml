@@ -90,19 +90,19 @@ lint.select = [
     "W",   # flake8
 ]
 lint.ignore = [
-    "E402",    # module-import-not-at-top-of-file
-    "ISC001",  # single-line-implicit-string-concatenation
-    "PLC0415", # import-outside-top-level
-    "PLR0913", # too-many-arguments
-    "PLR0914", # too-many-locals
-    "PLR0915", # too-many-statements
-    "PLR2004", # magic-value-comparison
-    "S101",    # assert
-    "S102",    # exec-builtin
-    "S301",    # suspicious-pickle-usage
-    "S403",    # suspicious-pickle-import
-    "SIM108",  # use-ternary-operator
-    "UP037",   # quoted-annotation
+    "assert",                                    # assert
+    "exec-builtin",                              # exec-builtin
+    "if-else-block-instead-of-if-exp",           # use-ternary-operator
+    "import-outside-top-level",                  # import-outside-top-level
+    "magic-value-comparison",                    # magic-value-comparison
+    "module-import-not-at-top-of-file",          # module-import-not-at-top-of-file
+    "quoted-annotation",                         # quoted-annotation
+    "single-line-implicit-string-concatenation", # single-line-implicit-string-concatenation
+    "suspicious-pickle-import",                  # suspicious-pickle-import
+    "suspicious-pickle-usage",                   # suspicious-pickle-usage
+    "too-many-arguments",                        # too-many-arguments
+    "too-many-locals",                           # too-many-locals
+    "too-many-statements",                       # too-many-statements
 ]
 lint.flake8-pytest-style.mark-parentheses = false
 lint.flake8-quotes.docstring-quotes = "double"
