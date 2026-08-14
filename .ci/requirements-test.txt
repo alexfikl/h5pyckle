@@ -22,12 +22,12 @@ numpy==2.4.6 ; python_full_version == '3.11.*'
     #   h5pyckle (pyproject.toml)
     #   h5py
     #   unyt
-numpy==2.5.1 ; python_full_version >= '3.12'
+numpy==2.5.2 ; python_full_version >= '3.12'
     # via
     #   h5pyckle (pyproject.toml)
     #   h5py
     #   unyt
-packaging==26.2
+packaging==26.3
     # via
     #   pytest
     #   unyt
@@ -41,13 +41,13 @@ pytest==9.1.1
     #   pytest-github-actions-annotate-failures
 pytest-github-actions-annotate-failures==0.4.2
     # via h5pyckle (pyproject.toml:test)
-ruff==0.15.22
+ruff==0.16.3
     # via h5pyckle (pyproject.toml:test)
 sympy==1.14.0
     # via unyt
 tomli==2.4.1 ; python_full_version < '3.11'
     # via pytest
-ty==0.0.60
+ty==0.0.71
     # via h5pyckle (pyproject.toml:test)
 typing-extensions==4.16.0
     # via
