@@ -56,7 +56,7 @@ Reference
 Numpy
 -----
 
-In general, ``h5py`` has very good interopability with :mod:`numpy`. This
+In general, ``h5py`` has very good interoperability with :mod:`numpy`. This
 module offers some basic handling of :mod:`numpy` types
 
 * :class:`~numpy.dtype`
