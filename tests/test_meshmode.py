@@ -25,7 +25,7 @@ def norm(actx: ArrayContext, x: np.ndarray[Any, np.dtype[Any]] | DOFArray) -> fl
     from meshmode.dof_array import flat_norm
 
     if isinstance(x, np.ndarray):
-        x = actx.np.sqrt(x @ x)
+        x = actx.np.sqrt(x @ x)  # ty: ignore[invalid-argument-type]
 
     return flat_norm(x)
 
